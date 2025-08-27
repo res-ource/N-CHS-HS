@@ -1,1 +1,643 @@
-app_q3_attempts	app_q3_incorrect
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Name That Sample Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .slide {
+            display: none;
+        }
+        .slide.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .btn {
+            transition: all 0.3s ease;
+            text-align: center; /* Centered text for all buttons */
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .btn-choice {
+            background-color: #f3f4f6; /* gray-100 */
+            color: #1f2937; /* gray-800 */
+        }
+        .btn-choice:hover {
+            background-color: #e5e7eb; /* gray-200 */
+        }
+        .population-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 4px;
+        }
+        .person {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #d1d5db; /* gray-300 */
+            transition: background-color 0.3s ease, transform 0.3s ease, outline 0.1s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: black;
+        }
+        .person.slow-transition {
+            transition: background-color 0.7s ease;
+        }
+        .person.selected {
+            background-color: #3b82f6 !important; /* blue-500 */
+        }
+        .person.counting {
+            background-color: #fde047; /* yellow-300 */
+            transform: scale(1.2);
+        }
+        .person.highlight {
+            outline: 3px solid #0ea5e9; /* sky-500 */
+            transform: scale(1.2);
+        }
+        .person.group1 { background-color: #ef4444; } /* red */
+        .person.group2 { background-color: #f97316; } /* orange */
+        .person.group3 { background-color: #eab308; } /* yellow */
+        .person.group4 { background-color: #84cc16; } /* lime */
+        .person.group5 { background-color: #22c55e; } /* green */
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="w-full max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-8 md:p-12 text-center relative">
+
+        <!-- Slide 1: Start Screen -->
+        <div id="slide1" class="slide active">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Name That Sample</h1>
+            <p class="text-lg md:text-xl text-gray-600 mb-8">First, let's review the different sampling methods with some animated examples.</p>
+            <button onclick="showSlide('name-entry')" class="btn bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-lg shadow-md hover:bg-blue-700">START</button>
+        </div>
+
+        <!-- Name Entry Slide -->
+        <div id="name-entry" class="slide">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">Enter Your Name</h1>
+            <p class="text-lg text-gray-600 mb-6">Please enter your first name, middle initial, and last name.</p>
+            <input id="student-name-input" type="text" class="w-full max-w-md mx-auto p-3 border-2 border-gray-300 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., John F. Doe">
+            <div id="name-error" class="text-red-500 mt-2 min-h-[1.5rem]"></div>
+            <button onclick="captureName()" class="btn bg-blue-600 text-white font-bold py-3 px-8 rounded-lg mt-4">Continue</button>
+        </div>
+        
+        <!-- Animation Slides -->
+        <div id="animation-1" class="slide">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Simple Random Sample</h2>
+            <p class="text-lg text-gray-700 mb-4 text-left p-4 bg-gray-50 rounded-lg"><strong>Definition:</strong> Everyone from the population has an equally likely chance of being selected.</p>
+            <div id="grid-1" class="population-grid mx-auto max-w-xs mb-4"></div>
+            <p class="text-md text-gray-600 italic">The animation shows a few individuals being chosen completely at random.</p>
+            <div class="flex justify-center items-center gap-4 mt-6">
+                <button onclick="runAnimation(1)" class="btn bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg text-sm">Refresh Animation</button>
+                <button onclick="showSlide('animation-2'); runAnimation(2);" class="btn bg-blue-600 text-white font-bold py-3 px-8 rounded-lg">Next Method</button>
+            </div>
+        </div>
+        <div id="animation-2" class="slide">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Systematic Sample</h2>
+            <p class="text-lg text-gray-700 mb-4 text-left p-4 bg-gray-50 rounded-lg"><strong>Definition:</strong> Individuals are selected based on a rule, such as every 5th person.</p>
+            <div id="grid-2" class="population-grid mx-auto max-w-xs mb-4"></div>
+            <p class="text-md text-gray-600 italic">The animation shows every 7th person being selected after counting.</p>
+            <div class="flex justify-center items-center gap-4 mt-6">
+                <button onclick="runAnimation(2)" class="btn bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg text-sm">Refresh Animation</button>
+                <button onclick="showSlide('animation-3'); runAnimation(3);" class="btn bg-blue-600 text-white font-bold py-3 px-8 rounded-lg">Next Method</button>
+            </div>
+        </div>
+        <div id="animation-3" class="slide">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Convenience Sample</h2>
+            <p class="text-lg text-gray-700 mb-4 text-left p-4 bg-gray-50 rounded-lg"><strong>Definition:</strong> Individuals are selected based on how accessible they are.</p>
+            <div id="grid-3" class="population-grid mx-auto max-w-xs mb-4"></div>
+            <p class="text-md text-gray-600 italic">The animation shows the individuals who are easiest to reach (the first row) being selected.</p>
+            <div class="flex justify-center items-center gap-4 mt-6">
+                <button onclick="runAnimation(3)" class="btn bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg text-sm">Refresh Animation</button>
+                <button onclick="showSlide('animation-4'); runAnimation(4);" class="btn bg-blue-600 text-white font-bold py-3 px-8 rounded-lg">Next Method</button>
+            </div>
+        </div>
+        <div id="animation-4" class="slide">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Stratified Sample</h2>
+            <p class="text-lg text-gray-700 mb-4 text-left p-4 bg-gray-50 rounded-lg"><strong>Definition:</strong> The population is divided into groups, and then individuals are randomly selected from <underline>each</underline> group.</p>
+            <div id="grid-4" class="population-grid mx-auto max-w-xs mb-4"></div>
+            <p class="text-md text-gray-600 italic">The animation shows a few individuals being randomly chosen from each color group.</p>
+            <div class="flex justify-center items-center gap-4 mt-6">
+                <button onclick="runAnimation(4)" class="btn bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg text-sm">Refresh Animation</button>
+                <button onclick="showSlide('animation-5'); runAnimation(5);" class="btn bg-blue-600 text-white font-bold py-3 px-8 rounded-lg">Next Method</button>
+            </div>
+        </div>
+        <div id="animation-5" class="slide">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Cluster Sample</h2>
+            <p class="text-lg text-gray-700 mb-4 text-left p-4 bg-gray-50 rounded-lg"><strong>Definition:</strong> The population is divided into groups, some groups are randomly selected, and then <underline>all</underline> individuals in the selected groups are surveyed.</p>
+            <div id="grid-5" class="population-grid mx-auto max-w-xs mb-4"></div>
+            <p class="text-md text-gray-600 italic">The animation shows some groups being randomly chosen, and then all members of those groups are selected.</p>
+            <div class="flex justify-center items-center gap-4 mt-6">
+                <button onclick="runAnimation(5)" class="btn bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg text-sm">Refresh Animation</button>
+                <button onclick="showSlide('animation-6'); runAnimation(6);" class="btn bg-blue-600 text-white font-bold py-3 px-8 rounded-lg">Next Method</button>
+            </div>
+        </div>
+        <div id="animation-6" class="slide">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Self-Selected Sample</h2>
+            <p class="text-lg text-gray-700 mb-4 text-left p-4 bg-gray-50 rounded-lg"><strong>Definition:</strong> Individuals from the population volunteer to be part of the sample.</p>
+            <div id="grid-6" class="population-grid mx-auto max-w-xs mb-4"></div>
+            <p class="text-md text-gray-600 italic">The animation shows individuals randomly volunteering themselves to be selected.</p>
+            <div class="flex justify-center items-center gap-4 mt-6">
+                <button onclick="runAnimation(6)" class="btn bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg text-sm">Refresh Animation</button>
+                <button onclick="startQuiz()" class="btn bg-green-500 text-white font-bold py-3 px-8 rounded-lg">BEGIN QUIZ</button>
+            </div>
+        </div>
+
+
+        <!-- Quiz Question Container -->
+        <div id="quiz-question-container" class="slide"></div>
+        
+        <!-- Feedback Slides -->
+        <div id="feedback-correct" class="slide">
+             <h2 class="text-3xl font-bold text-green-600 mb-4">Correct! ✅</h2>
+             <button onclick="nextQuestion()" class="btn bg-blue-600 text-white font-bold py-3 px-8 rounded-lg">Continue</button>
+        </div>
+        <div id="feedback-incorrect" class="slide">
+            <h2 class="text-3xl font-bold text-red-600 mb-4">Not Quite... 🧐</h2>
+            <p class="text-lg text-gray-600 mb-4">Let's review the animation for the correct answer. You'll see this question again!</p>
+            <div id="feedback-animation-grid" class="population-grid mx-auto max-w-xs mb-4"></div>
+            <button onclick="nextQuestion()" class="btn bg-blue-600 text-white font-bold py-3 px-8 rounded-lg mt-6">Continue</button>
+        </div>
+        
+        <!-- Application Section -->
+        <div id="app-question-container" class="slide"></div>
+
+        <!-- Final Completion Slide -->
+        <div id="slide15" class="slide">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Activity Complete! 🥳</h1>
+            <p class="text-lg md:text-xl text-gray-600 mb-8">Great job applying your knowledge of sampling methods!</p>
+            <button onclick="resetApp()" class="btn bg-green-500 text-white font-bold py-3 px-8 rounded-lg">START OVER</button>
+        </div>
+
+    </div>
+
+    <script>
+        let currentSlideId = 'slide1';
+        let animationInterval;
+        let studentName = '';
+        
+        // State for multiple choice quiz
+        let quizQueue = [];
+        let quizResults = {};
+
+        // State for application section
+        let appResults = {};
+        let appQueue = [];
+        let correctionQueue = [];
+        let isCorrectionRound = false;
+
+        const allSampleTypes = ['Simple Random Sample', 'Systematic Sample', 'Convenience Sample', 'Stratified Sample', 'Cluster Sample', 'Self-Selected Sample'];
+
+        const quizQuestions = {
+            'q1': { 
+                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question {current} of {total}</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">A TV executive wants to know the most popular show on Thursday nights. The executive obtains a list of all 5,000 households in a town and uses a computer to randomly select 200 households to call.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer('q1', 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer('q1', 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer('q1', 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer('q1', 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer('q1', 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer('q1', 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
+                answer: 'Simple Random Sample', 
+                animationType: 1 
+            },
+            'q2': { 
+                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question {current} of {total}</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">A restaurant leaves a comment card on every table to gather feedback from its customers.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer('q2', 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer('q2', 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer('q2', 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer('q2', 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer('q2', 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer('q2', 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
+                answer: 'Self-selected Sample', 
+                animationType: 6 
+            },
+            'q3': { 
+                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question {current} of {total}</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">The manager of a movie theater wants to know how customers feel about the new reclining seats. The manager surveys every 10th customer who buys a ticket.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer('q3', 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer('q3', 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer('q3', 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer('q3', 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer('q3', 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer('q3', 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
+                answer: 'Systematic Sample', 
+                animationType: 2 
+            },
+            'q4': { 
+                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question {current} of {total}</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">A high school principal wants to survey students about the quality of the school's Wi-Fi. The principal gets a list of all students, separates them by grade level (9th, 10th, 11th, and 12th), and then randomly selects 25 students from each grade.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer('q4', 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer('q4', 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer('q4', 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer('q4', 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer('q4', 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer('q4', 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
+                answer: 'Stratified Sample', 
+                animationType: 4 
+            },
+            'q5': { 
+                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question {current} of {total}</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">A reporter for the school newspaper wants to ask students about their summer plans. The reporter stands in the main hallway between classes and surveys the first 30 students she sees.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer('q5', 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer('q5', 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer('q5', 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer('q5', 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer('q5', 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer('q5', 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
+                answer: 'Convenience Sample', 
+                animationType: 3 
+            },
+            'q6': { 
+                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question {current} of {total}</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">A school district wants to survey its teachers about a new curriculum. The district randomly selects 5 of its 20 elementary schools and then surveys every single teacher within those 5 selected schools.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer('q6', 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer('q6', 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer('q6', 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer('q6', 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer('q6', 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer('q6', 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
+                answer: 'Cluster Sample', 
+                animationType: 5 
+            }
+        };
+
+        const appQuestions = {
+            'app1': {
+                scenario: `To gauge interest in a new fitness class, a gym sends an email survey to all of its members. They use the feedback from members who choose to respond.`,
+                answer: ['self-selected sample', 'self selected sample', 'self-selected', 'self selected', 'self sample', 'self']
+            },
+            'app2': {
+                scenario: `An airline wants to check the quality of its baggage handling. On a particular day, they randomly select 3 flights. For those 3 flights, they check every single piece of baggage to ensure it arrived safely.`,
+                answer: ['cluster sample', 'cluster']
+            },
+            'app3': {
+                scenario: `A town council wants to know if residents support building a new park. They get a list of all residential addresses and mail a survey to every 25th address on the list.`,
+                answer: ['systematic sample', 'systematic']
+            },
+            'app4': {
+                scenario: `A researcher wants to understand the study habits of college students. They divide the student population by major (e.g., Arts, Science, Engineering) and then randomly select 20 students from each major to interview.`,
+                answer: ['stratified sample', 'stratified']
+            },
+            'app5': {
+                scenario: `A news reporter wants to get public opinion on a local issue. They stand on a busy street corner and interview the first 50 people who are willing to speak with them.`,
+                answer: ['convenience sample', 'convenience']
+            },
+            'app6': {
+                scenario: `The organizers of a conference want to give away a door prize. They put the names of all 200 attendees into a hat, mix them up, and draw one name.`,
+                answer: ['simple random sample', 'simple random', 'random']
+            }
+        };
+        
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function captureName() {
+            const nameInput = document.getElementById('student-name-input');
+            const nameError = document.getElementById('name-error');
+            const name = nameInput.value.trim();
+            if (name) {
+                studentName = name;
+                nameError.textContent = '';
+                showSlide('animation-1');
+                runAnimation(1);
+            } else {
+                nameError.textContent = 'Please enter your name to continue.';
+            }
+        }
+
+        function startQuiz() {
+            const questionKeys = Object.keys(quizQuestions);
+            quizQueue = shuffleArray(questionKeys);
+            // Initialize results object for the quiz
+            for (const qNum of questionKeys) {
+                quizResults[qNum] = { attempts: 0, incorrectAnswers: [] };
+            }
+            nextQuestion();
+        }
+        
+        function showSlide(slideId) {
+            clearInterval(animationInterval);
+            const currentEl = document.getElementById(currentSlideId);
+            if (currentEl) currentEl.classList.remove('active');
+            const nextEl = document.getElementById(slideId);
+            if (nextEl) nextEl.classList.add('active');
+            currentSlideId = slideId;
+        }
+
+        function nextQuestion() {
+            if (quizQueue.length > 0) {
+                const qNum = quizQueue.shift();
+                const qData = quizQuestions[qNum];
+                const qContainer = document.getElementById(`quiz-question-container`);
+                const totalQuestions = Object.keys(quizQuestions).length;
+                const currentQuestionNumber = totalQuestions - quizQueue.length;
+                
+                let content = qData.content;
+                content = content.replace('{current}', currentQuestionNumber).replace('{total}', totalQuestions);
+
+                qContainer.innerHTML = content;
+                showSlide(`quiz-question-container`);
+            } else {
+                startApplicationSection();
+            }
+        }
+
+        function handleAnswer(qNum, selectedAnswer) {
+            quizResults[qNum].attempts++; // Increment attempt count
+            const isCorrect = (selectedAnswer === quizQuestions[qNum].answer);
+
+            if (isCorrect) {
+                showSlide('feedback-correct');
+            } else {
+                quizResults[qNum].incorrectAnswers.push(selectedAnswer);
+                quizQueue.push(String(qNum));
+                showSlide('feedback-incorrect');
+                runAnimation(quizQuestions[qNum].animationType, `feedback-animation-grid`);
+            }
+        }
+
+        // --- APPLICATION SECTION LOGIC ---
+        function startApplicationSection() {
+            const appQuestionKeys = Object.keys(appQuestions);
+            appQueue = shuffleArray(appQuestionKeys);
+            isCorrectionRound = false;
+            for(const qId of appQuestionKeys) {
+                appResults[qId] = { attempts: 0, correct: false, incorrectAnswers: [] };
+            }
+            nextAppQuestion();
+        }
+
+        function finishActivity() {
+            sendResults();
+            showSlide('slide15');
+        }
+
+        function nextAppQuestion() {
+            let nextQId;
+            if (isCorrectionRound) {
+                if (correctionQueue.length > 0) {
+                    nextQId = correctionQueue.shift();
+                } else {
+                    finishActivity(); // All corrections done
+                    return;
+                }
+            } else {
+                if (appQueue.length > 0) {
+                    nextQId = appQueue.shift();
+                } else {
+                    // Start correction round if needed
+                    correctionQueue = Object.keys(appResults).filter(qId => !appResults[qId].correct);
+                    if (correctionQueue.length > 0) {
+                        isCorrectionRound = true;
+                        // Using a custom modal/message box instead of alert
+                        const container = document.getElementById('app-question-container');
+                        container.innerHTML = `<h2 class="text-3xl font-bold text-gray-800 mb-4">Correction Round</h2><p class="text-lg text-gray-600 mb-8">Let's review the questions you missed.</p><button onclick="nextAppQuestion()" class="btn bg-blue-600 text-white font-bold py-3 px-8 rounded-lg">Start</button>`;
+                        showSlide('app-question-container');
+                    } else {
+                        finishActivity(); // All correct on first try
+                    }
+                    return;
+                }
+            }
+            
+            const question = appQuestions[nextQId];
+            const container = document.getElementById('app-question-container');
+            const roundTitle = isCorrectionRound ? "Correction Round" : "Application";
+            container.innerHTML = `
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">${roundTitle}</h2>
+                <p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">${question.scenario}</p>
+                <div id="app-feedback" class="mb-4 min-h-[6rem]"></div>
+                <input id="app-answer-input" type="text" class="w-full max-w-md mx-auto p-3 border-2 border-gray-300 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type your answer here...">
+                <button onclick="handleAppAnswer('${nextQId}')" class="btn bg-blue-600 text-white font-bold py-3 px-8 rounded-lg mt-4">Submit</button>
+            `;
+            showSlide('app-question-container');
+            document.getElementById('app-answer-input').focus();
+        }
+
+        function handleAppAnswer(qId) {
+            const input = document.getElementById('app-answer-input');
+            const userAnswer = input.value.trim().toLowerCase();
+            const correctAnswers = appQuestions[qId].answer;
+            const primaryAnswer = correctAnswers[0].replace(/\b\w/g, l => l.toUpperCase());
+            const feedbackContainer = document.getElementById('app-feedback');
+
+            appResults[qId].attempts++; // Always increment attempts on submission
+            
+            if (correctAnswers.includes(userAnswer)) {
+                appResults[qId].correct = true;
+                feedbackContainer.innerHTML = `<h3 class="text-2xl font-bold text-green-600">Correct! ✅</h3>`;
+                setTimeout(nextAppQuestion, 1500);
+                return;
+            }
+
+            // If incorrect
+            appResults[qId].incorrectAnswers.push(input.value.trim());
+            input.value = ''; // Clear input for next try
+            
+            if (isCorrectionRound) {
+                feedbackContainer.innerHTML = `<h3 class="text-xl font-bold text-red-600 mb-2">The correct answer is: ${primaryAnswer}</h3>`;
+                setTimeout(nextAppQuestion, 2500);
+                return;
+            }
+
+            if (appResults[qId].attempts === 1) {
+                feedbackContainer.innerHTML = `
+                    <h3 class="text-xl font-bold text-red-600 mb-2">Not quite... try again.</h3>
+                    <p class="text-gray-600">Here is a word bank to help:</p>
+                    <div class="flex flex-wrap justify-center gap-2 mt-2 text-sm">
+                        ${allSampleTypes.map(type => `<span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full">${type}</span>`).join('')}
+                    </div>
+                `;
+            } else if (appResults[qId].attempts === 2) {
+                const wrongOptions = allSampleTypes.filter(type => type.toLowerCase() !== correctAnswers[0]);
+                const shuffledWrong = wrongOptions.sort(() => 0.5 - Math.random());
+                const reducedBank = [primaryAnswer, shuffledWrong[0], shuffledWrong[1]].sort(() => 0.5 - Math.random());
+                feedbackContainer.innerHTML = `
+                    <h3 class="text-xl font-bold text-red-600 mb-2">Still not right... let's narrow it down.</h3>
+                    <p class="text-gray-600">Choose from these three:</p>
+                     <div class="flex flex-wrap justify-center gap-2 mt-2 text-sm">
+                        ${reducedBank.map(type => `<span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full">${type}</span>`).join('')}
+                    </div>
+                `;
+            } else {
+                feedbackContainer.innerHTML = `<h3 class="text-xl font-bold text-red-600 mb-2">The correct answer is: ${primaryAnswer}</h3>`;
+                setTimeout(nextAppQuestion, 2500);
+            }
+        }
+
+        function calculateScores() {
+            let quizScore = 0;
+            for (const qNum in quizResults) {
+                const attempts = quizResults[qNum].attempts;
+                if (attempts === 1) {
+                    quizScore += 3;
+                } else if (attempts === 2) {
+                    quizScore += 2;
+                } else if (attempts > 2) {
+                    quizScore += 1;
+                }
+            }
+
+            let appScore = 0;
+            for (const qId in appResults) {
+                const attempts = appResults[qId].attempts;
+                if (appResults[qId].correct) {
+                     if (attempts === 1) {
+                        appScore += 4;
+                    } else if (attempts === 2) {
+                        appScore += 3;
+                    } else if (attempts === 3) {
+                        appScore += 2;
+                    } else {
+                        appScore += 1;
+                    }
+                } else {
+                    appScore += 1; // For correction round
+                }
+            }
+            return { quizScore, appScore, totalScore: quizScore + appScore };
+        }
+
+        async function sendResults() {
+            const webhookUrl = 'https://automations.emoalchemy.com/webhook-test/stats';
+            const scores = calculateScores();
+
+            const payload = {
+                studentId: studentName,
+                quiz_score: scores.quizScore,
+                app_score: scores.appScore,
+                total_score: scores.totalScore
+            };
+
+            // Flatten quiz results
+            for (const qNum in quizResults) {
+                const key = qNum.replace('q', '');
+                payload[`quiz_q${key}_attempts`] = quizResults[qNum].attempts;
+                payload[`quiz_q${key}_incorrect`] = quizResults[qNum].incorrectAnswers.join(', ');
+            }
+
+            // Flatten application results
+            for (const qId in appResults) {
+                const key = qId.replace('app', '');
+                payload[`app_q${key}_attempts`] = appResults[qId].attempts;
+                payload[`app_q${key}_incorrect`] = appResults[qId].incorrectAnswers.join(', ');
+            }
+
+            try {
+                await fetch(webhookUrl, {
+                    method: 'POST',
+                    mode: 'no-cors', 
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams(payload).toString(),
+                });
+                console.log('Results submission attempted.');
+            } catch (error) {
+                console.error('Error sending results (network issue):', error);
+            }
+        }
+
+        function resetApp() {
+            studentName = '';
+            const nameInput = document.getElementById('student-name-input');
+            if(nameInput) nameInput.value = '';
+            showSlide('slide1');
+        }
+
+        // --- ANIMATION LOGIC ---
+        function createGrid(containerId, peopleCount = 50) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            for (let i = 0; i < peopleCount; i++) {
+                const person = document.createElement('div');
+                person.classList.add('person');
+                person.id = `${containerId}-person-${i}`;
+                container.appendChild(person);
+            }
+        }
+
+        function runAnimation(type, gridId) {
+            const gridIdentifier = gridId || `grid-${type}`;
+            clearInterval(animationInterval);
+            if (type === 1) {
+                createGrid(gridIdentifier);
+                const people = document.querySelectorAll(`#${gridIdentifier} .person`);
+                for (let i = 0; i < 5; i++) { setTimeout(() => { const randomIndex = Math.floor(Math.random() * people.length); people[randomIndex].classList.add('selected'); }, i * 300); }
+            } else if (type === 2) {
+                createGrid(gridIdentifier);
+                const people = document.querySelectorAll(`#${gridIdentifier} .person`);
+                let count = 0;
+                animationInterval = setInterval(() => {
+                    if (count >= people.length) { clearInterval(animationInterval); return; }
+                    people.forEach(p => { p.classList.remove('counting'); p.innerHTML = ''; });
+                    people[count].classList.add('counting');
+                    people[count].innerHTML = `<span>${(count % 7) + 1}</span>`;
+                    if ((count + 1) % 7 === 0) { people[count].classList.add('selected'); }
+                    count++;
+                }, 250);
+            } else if (type === 3) {
+                createGrid(gridIdentifier);
+                const people = document.querySelectorAll(`#${gridIdentifier} .person`);
+                for (let i = 0; i < 10; i++) { people[i].classList.add('selected'); }
+            } else if (type === 4) {
+                createGrid(gridIdentifier);
+                const people = document.querySelectorAll(`#${gridIdentifier} .person`);
+                setTimeout(() => { people.forEach((p, i) => { if (i < 15) { p.classList.add('slow-transition'); p.classList.add('group1'); } }); }, 1000); 
+                setTimeout(() => { people.forEach((p, i) => { if (i >= 15 && i < 35) { p.classList.add('slow-transition'); p.classList.add('group2'); } }); }, 2000); 
+                setTimeout(() => { people.forEach((p, i) => { if (i >= 35) { p.classList.add('slow-transition'); p.classList.add('group3'); } }); }, 3000); 
+                setTimeout(() => {
+                    const group1 = Array.from(document.querySelectorAll(`#${gridIdentifier} .group1`));
+                    const group2 = Array.from(document.querySelectorAll(`#${gridIdentifier} .group2`));
+                    const group3 = Array.from(document.querySelectorAll(`#${gridIdentifier} .group3`));
+                    const shuffledGroup1 = [...group1].sort(() => 0.5 - Math.random());
+                    shuffledGroup1.slice(0, 2).forEach(p => p.classList.add('selected'));
+                    const shuffledGroup2 = [...group2].sort(() => 0.5 - Math.random());
+                    shuffledGroup2.slice(0, 2).forEach(p => p.classList.add('selected'));
+                    const shuffledGroup3 = [...group3].sort(() => 0.5 - Math.random());
+                    shuffledGroup3.slice(0, 1).forEach(p => p.classList.add('selected'));
+                }, 4500); 
+            } else if (type === 5) {
+                createGrid(gridIdentifier);
+                const people = document.querySelectorAll(`#${gridIdentifier} .person`);
+                const groups = ['group1', 'group2', 'group3', 'group4', 'group5'];
+                const groupColors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'];
+                let delay = 1000;
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        people.forEach((p, index) => {
+                            if (Math.floor(index / 10) === i) {
+                                p.classList.add('slow-transition');
+                                p.style.backgroundColor = groupColors[i];
+                                p.dataset.group = groups[i];
+                            }
+                        });
+                    }, delay);
+                    delay += 1000;
+                }
+                setTimeout(() => {
+                    const allClusterNames = [...groups];
+                    const selectedClusters = [];
+                    while (selectedClusters.length < 2) {
+                        const randomIndex = Math.floor(Math.random() * allClusterNames.length);
+                        const cluster = allClusterNames.splice(randomIndex, 1)[0];
+                        selectedClusters.push(cluster);
+                    }
+                    let blinkCount = 0;
+                    animationInterval = setInterval(() => {
+                        if (blinkCount >= 6) {
+                            clearInterval(animationInterval);
+                            people.forEach(p => {
+                                p.classList.remove('highlight');
+                                if (selectedClusters.includes(p.dataset.group)) { p.classList.add('selected'); }
+                            });
+                            return;
+                        }
+                        people.forEach(p => {
+                            if (selectedClusters.includes(p.dataset.group)) { p.classList.toggle('highlight'); }
+                        });
+                        blinkCount++;
+                    }, 300);
+                }, delay + 500);
+            } else if (type === 6) {
+                createGrid(gridIdentifier);
+                const people = document.querySelectorAll(`#${gridIdentifier} .person`);
+                people.forEach((p, i) => {
+                    setTimeout(() => {
+                        if (Math.random() > 0.8) {
+                           p.innerHTML = 'Me!';
+                           p.style.color = 'black';
+                           setTimeout(() => { p.innerHTML = ''; p.classList.add('selected'); }, 600);
+                        }
+                    }, i * 50);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
