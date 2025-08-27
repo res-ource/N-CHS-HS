@@ -208,33 +208,33 @@
         const allSampleTypes = ['Simple Random Sample', 'Systematic Sample', 'Convenience Sample', 'Stratified Sample', 'Cluster Sample', 'Self-Selected Sample'];
 
         const quizQuestions = {
-            1: { 
-                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question 1 of 6</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">A TV executive wants to know the most popular show on Thursday nights. The executive obtains a list of all 5,000 households in a town and uses a computer to randomly select 200 households to call.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer(1, 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer(1, 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer(1, 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer(1, 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer(1, 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer(1, 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
+            'q1': { 
+                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question {current} of {total}</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">A TV executive wants to know the most popular show on Thursday nights. The executive obtains a list of all 5,000 households in a town and uses a computer to randomly select 200 households to call.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer('q1', 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer('q1', 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer('q1', 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer('q1', 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer('q1', 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer('q1', 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
                 answer: 'Simple Random Sample', 
                 animationType: 1 
             },
-            2: { 
-                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question 2 of 6</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">A restaurant leaves a comment card on every table to gather feedback from its customers.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer(2, 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer(2, 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer(2, 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer(2, 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer(2, 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer(2, 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
+            'q2': { 
+                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question {current} of {total}</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">A restaurant leaves a comment card on every table to gather feedback from its customers.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer('q2', 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer('q2', 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer('q2', 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer('q2', 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer('q2', 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer('q2', 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
                 answer: 'Self-selected Sample', 
                 animationType: 6 
             },
-            3: { 
-                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question 3 of 6</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">The manager of a movie theater wants to know how customers feel about the new reclining seats. The manager surveys every 10th customer who buys a ticket.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer(3, 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer(3, 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer(3, 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer(3, 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer(3, 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer(3, 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
+            'q3': { 
+                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question {current} of {total}</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">The manager of a movie theater wants to know how customers feel about the new reclining seats. The manager surveys every 10th customer who buys a ticket.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer('q3', 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer('q3', 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer('q3', 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer('q3', 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer('q3', 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer('q3', 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
                 answer: 'Systematic Sample', 
                 animationType: 2 
             },
-            4: { 
-                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question 4 of 6</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">A high school principal wants to survey students about the quality of the school's Wi-Fi. The principal gets a list of all students, separates them by grade level (9th, 10th, 11th, and 12th), and then randomly selects 25 students from each grade.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer(4, 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer(4, 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer(4, 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer(4, 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer(4, 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer(4, 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
+            'q4': { 
+                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question {current} of {total}</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">A high school principal wants to survey students about the quality of the school's Wi-Fi. The principal gets a list of all students, separates them by grade level (9th, 10th, 11th, and 12th), and then randomly selects 25 students from each grade.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer('q4', 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer('q4', 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer('q4', 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer('q4', 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer('q4', 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer('q4', 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
                 answer: 'Stratified Sample', 
                 animationType: 4 
             },
-            5: { 
-                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question 5 of 6</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">A reporter for the school newspaper wants to ask students about their summer plans. The reporter stands in the main hallway between classes and surveys the first 30 students she sees.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer(5, 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer(5, 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer(5, 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer(5, 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer(5, 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer(5, 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
+            'q5': { 
+                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question {current} of {total}</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">A reporter for the school newspaper wants to ask students about their summer plans. The reporter stands in the main hallway between classes and surveys the first 30 students she sees.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer('q5', 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer('q5', 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer('q5', 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer('q5', 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer('q5', 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer('q5', 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
                 answer: 'Convenience Sample', 
                 animationType: 3 
             },
-            6: { 
-                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question 6 of 6</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">A school district wants to survey its teachers about a new curriculum. The district randomly selects 5 of its 20 elementary schools and then surveys every single teacher within those 5 selected schools.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer(6, 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer(6, 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer(6, 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer(6, 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer(6, 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer(6, 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
+            'q6': { 
+                content: `<h2 class="text-2xl font-bold text-gray-800 mb-2">Question {current} of {total}</h2><p class="text-lg text-gray-700 mb-6 text-left p-4 bg-gray-50 rounded-lg">A school district wants to survey its teachers about a new curriculum. The district randomly selects 5 of its 20 elementary schools and then surveys every single teacher within those 5 selected schools.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button onclick="handleAnswer('q6', 'Simple Random Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Simple Random Sample</button><button onclick="handleAnswer('q6', 'Self-selected Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Self-selected Sample</button><button onclick="handleAnswer('q6', 'Convenience Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Convenience Sample</button><button onclick="handleAnswer('q6', 'Systematic Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Systematic Sample</button><button onclick="handleAnswer('q6', 'Stratified Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Stratified Sample</button><button onclick="handleAnswer('q6', 'Cluster Sample')" class="btn btn-choice font-bold py-4 rounded-lg w-full">Cluster Sample</button></div>`, 
                 answer: 'Cluster Sample', 
                 animationType: 5 
             }
@@ -254,6 +254,14 @@
                 answer: 'Systematic Sample'
             }
         };
+        
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
 
         function captureName() {
             const nameInput = document.getElementById('student-name-input');
@@ -270,10 +278,11 @@
         }
 
         function startQuiz() {
-            quizQueue = Object.keys(quizQuestions);
+            const questionKeys = Object.keys(quizQuestions);
+            quizQueue = shuffleArray([...questionKeys]);
             // Initialize results object for the quiz
-            for (const qNum of quizQueue) {
-                quizResults[`q${qNum}`] = { attempts: 0, incorrectAnswers: [] };
+            for (const qNum of questionKeys) {
+                quizResults[qNum] = { attempts: 0, incorrectAnswers: [] };
             }
             nextQuestion();
         }
@@ -290,8 +299,15 @@
         function nextQuestion() {
             if (quizQueue.length > 0) {
                 const qNum = quizQueue.shift();
+                const qData = quizQuestions[qNum];
                 const qContainer = document.getElementById(`quiz-question-container`);
-                qContainer.innerHTML = quizQuestions[qNum].content.replace(/Question \d of 6/, `Question ${Object.keys(quizQuestions).length - quizQueue.length} of ${Object.keys(quizQuestions).length}`);
+                const totalQuestions = Object.keys(quizQuestions).length;
+                const currentQuestionNumber = totalQuestions - quizQueue.length;
+                
+                let content = qData.content;
+                content = content.replace(/{current}/g, currentQuestionNumber).replace(/{total}/g, totalQuestions);
+
+                qContainer.innerHTML = content;
                 showSlide(`quiz-question-container`);
             } else {
                 startApplicationSection();
@@ -299,13 +315,13 @@
         }
 
         function handleAnswer(qNum, selectedAnswer) {
-            quizResults[`q${qNum}`].attempts++; // Increment attempt count
+            quizResults[qNum].attempts++; // Increment attempt count
             const isCorrect = (selectedAnswer === quizQuestions[qNum].answer);
 
             if (isCorrect) {
                 showSlide('feedback-correct');
             } else {
-                quizResults[`q${qNum}`].incorrectAnswers.push(selectedAnswer);
+                quizResults[qNum].incorrectAnswers.push(selectedAnswer);
                 quizQueue.push(String(qNum));
                 showSlide('feedback-incorrect');
                 runAnimation(quizQuestions[qNum].animationType, `feedback-animation-grid`);
@@ -314,9 +330,10 @@
 
         // --- APPLICATION SECTION LOGIC ---
         function startApplicationSection() {
-            appQueue = Object.keys(appQuestions);
+            const appQuestionKeys = Object.keys(appQuestions);
+            appQueue = shuffleArray([...appQuestionKeys]);
             isCorrectionRound = false;
-            for(const qId of appQueue) {
+            for(const qId of appQuestionKeys) {
                 appResults[qId] = { attempts: 0, correct: false, incorrectAnswers: [] };
             }
             nextAppQuestion();
