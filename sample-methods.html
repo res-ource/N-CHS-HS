@@ -243,27 +243,27 @@
         const appQuestions = {
             'app1': {
                 scenario: `To gauge interest in a new fitness class, a gym sends an email survey to all of its members. They use the feedback from members who choose to respond.`,
-                answer: ['self-selected sample', 'self selected sample', 'self-selected', 'self selected', 'self sample', 'self']
+                answer: 'Self-Selected Sample'
             },
             'app2': {
                 scenario: `An airline wants to check the quality of its baggage handling. On a particular day, they randomly select 3 flights. For those 3 flights, they check every single piece of baggage to ensure it arrived safely.`,
-                answer: ['cluster sample', 'cluster']
+                answer: 'Cluster Sample'
             },
             'app3': {
                 scenario: `A town council wants to know if residents support building a new park. They get a list of all residential addresses and mail a survey to every 25th address on the list.`,
-                answer: ['systematic sample', 'systematic']
+                answer: 'Systematic Sample'
             },
             'app4': {
                 scenario: `A researcher wants to understand the study habits of college students. They divide the student population by major (e.g., Arts, Science, Engineering) and then randomly select 20 students from each major to interview.`,
-                answer: ['stratified sample', 'stratified']
+                answer: 'Stratified Sample'
             },
             'app5': {
                 scenario: `A news reporter wants to get public opinion on a local issue. They stand on a busy street corner and interview the first 50 people who are willing to speak with them.`,
-                answer: ['convenience sample', 'convenience']
+                answer: 'Convenience Sample'
             },
             'app6': {
                 scenario: `The organizers of a conference want to give away a door prize. They put the names of all 200 attendees into a hat, mix them up, and draw one name.`,
-                answer: ['simple random sample', 'simple random', 'random']
+                answer: 'Simple Random Sample'
             }
         };
         
@@ -400,14 +400,13 @@
 
         function handleAppAnswer(qId) {
             const input = document.getElementById('app-answer-input');
-            const userAnswer = input.value.trim().toLowerCase();
-            const correctAnswers = appQuestions[qId].answer;
-            const primaryAnswer = correctAnswers[0].replace(/\b\w/g, l => l.toUpperCase());
+            const userAnswer = input.value.trim();
+            const correctAnswer = appQuestions[qId].answer;
             const feedbackContainer = document.getElementById('app-feedback');
 
             appResults[qId].attempts++; // Always increment attempts on submission
             
-            if (correctAnswers.includes(userAnswer)) {
+            if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
                 appResults[qId].correct = true;
                 feedbackContainer.innerHTML = `<h3 class="text-2xl font-bold text-green-600">Correct! ✅</h3>`;
                 setTimeout(nextAppQuestion, 1500);
@@ -415,11 +414,11 @@
             }
 
             // If incorrect
-            appResults[qId].incorrectAnswers.push(input.value.trim());
+            appResults[qId].incorrectAnswers.push(userAnswer);
             input.value = ''; // Clear input for next try
             
             if (isCorrectionRound) {
-                feedbackContainer.innerHTML = `<h3 class="text-xl font-bold text-red-600 mb-2">The correct answer is: ${primaryAnswer}</h3>`;
+                feedbackContainer.innerHTML = `<h3 class="text-xl font-bold text-red-600 mb-2">The correct answer is: ${appQuestions[qId].answer}</h3>`;
                 setTimeout(nextAppQuestion, 2500);
                 return;
             }
@@ -433,9 +432,9 @@
                     </div>
                 `;
             } else if (appResults[qId].attempts === 2) {
-                const wrongOptions = allSampleTypes.filter(type => type.toLowerCase() !== correctAnswers[0]);
+                const wrongOptions = allSampleTypes.filter(type => type.toLowerCase() !== correctAnswer.toLowerCase());
                 const shuffledWrong = wrongOptions.sort(() => 0.5 - Math.random());
-                const reducedBank = [primaryAnswer, shuffledWrong[0], shuffledWrong[1]].sort(() => 0.5 - Math.random());
+                const reducedBank = [appQuestions[qId].answer, shuffledWrong[0], shuffledWrong[1]].sort(() => 0.5 - Math.random());
                 feedbackContainer.innerHTML = `
                     <h3 class="text-xl font-bold text-red-600 mb-2">Still not right... let's narrow it down.</h3>
                     <p class="text-gray-600">Choose from these three:</p>
@@ -444,7 +443,7 @@
                     </div>
                 `;
             } else {
-                feedbackContainer.innerHTML = `<h3 class="text-xl font-bold text-red-600 mb-2">The correct answer is: ${primaryAnswer}</h3>`;
+                feedbackContainer.innerHTML = `<h3 class="text-xl font-bold text-red-600 mb-2">The correct answer is: ${appQuestions[qId].answer}</h3>`;
                 setTimeout(nextAppQuestion, 2500);
             }
         }
@@ -483,7 +482,7 @@
         }
 
         async function sendResults() {
-            const webhookUrl = 'https://automations.emoalchemy.com/webhook-test/stats';
+            const webhookUrl = 'https://automations.emoalchemy.com/webhook/stats';
             const scores = calculateScores();
 
             const payload = {
@@ -641,3 +640,4 @@
     </script>
 </body>
 </html>
+
