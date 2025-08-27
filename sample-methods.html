@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Name That Sample Method</title>
+    <title>Name That Sample Quiz</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -86,7 +86,7 @@
 
         <!-- Slide 1: Start Screen -->
         <div id="slide1" class="slide active">
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Name That Sample Method</h1>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Name That Sample</h1>
             <p class="text-lg md:text-xl text-gray-600 mb-8">First, let's review the different sampling methods with some animated examples.</p>
             <button onclick="showSlide('name-entry')" class="btn bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-lg shadow-md hover:bg-blue-700">START</button>
         </div>
@@ -420,7 +420,7 @@
         }
 
         async function sendResults() {
-            const webhookUrl = 'https://automations.emoalchemy.com/webhook-test/stats';
+            const webhookUrl = 'https://automations.emoalchemy.com/webhook/stats';
 
             const payload = {
                 studentId: studentName
@@ -445,9 +445,9 @@
                     method: 'POST',
                     mode: 'no-cors', 
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: JSON.stringify(payload),
+                    body: new URLSearchParams(payload).toString(),
                 });
                 console.log('Results submission attempted.');
             } catch (error) {
