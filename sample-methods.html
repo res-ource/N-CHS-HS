@@ -419,11 +419,48 @@
             }
         }
 
+        function calculateScores() {
+            let quizScore = 0;
+            for (const qNum in quizResults) {
+                const attempts = quizResults[qNum].attempts;
+                if (attempts === 1) {
+                    quizScore += 3;
+                } else if (attempts === 2) {
+                    quizScore += 2;
+                } else if (attempts > 2) {
+                    quizScore += 1;
+                }
+            }
+
+            let appScore = 0;
+            for (const qId in appResults) {
+                const attempts = appResults[qId].attempts;
+                if (appResults[qId].correct) {
+                     if (attempts === 1) {
+                        appScore += 4;
+                    } else if (attempts === 2) {
+                        appScore += 3;
+                    } else if (attempts === 3) {
+                        appScore += 2;
+                    } else {
+                        appScore += 1;
+                    }
+                } else {
+                    appScore += 1; // For correction round
+                }
+            }
+            return { quizScore, appScore, totalScore: quizScore + appScore };
+        }
+
         async function sendResults() {
-            const webhookUrl = 'https://automations.emoalchemy.com/webhook-test/stats';
+            const webhookUrl = 'https://automations.emoalchemy.com/webhook/stats';
+            const scores = calculateScores();
 
             const payload = {
-                studentId: studentName
+                studentId: studentName,
+                quiz_score: scores.quizScore,
+                app_score: scores.appScore,
+                total_score: scores.totalScore
             };
 
             // Flatten quiz results
