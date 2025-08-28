@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics Lesson</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hidden { display: none; }
+        .tooltip { position: relative; display: inline-block; border-bottom: 2px dotted #60a5fa; cursor: help; }
+        .tooltip .tooltip-text { visibility: hidden; width: 250px; background-color: #1f2937; color: #fff; text-align: center; border-radius: 6px; padding: 10px; position: absolute; z-index: 1; bottom: 125%; left: 50%; margin-left: -125px; opacity: 0; transition: opacity 0.3s; font-size: 0.875rem; line-height: 1.25rem; font-weight: normal; }
+        .tooltip:hover .tooltip-text { visibility: visible; opacity: 1; }
+        .feedback-correct { color: #16a34a; font-weight: 600; }
+        .feedback-incorrect { color: #dc2626; font-weight: 600; }
+        /* Stat Lab Sorter Styles */
+        .stat-lab-card { cursor: grab; transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+        .stat-lab-card:active { cursor: grabbing; transform: scale(1.05); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .drop-zone { transition: background-color 0.3s, border-color 0.3s; }
+        .drop-zone.drag-over { background-color: #e0f2fe; border-color: #38bdf8; }
+        /* Sequencer Styles */
+        .step-item { cursor: grab; transition: background-color 0.2s, box-shadow 0.2s, border-color 0.3s; }
+        .step-item:active { cursor: grabbing; background-color: #e0f2fe; }
+        .dragging { opacity: 0.5; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .hint-highlight { border-color: #ef4444 !important; border-width: 2px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="w-full max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8">
+
+        <!-- =================================================================== -->
+        <!-- Student ID Entry (Shared) -->
+        <!-- =================================================================== -->
+        <div id="student-id-section">
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 mb-4">Statistics Lesson 📊</h1>
+            <p class="text-slate-600 mb-6">Complete three short activities to learn about the foundations of statistical studies.</p>
+            <label for="studentId" class="block text-slate-700 font-semibold mb-2">Please enter your Student ID to begin:</label>
+            <input type="text" id="studentIdInput" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Your Student ID">
+            <p id="studentIdError" class="text-red-600 h-5 mt-2 text-sm"></p>
+            <button onclick="startLesson()" class="w-full mt-2 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">Start Lesson</button>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- Lesson Hub (Navigation) -->
+        <!-- =================================================================== -->
+        <div id="hub-section" class="hidden">
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 mb-4">Lesson Hub</h1>
+            <p class="text-slate-600 mb-6">Complete the activities in order. Your progress will be saved.</p>
+            <div class="space-y-4">
+                <button id="hub-btn-1" onclick="startStatLab()" class="w-full text-left p-4 bg-slate-100 rounded-lg border-2 border-slate-200 flex justify-between items-center">
+                    <span class="font-semibold text-lg">Activity 1: The Stat Lab</span>
+                    <span id="hub-status-1" class="text-slate-500">Not Started</span>
+                </button>
+                <button id="hub-btn-2" onclick="startCensusSample()" class="w-full text-left p-4 bg-slate-100 rounded-lg border-2 border-slate-200 flex justify-between items-center opacity-50 cursor-not-allowed" disabled>
+                    <span class="font-semibold text-lg">Activity 2: Census vs. Sample</span>
+                    <span id="hub-status-2" class="text-slate-500">Locked</span>
+                </button>
+                <button id="hub-btn-3" onclick="startSequencer()" class="w-full text-left p-4 bg-slate-100 rounded-lg border-2 border-slate-200 flex justify-between items-center opacity-50 cursor-not-allowed" disabled>
+                    <span class="font-semibold text-lg">Activity 3: The Process Sequencer</span>
+                    <span id="hub-status-3" class="text-slate-500">Locked</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- APP 1: STAT LAB -->
+        <!-- =================================================================== -->
+        <div id="stat-lab-section" class="hidden"></div>
+        
+        <!-- =================================================================== -->
+        <!-- APP 2: CENSUS VS SAMPLE -->
+        <!-- =================================================================== -->
+        <div id="census-sample-section" class="hidden"></div>
+
+        <!-- =================================================================== -->
+        <!-- APP 3: PROCESS SEQUENCER -->
+        <!-- =================================================================== -->
+        <div id="sequencer-section" class="hidden"></div>
+
+
+        <!-- =================================================================== -->
+        <!-- Final Completion Screen -->
+        <!-- =================================================================== -->
+        <div id="final-completion-section" class="hidden text-center">
+             <h1 class="text-3xl font-bold text-green-600 mb-4">Lesson Complete!</h1>
+             <p id="final-completion-message" class="text-xl text-slate-700">All activities are finished.</p>
+             <button onclick="submitAllData()" id="submit-btn" class="mt-8 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">Submit All Results</button>
+             <button onclick="restartLesson()" class="mt-4 bg-slate-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors">Start Over</button>
+        </div>
+
+    </div>
+
+<script>
+    // ===================================================================
+    // GLOBAL STATE & DATA
+    // ===================================================================
+    const globalState = {
+        studentId: '',
+        startTime: 0,
+        activities: {
+            statLab: {
+                isComplete: false,
+                sorter_score: 0, sorter_attempts: 0,
+                flaw_score: 0, flaw_attempts: 0,
+                builder_score: 0, builder_attempts: 0,
+            },
+            censusSample: {
+                isComplete: false,
+                score: 0, attempts: 0,
+            },
+            sequencer: {
+                isComplete: false,
+                score: 0, attempts: 0, storyViews: 2
+            }
+        }
+    };
+
+    const appData = {
+        statLab: {
+            sorterCards: [
+                { id: `sl_card1`, text: `A scientist watches a group of chimpanzees and records how they interact with each other.`, type: `obs` }, { id: `sl_card2`, text: `To test a new fertilizer, a farmer applies it to half of his crops and leaves the other half alone.`, type: `exp` }, { id: `sl_card3`, text: `A school counselor looks at student records to see if there is a link between attendance and grades.`, type: `obs` }, { id: `sl_card4`, text: `A doctor gives one group of patients a new medicine and another group a sugar pill.`, type: `exp` }, { id: `sl_card5`, text: `Researchers ask 1,000 people to report how many hours of TV they watch per week.`, type: `obs` }, { id: `sl_card6`, text: `A car company crashes new models into a wall at different speeds to measure the damage.`, type: `exp` }
+            ],
+            flawQuestions: [
+                 { scenario: `A researcher wants to prove their new 'SuperGrow' fertilizer is the best. They plant 10 tomato plants in a sunny part of the garden with great soil and give them SuperGrow. They plant another 10 tomato plants in a shady, rocky part of the garden and give them no fertilizer.`, question: `What is the biggest flaw in this experiment?`, answers: [ { text: `They should have used more plants.`, isCorrect: false, hint: `While more plants can be good, there's a bigger problem with fairness here.` }, { text: `The two groups were not treated the same.`, isCorrect: true }, { text: `They should have tested a different type of plant.`, isCorrect: false, hint: `The type of plant isn't the issue. Think about how the two groups were compared.` } ], feedback: `Correct! The groups must be treated identically except for the one variable you are testing.` }, { scenario: `A coach wants to test a new energy bar. He asks for 10 volunteers from his football team to try it. He gives the other 50 players on the team nothing. The 10 volunteers report feeling much more energetic.`, question: `What is the biggest flaw in this experiment?`, answers: [ { text: `The groups were not chosen randomly.`, isCorrect: true }, { text: `The energy bar might not taste good.`, isCorrect: false, hint: `Taste is subjective. Look for a more fundamental problem in how the groups were made.` }, { text: `The coach should have tested a different sport.`, isCorrect: false, hint: `The sport itself isn't the problem. The issue is with the people chosen for the test.` } ], feedback: `Exactly! Using volunteers instead of random assignment is a classic mistake.` }
+            ],
+            builderQuestions: [
+                { question: `The group of students who drank the real Gamer-Fuel is called the:`, answers: [ { text: `Control Group`, isCorrect: false, hint: `Remember, the 'control' group is for comparison. This group got the real drink.` }, { text: `Treatment Group`, isCorrect: true }, { text: `Placebo Group`, isCorrect: false, hint: `A placebo is the *fake* treatment, not the group of people.` } ], feedback: `Exactly! The treatment group gets the real treatment being tested.` }, { question: `The colored, flavored water given to the other group is an example of a:`, answers: [ { text: `Placebo`, isCorrect: true }, { text: `Variable`, isCorrect: false, hint: `A variable is something that is measured, like the game score. This was a fake treatment.` }, { text: `Random Assignment`, isCorrect: false, hint: `Random assignment is the *process* of making groups, not the fake drink itself.` } ], feedback: `That's right! The placebo is the 'fake' treatment used for comparison.` }
+            ]
+        },
+        censusSample: {
+            scenarios: [
+                { text: `The manager of a 30-person office wants to know what kind of coffee to buy for the breakroom.`, correct: `census`, explanation: `A **Census** is best. The group is so small that it's fast, easy, and cheap to ask everyone.` }, { text: `A car company needs to perform safety tests to see how its new model holds up in a crash.`, correct: `sample`, explanation: `A **Sample** is necessary. The test <span class='tooltip'>destroys<span class='tooltip-text'>To break something so badly it can't be used again.</span></span> the car, so they can only test a few of them!` }, { text: `The U.S. government wants to determine the number of people living in each state for representation in Congress.`, correct: `census`, explanation: `A **Census** is required by law for this. To ensure fair representation, they must try to count every single person.` }, { text: `A chef at a restaurant is making a huge pot of soup and wants to check if it needs more salt.`, correct: `sample`, explanation: `A **Sample** is perfect here. The chef only needs to taste one spoonful (a sample) to know what the whole pot tastes like.` }
+            ]
+        },
+        sequencer: {
+            steps: [
+                { id: 1, text: `Identify the individuals or objects of interest.` }, { id: 2, text: `Specify the variables and how to measure them.` }, { id: 3, text: `Decide to use the entire population (census) or a sample.` }, { id: 4, text: `Plan your data collection method, considering ethics.` }, { id: 5, text: `Collect the data.` }, { id: 6, text: `Analyze the data using descriptive statistics (graphs, averages).` }, { id: 7, text: `Use inferential statistics to draw conclusions.` }
+            ]
+        }
+    };
+
+    // DOM ELEMENTS
+    const studentIdSection = document.getElementById('student-id-section');
+    const hubSection = document.getElementById('hub-section');
+    const statLabSection = document.getElementById('stat-lab-section');
+    const censusSampleSection = document.getElementById('census-sample-section');
+    const sequencerSection = document.getElementById('sequencer-section');
+    const finalCompletionSection = document.getElementById('final-completion-section');
+    
+    // NAVIGATION & LESSON FLOW
+    function startLesson() {
+        const idInput = document.getElementById('studentIdInput');
+        const idError = document.getElementById('studentIdError');
+        if (idInput.value.trim() === '') {
+            idError.textContent = 'Please enter a Student ID.'; return;
+        }
+        globalState.studentId = idInput.value.trim();
+        idError.textContent = '';
+        globalState.startTime = new Date().getTime();
+        studentIdSection.classList.add('hidden');
+        hubSection.classList.remove('hidden');
+    }
+
+    function showHub() {
+        statLabSection.classList.add('hidden');
+        censusSampleSection.classList.add('hidden');
+        sequencerSection.classList.add('hidden');
+        finalCompletionSection.classList.add('hidden');
+        updateHubStatus();
+        hubSection.classList.remove('hidden');
+    }
+
+    function updateHubStatus() {
+        const { statLab, censusSample, sequencer } = globalState.activities;
+        if (statLab.isComplete) {
+            document.getElementById('hub-status-1').textContent = '✅ Completed';
+            document.getElementById('hub-btn-1').classList.add('border-green-500');
+            const btn2 = document.getElementById('hub-btn-2');
+            btn2.disabled = false;
+            btn2.classList.remove('opacity-50', 'cursor-not-allowed');
+            if(!censusSample.isComplete) document.getElementById('hub-status-2').textContent = 'Ready to Start';
+        }
+        if (censusSample.isComplete) {
+            document.getElementById('hub-status-2').textContent = '✅ Completed';
+            document.getElementById('hub-btn-2').classList.add('border-green-500');
+            const btn3 = document.getElementById('hub-btn-3');
+            btn3.disabled = false;
+            btn3.classList.remove('opacity-50', 'cursor-not-allowed');
+             if(!sequencer.isComplete) document.getElementById('hub-status-3').textContent = 'Ready to Start';
+        }
+        if (sequencer.isComplete) {
+            document.getElementById('hub-status-3').textContent = '✅ Completed';
+            document.getElementById('hub-btn-3').classList.add('border-green-500');
+        }
+        if (statLab.isComplete && censusSample.isComplete && sequencer.isComplete) {
+            hubSection.classList.add('hidden');
+            finalCompletionSection.classList.remove('hidden');
+        }
+    }
+
+    function restartLesson() {
+        globalState.studentId = '';
+        globalState.startTime = 0;
+        Object.keys(globalState.activities).forEach(key => {
+            const activity = globalState.activities[key];
+            activity.isComplete = false;
+            Object.keys(activity).forEach(prop => {
+                if (prop !== 'isComplete') activity[prop] = 0;
+            });
+        });
+        globalState.activities.sequencer.storyViews = 2;
+
+        document.getElementById('hub-status-1').textContent = 'Not Started';
+        document.getElementById('hub-status-2').textContent = 'Locked';
+        document.getElementById('hub-status-3').textContent = 'Locked';
+        
+        const buttons = [document.getElementById('hub-btn-1'), document.getElementById('hub-btn-2'), document.getElementById('hub-btn-3')];
+        buttons.forEach(btn => btn.classList.remove('border-green-500'));
+        
+        const btn2 = document.getElementById('hub-btn-2');
+        btn2.disabled = true;
+        btn2.classList.add('opacity-50', 'cursor-not-allowed');
+        const btn3 = document.getElementById('hub-btn-3');
+        btn3.disabled = true;
+        btn3.classList.add('opacity-50', 'cursor-not-allowed');
+
+        document.getElementById('studentIdInput').value = '';
+        finalCompletionSection.classList.add('hidden');
+        studentIdSection.classList.remove('hidden');
+    }
+
+    // ===================================================================
+    // APP 1: STAT LAB - LOGIC
+    // ===================================================================
+    let sl_shuffledCards, sl_currentSorterCard, sl_currentFlaw, sl_currentBuilder;
+
+    function startStatLab() {
+        hubSection.classList.add('hidden');
+        statLabSection.classList.remove('hidden');
+        statLabSection.innerHTML = `
+            <div id="sl_intro_section">
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-900 mb-4">Activity 1: The Stat Lab 🧪</h1>
+                <p class="text-slate-600 mb-6">This activity has three parts. First you'll sort studies, then spot flaws, and finally analyze a well-built experiment.</p>
+                <button onclick="sl_initSorter()" class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700">Let's Get Started</button>
+            </div>`;
+    }
+
+    function sl_initSorter() {
+        sl_shuffledCards = [...appData.statLab.sorterCards].sort(() => Math.random() - 0.5);
+        sl_currentSorterCard = 0;
+        sl_renderSorter();
+    }
+
+    function sl_renderSorter() {
+        if (sl_currentSorterCard >= sl_shuffledCards.length) {
+            sl_initFlawSpotter();
+            return;
+        }
+        const cardData = sl_shuffledCards[sl_currentSorterCard];
+        statLabSection.innerHTML = `
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Part 1: Observation or Experiment?</h1>
+            <p class="text-slate-600 mb-6">Drag the story to the right box. (${sl_currentSorterCard + 1}/${sl_shuffledCards.length})</p>
+            <div id="sl_card_container" class="mb-6 flex flex-col items-center">
+                <div id="${cardData.id}" class="stat-lab-card bg-white p-4 rounded-lg shadow-md border border-slate-200 w-full max-w-sm text-center" draggable="true" data-type="${cardData.type}" data-first-try="true">${cardData.text}</div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div id="sl_obs_dropzone" class="drop-zone border-2 border-dashed border-slate-300 rounded-lg p-4 min-h-[150px] bg-slate-100"><h2 class="text-lg font-semibold text-center text-slate-700">👀 Observational Study</h2><p class="text-sm text-center text-slate-500 mb-2">(Just Watching)</p></div>
+                <div id="sl_exp_dropzone" class="drop-zone border-2 border-dashed border-slate-300 rounded-lg p-4 min-h-[150px] bg-slate-100"><h2 class="text-lg font-semibold text-center text-slate-700">🔬 Experiment</h2><p class="text-sm text-center text-slate-500 mb-2">(Applying a Change)</p></div>
+            </div>
+            <p id="sl_sorter_feedback" class="text-center mt-4 font-medium h-6"></p>`;
+        sl_addDragListeners();
+    }
+
+    function sl_addDragListeners() {
+        const card = statLabSection.querySelector('.stat-lab-card');
+        card.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', e.target.id));
+        const dropzones = statLabSection.querySelectorAll('.drop-zone');
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+            zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+            zone.addEventListener('drop', sl_handleDrop);
+        });
+    }
+
+    function sl_handleDrop(e) {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
+        const cardId = e.dataTransfer.getData('text/plain');
+        const draggedCard = document.getElementById(cardId);
+        const cardType = draggedCard.dataset.type;
+        const dropzoneType = e.currentTarget.id.includes('obs') ? 'obs' : 'exp';
+        const feedbackEl = document.getElementById('sl_sorter_feedback');
+        
+        globalState.activities.statLab.sorter_attempts++;
+
+        if (cardType === dropzoneType) {
+            if (draggedCard.dataset.firstTry === 'true') {
+                globalState.activities.statLab.sorter_score++;
+            }
+            feedbackEl.textContent = 'Correct!';
+            feedbackEl.className = 'text-center mt-4 font-medium h-6 feedback-correct';
+            sl_currentSorterCard++;
+            setTimeout(sl_renderSorter, 1000);
+        } else {
+            draggedCard.dataset.firstTry = 'false';
+            feedbackEl.textContent = 'Not quite, try again!';
+            feedbackEl.className = 'text-center mt-4 font-medium h-6 feedback-incorrect';
+            draggedCard.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-10px)' }, { transform: 'translateX(10px)' }, { transform: 'translateX(0)' }], { duration: 300, iterations: 1 });
+        }
+    }
+
+    function sl_initFlawSpotter() {
+        sl_currentFlaw = 0;
+        sl_renderFlaw();
+    }
+
+    function sl_renderFlaw() {
+         if (sl_currentFlaw >= appData.statLab.flawQuestions.length) {
+            sl_initBuilder();
+            return;
+        }
+        const f = appData.statLab.flawQuestions[sl_currentFlaw];
+        let answersHTML = f.answers.map((answer, index) => `<button class="sl-flaw-btn block w-full text-left p-3 bg-white rounded-lg border-2 border-slate-300 hover:bg-slate-100" data-index="${index}">${answer.text}</button>`).join('');
+        statLabSection.innerHTML = `
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Part 2: Spot the Flaw!</h1>
+            <p class="text-slate-600 mb-6">Find the biggest mistake in the study below. (${sl_currentFlaw + 1}/${appData.statLab.flawQuestions.length})</p>
+            <div class="mb-6 bg-slate-50 p-5 rounded-lg" data-first-try="true">
+                <p class="italic text-slate-700 mb-4">${f.scenario}</p>
+                <p class="font-semibold text-lg mb-4">${f.question}</p>
+                <div class="space-y-3">${answersHTML}</div>
+                <p class="mt-3 h-6" id="sl_flaw_feedback"></p>
+            </div>`;
+        
+        statLabSection.querySelectorAll('.sl-flaw-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const answerIndex = parseInt(e.target.dataset.index);
+                const answer = f.answers[answerIndex];
+                sl_handleFlawAnswer(answer, f.feedback, e.target);
+            });
+        });
+    }
+
+    function sl_handleFlawAnswer(answer, correctFeedback, buttonEl) {
+        globalState.activities.statLab.flaw_attempts++;
+        const questionDiv = buttonEl.closest('[data-first-try]');
+        const feedbackP = questionDiv.querySelector('#sl_flaw_feedback');
+        const buttons = questionDiv.querySelectorAll('button');
+
+        if (answer.isCorrect) {
+            if (questionDiv.dataset.firstTry === 'true') {
+                globalState.activities.statLab.flaw_score++;
+            }
+            buttons.forEach(b => b.disabled = true);
+            feedbackP.textContent = correctFeedback;
+            feedbackP.className = 'mt-3 h-6 feedback-correct';
+            sl_currentFlaw++;
+            setTimeout(sl_renderFlaw, 2500);
+        } else {
+            questionDiv.dataset.firstTry = 'false';
+            feedbackP.textContent = `Hint: ${answer.hint}`;
+            feedbackP.className = 'mt-3 h-6 feedback-incorrect';
+        }
+    }
+    
+    function sl_initBuilder() {
+        sl_currentBuilder = 0;
+        sl_renderBuilder();
+    }
+    
+    function sl_renderBuilder() {
+        if (sl_currentBuilder >= appData.statLab.builderQuestions.length) {
+            globalState.activities.statLab.isComplete = true;
+            showHub();
+            return;
+        }
+        const q = appData.statLab.builderQuestions[sl_currentBuilder];
+        let answersHTML = q.answers.map((answer, index) => `<button class="sl-builder-btn block w-full text-left p-3 bg-slate-100 rounded-lg border-2 border-slate-300 hover:bg-slate-200" data-index="${index}">${answer.text}</button>`).join('');
+        statLabSection.innerHTML = `
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Part 3: Build the Experiment</h1>
+            <p class="text-slate-600 mb-6">Read the story and answer the questions. (${sl_currentBuilder + 1}/${appData.statLab.builderQuestions.length})</p>
+            <div class="bg-slate-100 p-6 rounded-lg mb-6">
+                <h3 class="font-bold text-lg mb-2">Scenario: The Gamer-Fuel Challenge</h3>
+                <p class="text-base leading-relaxed">A company wants to prove its new energy drink, "Gamer-Fuel," improves video game performance. They gather 100 student volunteers and use random assignment to make two groups. One group (the treatment group) drinks Gamer-Fuel. The other group (the control group) drinks a placebo. After 30 minutes, all students play the same video game for one hour, and their final scores are recorded.</p>
+            </div>
+            <div class="mb-6" data-first-try="true">
+                <p class="font-semibold text-lg mb-4">${q.question}</p>
+                <div class="space-y-3">${answersHTML}</div>
+                <p class="mt-3 h-6" id="sl_builder_feedback"></p>
+            </div>`;
+        
+        statLabSection.querySelectorAll('.sl-builder-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const answerIndex = parseInt(e.target.dataset.index);
+                const answer = q.answers[answerIndex];
+                sl_handleBuilderAnswer(answer, q.feedback, e.target);
+            });
+        });
+    }
+
+    function sl_handleBuilderAnswer(answer, correctFeedback, buttonEl) {
+        globalState.activities.statLab.builder_attempts++;
+        const questionDiv = buttonEl.closest('[data-first-try]');
+        const feedbackP = questionDiv.querySelector('#sl_builder_feedback');
+        const buttons = questionDiv.querySelectorAll('button');
+
+        if (answer.isCorrect) {
+            if (questionDiv.dataset.firstTry === 'true') {
+                globalState.activities.statLab.builder_score++;
+            }
+            buttons.forEach(b => b.disabled = true);
+            feedbackP.textContent = correctFeedback;
+            feedbackP.className = 'mt-3 h-6 feedback-correct';
+            sl_currentBuilder++;
+            setTimeout(sl_renderBuilder, 2000);
+        } else {
+            questionDiv.dataset.firstTry = 'false';
+            feedbackP.textContent = `Hint: ${answer.hint}`;
+            feedbackP.className = 'mt-3 h-6 feedback-incorrect';
+        }
+    }
+
+    // ===================================================================
+    // APP 2: CENSUS VS SAMPLE - LOGIC
+    // ===================================================================
+    let cs_currentScenario = 0;
+
+    function startCensusSample() {
+        hubSection.classList.add('hidden');
+        censusSampleSection.classList.remove('hidden');
+        cs_currentScenario = 0;
+        cs_renderIntro();
+    }
+
+    function cs_renderIntro() {
+        censusSampleSection.innerHTML = `
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 mb-4">Activity 2: Census vs. Sample 🤔</h1>
+            <div class="space-y-4 text-lg">
+                <div class="bg-sky-50 p-4 rounded-lg border-l-4 border-sky-500"><p><strong>📝 Census:</strong> You collect data from <strong>every single member</strong> of a group.</p></div>
+                <div class="bg-amber-50 p-4 rounded-lg border-l-4 border-amber-500"><p><strong>📊 Sample:</strong> You collect data from just a <strong>small part</strong> of a group.</p></div>
+            </div>
+            <button onclick="cs_renderScenario()" class="w-full mt-6 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700">Let's Practice</button>`;
+    }
+
+    function cs_renderScenario() {
+        if (cs_currentScenario >= appData.censusSample.scenarios.length) {
+            globalState.activities.censusSample.isComplete = true;
+            showHub();
+            return;
+        }
+        const scenario = appData.censusSample.scenarios[cs_currentScenario];
+        censusSampleSection.innerHTML = `
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Census vs. Sample</h1>
+            <p class="text-slate-600 mb-6">For this situation, which method is better? (${cs_currentScenario+1}/${appData.censusSample.scenarios.length})</p>
+            <div class="bg-slate-100 p-6 rounded-lg mb-6 min-h-[120px]"><p class="text-xl text-center">${scenario.text}</p></div>
+            <div id="cs_choice_buttons" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <button onclick="cs_makeChoice('census')" class="bg-sky-500 text-white font-bold py-4 px-6 rounded-lg hover:bg-sky-600 text-lg">📝 Census</button>
+                <button onclick="cs_makeChoice('sample')" class="bg-amber-500 text-white font-bold py-4 px-6 rounded-lg hover:bg-amber-600 text-lg">📊 Sample</button>
+            </div>
+            <div id="cs_feedback_container"></div>`;
+    }
+
+    function cs_makeChoice(choice) {
+        globalState.activities.censusSample.attempts++;
+        const scenario = appData.censusSample.scenarios[cs_currentScenario];
+        const isCorrect = choice === scenario.correct;
+        if (isCorrect) {
+            globalState.activities.censusSample.score++;
+        }
+        document.getElementById('cs_choice_buttons').classList.add('hidden');
+        const feedbackContainer = document.getElementById('cs_feedback_container');
+        const bgColor = isCorrect ? 'bg-green-100' : 'bg-red-100';
+        const borderColor = isCorrect ? 'border-green-500' : 'border-red-500';
+        feedbackContainer.innerHTML = `
+            <div class="border-l-4 ${borderColor} ${bgColor} p-4 rounded-r-lg">
+                <h3 class="font-bold text-lg">${isCorrect ? 'Correct!' : 'Good Try!'}</h3>
+                <p class="mt-2">${scenario.explanation}</p>
+                <button onclick="cs_nextScenario()" class="mt-4 bg-slate-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-slate-800">Next</button>
+            </div>`;
+    }
+
+    function cs_nextScenario() {
+        cs_currentScenario++;
+        cs_renderScenario();
+    }
+
+    // ===================================================================
+    // APP 3: PROCESS SEQUENCER - LOGIC
+    // ===================================================================
+    let sq_draggedItem = null;
+    let sq_storyViews = 2;
+
+    function startSequencer() {
+        hubSection.classList.add('hidden');
+        sequencerSection.classList.remove('hidden');
+        sq_renderIntro();
+    }
+
+    function sq_renderIntro() {
+        sequencerSection.innerHTML = `
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 mb-4">Activity 3: A Story of Action</h1>
+            <p class="text-slate-600 mb-4">This 7-step process isn't just for class—it's a tool for making real change...</p>
+            <div class="space-y-2 text-sm bg-slate-50 p-4 rounded-lg">
+                 <p><strong>1. Identify:</strong> We'll study the <span class="font-semibold text-blue-600">city bus</span> and the <span class="font-semibold text-blue-600">students</span> who need it for their jobs.</p>
+                <p><strong>2. Specify:</strong> We will measure the <span class="font-semibold text-blue-600">number of minutes the bus is late</span> each day.</p>
+                <p><strong>3. Decide:</strong> We can't track every bus forever, so we'll use a <span class="font-semibold text-blue-600">sample</span>: the 4 PM bus for one month.</p>
+                <p><strong>4. Plan:</strong> Our <span class="font-semibold text-blue-600">plan</span> is to have a student record the exact arrival time each day using a phone app.</p>
+                <p><strong>5. Collect:</strong> We follow the plan and <span class="font-semibold text-blue-600">collect the arrival times</span> for 20 school days.</p>
+                <p><strong>6. Analyze:</strong> We calculate the <span class="font-semibold text-blue-600">average lateness</span> and make a chart showing our findings.</p>
+                <p><strong>7. Conclude:</strong> We present our evidence—that the bus is late by an average of 14 minutes—to the city. Faced with hard data, they agree to create a more reliable schedule. <strong class="font-semibold text-green-600">The students won.</strong></p>
+            </div>
+            <button id="sq_start_btn" onclick="sq_initSequencer()" class="w-full mt-6 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700">Now, You Try!</button>
+            <button id="sq_return_btn" onclick="sq_returnToActivity()" class="w-full mt-6 bg-slate-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-700 hidden">Return to Activity</button>`;
+    }
+    
+    function sq_initSequencer() {
+        globalState.activities.sequencer.attempts = 0;
+        sq_storyViews = 2;
+        sq_renderSequencer(true);
+    }
+
+    function sq_renderSequencer(isInitial) {
+        let stepsHTML;
+        if (isInitial) {
+            const shuffledSteps = [...appData.sequencer.steps].sort(() => Math.random() - 0.5);
+            stepsHTML = shuffledSteps.map(step => `<div class="step-item bg-white p-4 rounded-lg shadow border border-slate-200 flex items-center" draggable="true" data-id="${step.id}"><span class="text-slate-400 font-bold mr-4">☰</span> ${step.text}</div>`).join('');
+        } else {
+            stepsHTML = sequencerSection.dataset.currentHTML;
+        }
+
+        sequencerSection.innerHTML = `
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 mb-2">The 7 Steps of a Study</h1>
+            <p class="text-slate-600 mb-6">Drag and drop the steps into the correct order.</p>
+            <div id="sq_steps_container" class="space-y-3 border-2 border-dashed border-slate-300 rounded-lg p-4">${stepsHTML}</div>
+            <div class="flex space-x-4 mt-6">
+                <button id="sq_check_btn" onclick="sq_checkOrder()" class="w-full bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700">Check My Order</button>
+                <button id="sq_review_btn" onclick="sq_reviewStory()" class="w-full bg-sky-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-700">Review Story (${sq_storyViews} left)</button>
+            </div>
+            <p id="sq_feedback" class="text-center mt-4 font-medium h-6"></p>`;
+        
+        if (sq_storyViews === 0) {
+            const reviewBtn = document.getElementById('sq_review_btn');
+            reviewBtn.disabled = true;
+            reviewBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+        sq_addDragListeners();
+    }
+
+    function sq_addDragListeners() {
+        const items = sequencerSection.querySelectorAll('.step-item');
+        items.forEach(item => {
+            item.addEventListener('dragstart', e => { sq_draggedItem = e.target; setTimeout(() => e.target.classList.add('dragging'), 0); });
+            item.addEventListener('dragend', e => e.target.classList.remove('dragging'));
+            item.addEventListener('dragover', e => { e.preventDefault(); const afterElement = sq_getDragAfterElement(e.currentTarget.parentElement, e.clientY); if (afterElement == null) { e.currentTarget.parentElement.appendChild(sq_draggedItem); } else { e.currentTarget.parentElement.insertBefore(sq_draggedItem, afterElement); } });
+        });
+    }
+
+    function sq_getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.step-item:not(.dragging)')];
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) { return { offset: offset, element: child }; } 
+            else { return closest; }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function sq_checkOrder() {
+        globalState.activities.sequencer.attempts++;
+        const items = sequencerSection.querySelectorAll('.step-item');
+        items.forEach(item => item.classList.remove('hint-highlight'));
+        const currentOrder = [...items].map(el => parseInt(el.dataset.id));
+        let isCorrect = currentOrder.every((id, i) => id === i + 1);
+
+        if (isCorrect) {
+            if (globalState.activities.sequencer.attempts === 1) {
+                globalState.activities.sequencer.score = 1;
+            }
+            document.getElementById('sq_feedback').textContent = 'Perfect! That\'s the correct order.';
+            document.getElementById('sq_feedback').className = 'text-center mt-4 font-medium h-6 feedback-correct';
+            document.getElementById('sq_check_btn').disabled = true;
+            document.getElementById('sq_review_btn').disabled = true;
+            setTimeout(() => {
+                globalState.activities.sequencer.isComplete = true;
+                showHub();
+            }, 2000);
+        } else {
+            const feedbackEl = document.getElementById('sq_feedback');
+            if (globalState.activities.sequencer.attempts > 2) {
+                feedbackEl.textContent = 'Hint: The highlighted step is out of order.';
+                for (let i = 0; i < currentOrder.length; i++) {
+                    if (currentOrder[i] !== i + 1) {
+                        items[i].classList.add('hint-highlight');
+                        break;
+                    }
+                }
+            } else {
+                feedbackEl.textContent = 'Not quite right. Try re-arranging the steps.';
+            }
+            feedbackEl.className = 'text-center mt-4 font-medium h-6 feedback-incorrect';
+        }
+    }
+
+    function sq_reviewStory() {
+        if (sq_storyViews > 0) {
+            sq_storyViews--;
+            const container = document.getElementById('sequencer-section');
+            container.dataset.currentHTML = document.getElementById('sq_steps_container').innerHTML; // Save current state
+            sq_renderIntro();
+            document.getElementById('sq_start_btn').classList.add('hidden');
+            document.getElementById('sq_return_btn').classList.remove('hidden');
+        }
+    }
+    
+    function sq_returnToActivity() {
+        sq_renderSequencer(false);
+    }
+
+
+    // FINAL DATA SUBMISSION
+    async function submitAllData() {
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = true;
+        btn.textContent = 'Submitting...';
+        const endTime = new Date().getTime();
+        const time_spent_seconds = Math.round((endTime - globalState.startTime) / 1000);
+        const data = {
+            studentId: globalState.studentId, activityName: "Full Stats Lesson",
+            stat_lab_sorter_score: globalState.activities.statLab.sorter_score, stat_lab_sorter_attempts: globalState.activities.statLab.sorter_attempts,
+            stat_lab_flaw_score: globalState.activities.statLab.flaw_score, stat_lab_flaw_attempts: globalState.activities.statLab.flaw_attempts,
+            stat_lab_builder_score: globalState.activities.statLab.builder_score, stat_lab_builder_attempts: globalState.activities.statLab.builder_attempts,
+            census_sample_score: globalState.activities.censusSample.score, census_sample_attempts: globalState.activities.censusSample.attempts,
+            sequencer_score: globalState.activities.sequencer.score, sequencer_attempts: globalState.activities.sequencer.attempts,
+            total_time_spent_seconds: time_spent_seconds
+        };
+        const finalCompletionMessage = document.getElementById('final-completion-message');
+        try {
+            const webhookUrl = 'https://automations.emoalchemy.com/webhook-test/stats-2';
+            const formBody = new URLSearchParams(data);
+            const response = await fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: formBody });
+            if (response.ok) {
+                finalCompletionMessage.textContent = "Your results have been submitted successfully!";
+            } else { throw new Error('Network response was not ok.'); }
+        } catch (error) {
+            console.error('Error submitting data:', error);
+            finalCompletionMessage.textContent = "Could not submit results. Please check your connection.";
+        }
+    }
+</script>
+</body>
+</html>
