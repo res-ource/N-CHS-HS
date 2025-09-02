@@ -126,9 +126,20 @@
             </div>
             <button onclick="saveBeforeScore()" class="w-full mt-6 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">Save 'Before' Score</button>
         </div>
+        
+        <!-- NEW Step 5: Go to URL -->
+        <div id="step-5" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
+            <h2 class="text-xl font-bold text-gray-800 mb-3">Open the Tapping App</h2>
+            <p class="text-gray-600 mb-6">Now, please go to the second URL written on the board to open the EFT Tapping application:</p>
+            <div class="bg-gray-100 p-4 rounded-lg text-center">
+                <p class="text-2xl font-mono text-indigo-600">emoalchemy.com</p>
+            </div>
+            <p class="text-gray-500 text-sm mt-4">Once you have the app open, come back to this page and click 'Next' to start the timer and your session.</p>
+            <button onclick="nextStep()" class="w-full mt-6 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">Next</button>
+        </div>
 
-        <!-- Step 5: Intervention -->
-        <div id="step-5" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step text-center">
+        <!-- Step 6: Intervention (was step 5) -->
+        <div id="step-6" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step text-center">
             <h2 class="text-xl font-bold text-gray-800 mb-3">Time Your Session</h2>
             <p class="text-gray-600 mb-6">The stopwatch has started. Please open your EFT Tapping app and complete one short session. Keep your focus on the trigger you identified.</p>
             <div class="text-6xl font-bold text-gray-800" id="timer">00:00</div>
@@ -136,8 +147,8 @@
             <button onclick="nextStep()" class="w-full mt-4 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">I'm Done Tapping</button>
         </div>
 
-        <!-- Step 6: Post-Intervention Score -->
-        <div id="step-6" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
+        <!-- Step 7: Post-Intervention Score (was step 6) -->
+        <div id="step-7" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
             <h2 class="text-xl font-bold text-gray-800 mb-3">Rate Your 'After' Score</h2>
             <p class="text-gray-600 mb-6">Take a breath. Now, bring your attention back to that same stressful trigger. On the same 0-10 scale, rate the intensity you feel *now*.</p>
             <div class="text-center mb-4">
@@ -151,8 +162,8 @@
             <button onclick="saveAfterScore()" class="w-full mt-6 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">See My Results</button>
         </div>
 
-        <!-- Step 7: Experiment Results -->
-        <div id="step-7" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step text-center">
+        <!-- Step 8: Experiment Results (was step 7) -->
+        <div id="step-8" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step text-center">
             <h2 class="text-xl font-bold text-gray-800 mb-4">Your Experiment Results</h2>
             <div class="flex justify-around items-center">
                 <div>
@@ -171,16 +182,16 @@
             <button onclick="nextStep()" class="w-full mt-6 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">Continue</button>
         </div>
         
-        <!-- Step 8: Observational Study Intro -->
-        <div id="step-8" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
+        <!-- Step 9: Observational Study Intro (was step 8) -->
+        <div id="step-9" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
             <h2 class="text-xl font-bold text-gray-800 mb-3">Part 2: An Observational Study</h2>
             <p class="text-gray-600 mb-4">An observational study is when we collect data just by watching or gathering information on what people do on their own, without our interference. We're like detectives gathering clues that already exist.</p>
             <p class="text-gray-600 mb-6">Let's look at some data from an informal beta test last Friday, where students tested the app for the first time.</p>
             <button onclick="nextStep()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">See the Data</button>
         </div>
 
-        <!-- Step 9: Observational Study Data -->
-        <div id="step-9" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
+        <!-- Step 10: Observational Study Data (was step 9) -->
+        <div id="step-10" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
             <h2 class="text-xl font-bold text-gray-800 mb-4">Beta Test Results</h2>
             <p class="text-gray-600 mb-4">The goals were simple: Could they use the app, and did it reduce emotional intensity? Here is the data we observed:</p>
             <div class="overflow-x-auto">
@@ -207,24 +218,24 @@
             <button onclick="nextStep()" class="w-full mt-6 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">What Does This Mean?</button>
         </div>
 
-        <!-- Step 10: Debrief -->
-        <div id="step-10" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
+        <!-- Step 11: Debrief (was step 10) -->
+        <div id="step-11" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
             <h2 class="text-xl font-bold text-gray-800 mb-3">The Big Question</h2>
             <p class="text-gray-600 mb-4">The results from the Friday test look great—everyone's score went down. But why does the experiment *we* just did give us better evidence?</p>
             <p class="text-gray-600 mb-6">In the observational study, we don't know what else the students were doing. Maybe they chose minor issues, or the simple act of stopping their day to focus was what helped. We can't be sure.</p>
             <button onclick="nextStep()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">The Takeaway</button>
         </div>
 
-        <!-- Step 11: Conclusion -->
-        <div id="step-11" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
+        <!-- Step 12: Conclusion (was step 11) -->
+        <div id="step-12" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
             <h2 class="text-xl font-bold text-gray-800 mb-3">Correlation vs. Causation</h2>
             <p class="text-gray-600 mb-4">The observational study showed a strong **correlation** (a relationship between two things). The test group used the app, and their scores went down.</p>
             <p class="text-gray-600 mb-6">Our experiment helps us find evidence of **causation** (that one thing *causes* the other). By having a clear before, after, and a single intervention in between, our experiment gives us more confidence that the app directly caused the change.</p>
             <button onclick="nextStep()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">Test Your Knowledge</button>
         </div>
 
-        <!-- Step 12: Card Sort Activity -->
-        <div id="step-12" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
+        <!-- Step 13: Card Sort Activity (was step 12) -->
+        <div id="step-13" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
             <h2 class="text-xl font-bold text-gray-800 mb-2">Test Your Knowledge</h2>
             <p class="text-gray-600 mb-6">Drag and drop each scenario into the correct category below.</p>
             
@@ -251,8 +262,8 @@
             </div>
         </div>
 
-        <!-- Step 13: Final Completion Screen -->
-        <div id="step-13" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step text-center">
+        <!-- Step 14: Final Completion Screen (was step 13) -->
+        <div id="step-14" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step text-center">
             <h1 class="text-3xl font-bold text-green-600 mb-4">Lesson Complete!</h1>
             <p id="final-completion-message" class="text-xl text-gray-700">All activities are finished. Click the button below to submit your results.</p>
             <button onclick="submitAllData()" id="submit-btn" class="mt-8 bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-colors">Submit All Results</button>
@@ -291,7 +302,7 @@
         ];
 
         let currentStep = 1;
-        const totalSteps = 13;
+        const totalSteps = 14; // Updated from 13
         let timerInterval;
 
         // ===================================================================
@@ -307,7 +318,7 @@
             targetStep.classList.add('visible-step');
             
             // If we are showing the card sort step, initialize it
-            if (stepNumber === 12) {
+            if (stepNumber === 13) { // Updated from 12
                 initializeCardSort();
             }
         }
@@ -351,10 +362,10 @@
             if (currentStep < totalSteps) {
                 currentStep++;
                 showStep(currentStep);
-                if (currentStep === 5) { // Step 5 is now intervention
+                if (currentStep === 6) { // Updated from 5: Start stopwatch on new intervention step
                     startStopwatch();
                 }
-                if(currentStep !== 5) {
+                if(currentStep !== 6) { // Updated from 5
                     clearInterval(timerInterval);
                 }
             }
@@ -523,5 +534,4 @@
 
 </body>
 </html>
-
 
