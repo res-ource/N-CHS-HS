@@ -129,9 +129,9 @@
 
         <!-- Step 5: Intervention -->
         <div id="step-5" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step text-center">
-            <h2 class="text-xl font-bold text-gray-800 mb-3">The Intervention</h2>
-            <p class="text-gray-600 mb-6">Now, please open your EFT Tapping app and complete one short session. Keep your focus on the trigger you identified. We'll continue in a few minutes.</p>
-            <div class="text-6xl font-bold text-gray-800" id="timer">4:00</div>
+            <h2 class="text-xl font-bold text-gray-800 mb-3">Time Your Session</h2>
+            <p class="text-gray-600 mb-6">The stopwatch has started. Please open your EFT Tapping app and complete one short session. Keep your focus on the trigger you identified.</p>
+            <div class="text-6xl font-bold text-gray-800" id="timer">00:00</div>
              <p class="text-gray-500 text-sm mt-4">When you're done with the app, you can click Next.</p>
             <button onclick="nextStep()" class="w-full mt-4 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">I'm Done Tapping</button>
         </div>
@@ -325,19 +325,25 @@
             nextStep();
         }
 
-        function startTimer() {
-            let duration = 4 * 60;
+        function startStopwatch() {
+            let totalSeconds = 0;
             const timerElement = document.getElementById('timer');
+            timerElement.textContent = '00:00'; // Reset display
+
+            // Clear any existing timer before starting a new one
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+
             timerInterval = setInterval(() => {
-                const minutes = Math.floor(duration / 60);
-                let seconds = duration % 60;
-                seconds = seconds < 10 ? '0' + seconds : seconds;
-                timerElement.textContent = `${minutes}:${seconds}`;
-                duration--;
-                if (duration < 0) {
-                    clearInterval(timerInterval);
-                    timerElement.textContent = "Time's up!";
-                }
+                totalSeconds++;
+                let minutes = Math.floor(totalSeconds / 60);
+                let seconds = totalSeconds % 60;
+
+                const formattedMinutes = String(minutes).padStart(2, '0');
+                const formattedSeconds = String(seconds).padStart(2, '0');
+
+                timerElement.textContent = `${formattedMinutes}:${formattedSeconds}`;
             }, 1000);
         }
 
@@ -346,7 +352,7 @@
                 currentStep++;
                 showStep(currentStep);
                 if (currentStep === 5) { // Step 5 is now intervention
-                    startTimer();
+                    startStopwatch();
                 }
                 if(currentStep !== 5) {
                     clearInterval(timerInterval);
@@ -517,4 +523,5 @@
 
 </body>
 </html>
+
 
