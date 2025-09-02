@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EFT Tapping: An Interactive Lesson</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .step-card {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+        .hidden-step {
+            opacity: 0;
+            transform: scale(0.95);
+            display: none;
+        }
+        .visible-step {
+            opacity: 1;
+            transform: scale(1);
+            display: block;
+        }
+        /* Custom styles for the slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0; /* gray-300 */
+            border-radius: 9999px;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #4f46e5; /* indigo-600 */
+            cursor: pointer;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #4f46e5; /* indigo-600 */
+            cursor: pointer;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+        }
+        /* Card Sort Styles */
+        .drop-zone {
+            min-height: 100px;
+            transition: background-color 0.3s;
+        }
+        .drop-zone.drag-over {
+            background-color: #dbeafe; /* blue-100 */
+            border-color: #60a5fa; /* blue-400 */
+        }
+        .draggable-card {
+            cursor: grab;
+        }
+        .draggable-card:active {
+            cursor: grabbing;
+        }
+        .correct {
+            border-left: 4px solid #16a34a; /* green-600 */
+        }
+        .incorrect {
+            border-left: 4px solid #dc2626; /* red-600 */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="w-full max-w-2xl mx-auto">
+        
+        <!-- Step 1: Student ID Entry -->
+        <div id="step-1" class="step-card bg-white p-8 rounded-xl shadow-lg visible-step">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">Observation vs. Experiment</h1>
+            <p class="text-gray-600 mb-6">Welcome to an interactive lesson on statistical studies. Please enter your Student ID to begin.</p>
+            <label for="studentIdInput" class="block text-gray-700 font-semibold mb-2">Student ID:</label>
+            <input type="text" id="studentIdInput" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="Your Student ID">
+            <p id="studentIdError" class="text-red-600 h-5 mt-2 text-sm"></p>
+            <button onclick="startLesson()" class="w-full mt-2 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">Start Lesson</button>
+        </div>
+
+        <!-- Step 2: Welcome -->
+        <div id="step-2" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">Let's Run an Experiment</h1>
+            <p class="text-gray-600 mb-6">Today, we're going to act as scientists to test a tool that claims to help with stressful feelings. We'll start by running our own experiment.</p>
+            <button onclick="nextStep()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">Let's Begin</button>
+        </div>
+
+        <!-- Step 3: Identify Trigger -->
+        <div id="step-3" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
+            <h2 class="text-xl font-bold text-gray-800 mb-3">Part 1: The Experiment</h2>
+            <p class="text-gray-600 mb-4">First, think of a minor, stressful trigger. It could be homework, a chore, or an upcoming event. Please type it below.</p>
+            <input type="text" id="trigger-input" placeholder="e.g., My math homework" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+            <button onclick="saveTrigger()" class="w-full mt-4 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">Next</button>
+        </div>
+
+        <!-- Step 4: Baseline Score -->
+        <div id="step-4" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
+            <h2 class="text-xl font-bold text-gray-800 mb-3">Rate Your 'Before' Score</h2>
+            <p class="text-gray-600 mb-6">Focus on that trigger. On a scale from 0 (no intensity) to 10 (the biggest it could be), how intense is that feeling right now?</p>
+            <div class="text-center mb-4">
+                <span id="before-score-value" class="text-5xl font-bold text-indigo-600">5</span>
+            </div>
+            <input type="range" id="before-score-slider" min="0" max="10" value="5" class="w-full" oninput="document.getElementById('before-score-value').innerText = this.value">
+            <div class="flex justify-between text-sm text-gray-500 mt-2">
+                <span>0</span>
+                <span>10</span>
+            </div>
+            <button onclick="saveBeforeScore()" class="w-full mt-6 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">Save 'Before' Score</button>
+        </div>
+
+        <!-- Step 5: Intervention -->
+        <div id="step-5" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step text-center">
+            <h2 class="text-xl font-bold text-gray-800 mb-3">The Intervention</h2>
+            <p class="text-gray-600 mb-6">Now, please open your EFT Tapping app and complete one short session. Keep your focus on the trigger you identified. We'll continue in a few minutes.</p>
+            <div class="text-6xl font-bold text-gray-800" id="timer">4:00</div>
+             <p class="text-gray-500 text-sm mt-4">When you're done with the app, you can click Next.</p>
+            <button onclick="nextStep()" class="w-full mt-4 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">I'm Done Tapping</button>
+        </div>
+
+        <!-- Step 6: Post-Intervention Score -->
+        <div id="step-6" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
+            <h2 class="text-xl font-bold text-gray-800 mb-3">Rate Your 'After' Score</h2>
+            <p class="text-gray-600 mb-6">Take a breath. Now, bring your attention back to that same stressful trigger. On the same 0-10 scale, rate the intensity you feel *now*.</p>
+            <div class="text-center mb-4">
+                <span id="after-score-value" class="text-5xl font-bold text-indigo-600">5</span>
+            </div>
+            <input type="range" id="after-score-slider" min="0" max="10" value="5" class="w-full" oninput="document.getElementById('after-score-value').innerText = this.value">
+            <div class="flex justify-between text-sm text-gray-500 mt-2">
+                <span>0</span>
+                <span>10</span>
+            </div>
+            <button onclick="saveAfterScore()" class="w-full mt-6 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">See My Results</button>
+        </div>
+
+        <!-- Step 7: Experiment Results -->
+        <div id="step-7" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step text-center">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Your Experiment Results</h2>
+            <div class="flex justify-around items-center">
+                <div>
+                    <p class="text-sm text-gray-500">Before Score</p>
+                    <p id="result-before" class="text-6xl font-bold text-gray-800">0</p>
+                </div>
+                <div>
+                    <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">After Score</p>
+                    <p id="result-after" class="text-6xl font-bold text-indigo-600">0</p>
+                </div>
+            </div>
+            <p class="text-gray-600 mt-6">Our experiment, with its 'before' and 'after' measurement, gives us evidence about the app's effect. Now, let's look at another way data is collected.</p>
+            <button onclick="nextStep()" class="w-full mt-6 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">Continue</button>
+        </div>
+        
+        <!-- Step 8: Observational Study Intro -->
+        <div id="step-8" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
+            <h2 class="text-xl font-bold text-gray-800 mb-3">Part 2: An Observational Study</h2>
+            <p class="text-gray-600 mb-4">An observational study is when we collect data just by watching or gathering information on what people do on their own, without our interference. We're like detectives gathering clues that already exist.</p>
+            <p class="text-gray-600 mb-6">Let's look at some data from an informal beta test last Friday, where students tested the app for the first time.</p>
+            <button onclick="nextStep()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">See the Data</button>
+        </div>
+
+        <!-- Step 9: Observational Study Data -->
+        <div id="step-9" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Beta Test Results</h2>
+            <p class="text-gray-600 mb-4">The goals were simple: Could they use the app, and did it reduce emotional intensity? Here is the data we observed:</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="py-2 px-4 border-b text-left text-sm font-semibold text-gray-600">Student</th>
+                            <th class="py-2 px-4 border-b text-center text-sm font-semibold text-gray-600">Before</th>
+                            <th class="py-2 px-4 border-b text-center text-sm font-semibold text-gray-600">After</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="hover:bg-gray-50"><td class="py-2 px-4 border-b text-gray-700">Student 1</td><td class="py-2 px-4 border-b text-center text-gray-700">6</td><td class="py-2 px-4 border-b text-center text-green-600 font-semibold">0</td></tr>
+                        <tr class="hover:bg-gray-50"><td class="py-2 px-4 border-b text-gray-700">Student 2</td><td class="py-2 px-4 border-b text-center text-gray-700">3</td><td class="py-2 px-4 border-b text-center text-green-600 font-semibold">0</td></tr>
+                        <tr class="hover:bg-gray-50"><td class="py-2 px-4 border-b text-gray-700">Student 3</td><td class="py-2 px-4 border-b text-center text-gray-700">5</td><td class="py-2 px-4 border-b text-center text-green-600 font-semibold">2</td></tr>
+                        <tr class="hover:bg-gray-50"><td class="py-2 px-4 border-b text-gray-700">Student 4</td><td class="py-2 px-4 border-b text-center text-gray-700">8</td><td class="py-2 px-4 border-b text-center text-green-600 font-semibold">3</td></tr>
+                         <tr class="hover:bg-gray-50"><td class="py-2 px-4 border-b text-gray-700">Student 5</td><td class="py-2 px-4 border-b text-center text-gray-700">6</td><td class="py-2 px-4 border-b text-center text-green-600 font-semibold">1</td></tr>
+                        <tr class="hover:bg-gray-50"><td class="py-2 px-4 border-b text-gray-700">Student 6</td><td class="py-2 px-4 border-b text-center text-gray-700">7</td><td class="py-2 px-4 border-b text-center text-green-600 font-semibold">4</td></tr>
+                        <tr class="hover:bg-gray-50"><td class="py-2 px-4 border-b text-gray-700">Student 7</td><td class="py-2 px-4 border-b text-center text-gray-700">4</td><td class="py-2 px-4 border-b text-center text-green-600 font-semibold">1</td></tr>
+                        <tr class="hover:bg-gray-50"><td class="py-2 px-4 border-b text-gray-700">Student 8</td><td class="py-2 px-4 border-b text-center text-gray-700">5</td><td class="py-2 px-4 border-b text-center text-green-600 font-semibold">2</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <button onclick="nextStep()" class="w-full mt-6 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">What Does This Mean?</button>
+        </div>
+
+        <!-- Step 10: Debrief -->
+        <div id="step-10" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
+            <h2 class="text-xl font-bold text-gray-800 mb-3">The Big Question</h2>
+            <p class="text-gray-600 mb-4">The results from the Friday test look great—everyone's score went down. But why does the experiment *we* just did give us better evidence?</p>
+            <p class="text-gray-600 mb-6">In the observational study, we don't know what else the students were doing. Maybe they chose minor issues, or the simple act of stopping their day to focus was what helped. We can't be sure.</p>
+            <button onclick="nextStep()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">The Takeaway</button>
+        </div>
+
+        <!-- Step 11: Conclusion -->
+        <div id="step-11" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
+            <h2 class="text-xl font-bold text-gray-800 mb-3">Correlation vs. Causation</h2>
+            <p class="text-gray-600 mb-4">The observational study showed a strong **correlation** (a relationship between two things). The test group used the app, and their scores went down.</p>
+            <p class="text-gray-600 mb-6">Our experiment helps us find evidence of **causation** (that one thing *causes* the other). By having a clear before, after, and a single intervention in between, our experiment gives us more confidence that the app directly caused the change.</p>
+            <button onclick="nextStep()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">Test Your Knowledge</button>
+        </div>
+
+        <!-- Step 12: Card Sort Activity -->
+        <div id="step-12" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step">
+            <h2 class="text-xl font-bold text-gray-800 mb-2">Test Your Knowledge</h2>
+            <p class="text-gray-600 mb-6">Drag and drop each scenario into the correct category below.</p>
+            
+            <div class="flex flex-col md:flex-row gap-6">
+                <!-- Drop Zone: Observational -->
+                <div id="obs-zone" class="drop-zone w-full p-4 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300">
+                    <h3 class="font-bold text-center text-gray-700 mb-2">Observational Studies</h3>
+                </div>
+                <!-- Drop Zone: Experiments -->
+                <div id="exp-zone" class="drop-zone w-full p-4 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300">
+                    <h3 class="font-bold text-center text-gray-700 mb-2">Experiments</h3>
+                </div>
+            </div>
+
+            <!-- Draggable Cards -->
+            <div id="card-pile" class="mt-6 space-y-3">
+                <div id="card-1" draggable="true" data-type="observational" class="draggable-card p-3 bg-white border rounded-lg shadow-sm text-sm">A researcher surveys 500 people to see if there's a link between drinking coffee and sleeping fewer hours.</div>
+                <div id="card-2" draggable="true" data-type="experiment" class="draggable-card p-3 bg-white border rounded-lg shadow-sm text-sm">To test a new fertilizer, a farmer divides a field in two. One half gets the new fertilizer, the other gets none. Crop yield is measured.</div>
+                <div id="card-3" draggable="true" data-type="observational" class="draggable-card p-3 bg-white border rounded-lg shadow-sm text-sm">Scientists track the health of 1,000 nurses over 20 years, looking for patterns between their lifestyle and rates of heart disease.</div>
+                <div id="card-4" draggable="true" data-type="experiment" class="draggable-card p-3 bg-white border rounded-lg shadow-sm text-sm">A teacher uses a new reading program with half of her class and the old program with the other half to see which group has higher test scores.</div>
+                <div id="card-5" draggable="true" data-type="experiment" class="draggable-card p-3 bg-white border rounded-lg shadow-sm text-sm">A company gives a new headache pill to 100 patients and a placebo (sugar pill) to another 100 to see if the new pill works better.</div>
+                <div id="card-6" draggable="true" data-type="observational" class="draggable-card p-3 bg-white border rounded-lg shadow-sm text-sm">A city government analyzes traffic camera data to find out which intersections have the most accidents.</div>
+            </div>
+
+            <p id="feedback-message" class="text-center mt-4 font-semibold hidden"></p>
+
+            <div class="flex gap-4 mt-6">
+                 <button id="check-answers-btn" onclick="checkAnswers()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors">Check Answers & Finish</button>
+            </div>
+        </div>
+
+        <!-- Step 13: Final Completion Screen -->
+        <div id="step-13" class="step-card bg-white p-8 rounded-xl shadow-lg hidden-step text-center">
+            <h1 class="text-3xl font-bold text-green-600 mb-4">Lesson Complete!</h1>
+            <p id="final-completion-message" class="text-xl text-gray-700">All activities are finished. Click the button below to submit your results.</p>
+            <button onclick="submitAllData()" id="submit-btn" class="mt-8 bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-colors">Submit All Results</button>
+            <button onclick="restart()" class="mt-4 bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700 transition-colors">Start Over</button>
+        </div>
+        
+    </div>
+
+    <script>
+        // ===================================================================
+        // GLOBAL STATE & DATA
+        // ===================================================================
+        const globalState = {
+            studentId: '',
+            startTime: 0,
+            triggerText: '',
+            beforeScore: 5,
+            afterScore: 5,
+            cardSortScore: 0,
+            cardSortAttempts: 0
+        };
+
+        let currentStep = 1;
+        const totalSteps = 13;
+        let timerInterval;
+
+        // ===================================================================
+        // NAVIGATION & LESSON FLOW
+        // ===================================================================
+        function showStep(stepNumber) {
+            for (let i = 1; i <= totalSteps; i++) {
+                document.getElementById(`step-${i}`).classList.add('hidden-step');
+                document.getElementById(`step-${i}`).classList.remove('visible-step');
+            }
+            const targetStep = document.getElementById(`step-${stepNumber}`);
+            targetStep.classList.remove('hidden-step');
+            targetStep.classList.add('visible-step');
+        }
+
+        function startLesson() {
+            const idInput = document.getElementById('studentIdInput');
+            const idError = document.getElementById('studentIdError');
+            if (idInput.value.trim() === '') {
+                idError.textContent = 'Please enter a Student ID.';
+                return;
+            }
+            globalState.studentId = idInput.value.trim();
+            idError.textContent = '';
+            globalState.startTime = new Date().getTime();
+            nextStep();
+        }
+
+        function startTimer() {
+            let duration = 4 * 60;
+            const timerElement = document.getElementById('timer');
+            timerInterval = setInterval(() => {
+                const minutes = Math.floor(duration / 60);
+                let seconds = duration % 60;
+                seconds = seconds < 10 ? '0' + seconds : seconds;
+                timerElement.textContent = `${minutes}:${seconds}`;
+                duration--;
+                if (duration < 0) {
+                    clearInterval(timerInterval);
+                    timerElement.textContent = "Time's up!";
+                }
+            }, 1000);
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                showStep(currentStep);
+                if (currentStep === 5) { // Step 5 is now intervention
+                    startTimer();
+                }
+                if(currentStep !== 5) {
+                    clearInterval(timerInterval);
+                }
+            }
+        }
+        
+        function saveTrigger() {
+            globalState.triggerText = document.getElementById('trigger-input').value;
+            nextStep();
+        }
+
+        function saveBeforeScore() {
+            globalState.beforeScore = parseInt(document.getElementById('before-score-slider').value);
+            nextStep();
+        }
+
+        function saveAfterScore() {
+            globalState.afterScore = parseInt(document.getElementById('after-score-slider').value);
+            document.getElementById('result-before').innerText = globalState.beforeScore;
+            document.getElementById('result-after').innerText = globalState.afterScore;
+            nextStep();
+        }
+
+        function restart() {
+            window.location.reload();
+        }
+        
+        // ===================================================================
+        // CARD SORT LOGIC
+        // ===================================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            const draggableCards = document.querySelectorAll('.draggable-card');
+            const dropZones = document.querySelectorAll('.drop-zone');
+            
+            draggableCards.forEach(card => {
+                card.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', e.target.id);
+                    setTimeout(() => { card.classList.add('hidden'); }, 0);
+                });
+                card.addEventListener('dragend', () => { card.classList.remove('hidden'); });
+            });
+
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+                zone.addEventListener('dragleave', () => { zone.classList.remove('drag-over'); });
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('drag-over');
+                    const id = e.dataTransfer.getData('text/plain');
+                    const draggable = document.getElementById(id);
+                    zone.appendChild(draggable);
+                });
+            });
+        });
+
+        function checkAnswers() {
+            globalState.cardSortAttempts++;
+            const obsZone = document.getElementById('obs-zone');
+            const expZone = document.getElementById('exp-zone');
+            let correctCount = 0;
+            const totalCards = 6;
+
+            const allCards = document.querySelectorAll('.draggable-card');
+            allCards.forEach(card => card.classList.remove('correct', 'incorrect'));
+
+            obsZone.querySelectorAll('.draggable-card').forEach(card => {
+                if (card.dataset.type === 'observational') { card.classList.add('correct'); correctCount++; } 
+                else { card.classList.add('incorrect'); }
+            });
+            expZone.querySelectorAll('.draggable-card').forEach(card => {
+                if (card.dataset.type === 'experiment') { card.classList.add('correct'); correctCount++; } 
+                else { card.classList.add('incorrect'); }
+            });
+            
+            globalState.cardSortScore = correctCount;
+
+            const feedback = document.getElementById('feedback-message');
+            feedback.classList.remove('hidden');
+            feedback.textContent = `You got ${correctCount} out of ${totalCards} correct.`;
+            feedback.style.color = '#1f2937'; // gray-800
+            
+            document.getElementById('check-answers-btn').disabled = true;
+            document.getElementById('check-answers-btn').classList.add('opacity-50', 'cursor-not-allowed');
+
+            setTimeout(() => {
+                nextStep(); // Advance to the final submission screen
+            }, 2000);
+        }
+
+        // ===================================================================
+        // FINAL DATA SUBMISSION
+        // ===================================================================
+        async function submitAllData() {
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+            
+            const endTime = new Date().getTime();
+            const time_spent_seconds = Math.round((endTime - globalState.startTime) / 1000);
+            
+            const data = {
+                student_id: globalState.studentId,
+                activity_name: "EFT Tapping Lesson",
+                emotional_trigger: globalState.triggerText,
+                score_before: globalState.beforeScore,
+                score_after: globalState.afterScore,
+                score_change: globalState.beforeScore - globalState.afterScore,
+                card_sort_score: globalState.cardSortScore,
+                card_sort_attempts: globalState.cardSortAttempts,
+                total_time_seconds: time_spent_seconds
+            };
+
+            const finalCompletionMessage = document.getElementById('final-completion-message');
+            
+            try {
+                // IMPORTANT: This URL has been updated with the one you provided.
+                const webhookUrl = 'https://automations.emoalchemy.com/webhook/stats-2';
+                const formBody = new URLSearchParams(data);
+
+                await fetch(webhookUrl, {    
+                    method: 'POST',    
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },    
+                    body: formBody,
+                    mode: 'no-cors' // Important for sending from browser to webhook
+                });
+                
+                // Since we use no-cors, we can't check response.ok. We'll assume it worked.
+                finalCompletionMessage.textContent = "Your results have been submitted successfully!";
+                btn.style.backgroundColor = '#16a34a'; // green-600
+                btn.textContent = 'Submitted!';
+            } catch (error) {
+                console.error('Error submitting data:', error);
+                finalCompletionMessage.textContent = "Could not submit results. Please check your connection.";
+                btn.style.backgroundColor = '#dc2626'; // red-600
+                btn.textContent = 'Submission Failed';
+            }
+        }
+
+        // Initialize the app view
+        showStep(currentStep);
+    </script>
+
+</body>
+</html>
+
