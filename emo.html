@@ -108,7 +108,7 @@
             <!-- New Speed Slider Container -->
             <div id="speed-slider-container" class="mb-4 hidden">
                  <label for="speed-slider" class="block text-center text-sm font-medium text-gray-700 mb-1">Auto-Pace Speed</label>
-                 <input id="speed-slider" type="range" min="1500" max="4000" value="2500" step="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                 <input id="speed-slider" type="range" min="1500" max="4000" value="2000" step="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
                  <div class="flex justify-between text-xs text-gray-500 mt-1">
                      <span>Slower</span>
                      <span>Faster</span>
@@ -633,8 +633,8 @@
                 currentStep: 'start_triage', path: null, primaryEmotion: null,
                 currentSuds: null, initialSuds: null, tappingRoundCount: 0, pacingMode: 'manual',
                 roundsToRun: 0, 
-                autoPaceSpeed: 3000, // Corresponds to default slider value 2500 (5500-2500)
-                typingSpeed: 34,     // Corresponds to default slider value 2500 (-0.016*2500 + 74)
+                autoPaceSpeed: 3500, // Corresponds to new default slider value 2000 (5500-2000)
+                typingSpeed: 68,     // Corresponds to a ~150 WPM 7th-grade reading level
                 isExploratory: false,
             };
         }
@@ -759,15 +759,7 @@
                 const point = roundScript[i];
                 await addBotMessage(`<strong>${point.point}:</strong> <em>"${point.phrase}"</em>`);
                 
-                if (sessionState.pacingMode === 'manual' && i < roundScript.length - 1) {
-                    await new Promise(resolve => {
-                        showOptions([{ text: "Next Point", value: 'continue' }]);
-                        optionsContainer.querySelector('button').onclick = () => { resolve(); };
-                    });
-                     showOptions([]);
-                } else if (sessionState.pacingMode === 'auto') {
-                    // The pause between lines has been removed to create a continuous flow.
-                }
+                // Manual pacing logic has been removed.
             }
             sessionState.tappingRoundCount++;
             
@@ -901,64 +893,43 @@
                             await addBotMessage(`<em>"${phrase}"</em>`);
                         }
                     }
-                    sessionState.currentStep = 'choose_pacing_mode';
-                    await addBotMessage(`How would you like to proceed with the tapping round?`);
-                    showOptions([
-                        {text: "Manual Pace", value: 'manual'},
-                        {text: "Auto Pace", value: 'auto'}
-                    ]);
+                    
+                    // -- CHANGE: Pause and ask for confirmation --
+                    await addBotMessage("When you're ready, we'll start the tapping round.");
+                    sessionState.currentStep = 'setup_complete_ready_to_tap';
+                    showOptions([{ text: "I'm ready to tap!", value: 'continue' }]);
                     break;
 
-                case 'choose_pacing_mode':
-                    sessionState.pacingMode = value;
-                    if (value === 'auto') {
-                        speedSliderContainer.classList.remove('hidden');
-                        const suds = sessionState.initialSuds;
-                        // LOGIC UPDATE: New SUDs-to-round rules for BOTH paths
-                        if(sessionState.path === 'positive') {
-                            if (suds <= 3) sessionState.roundsToRun = 5;
-                            else if (suds <= 6) sessionState.roundsToRun = 3;
-                            else sessionState.roundsToRun = 2;
-                        } else { // negative path
-                            if (suds >= 7) sessionState.roundsToRun = 8;
-                            else if (suds >= 4) sessionState.roundsToRun = 5;
-                            else if (suds === 3 || suds === 2) sessionState.roundsToRun = 2;
-                            else if (suds === 1) sessionState.roundsToRun = 1;
-                            else if (suds === 0) sessionState.roundsToRun = 3;
-                            else sessionState.roundsToRun = 1; 
-                        }
+                case 'setup_complete_ready_to_tap':
+                    addUserMessage("I'm ready to tap!");
+                    // -- Logic moved from suds_start to here --
+                    sessionState.pacingMode = 'auto';
+                    speedSliderContainer.classList.remove('hidden');
+                    const suds = sessionState.initialSuds;
+                    if(sessionState.path === 'positive') {
+                        if (suds <= 3) sessionState.roundsToRun = 5;
+                        else if (suds <= 6) sessionState.roundsToRun = 3;
+                        else sessionState.roundsToRun = 2;
+                    } else { // negative path
+                        if (suds >= 7) sessionState.roundsToRun = 8;
+                        else if (suds >= 4) sessionState.roundsToRun = 5;
+                        else if (suds === 3 || suds === 2) sessionState.roundsToRun = 2;
+                        else if (suds === 1) sessionState.roundsToRun = 1;
+                        else if (suds === 0) sessionState.roundsToRun = 3;
+                        else sessionState.roundsToRun = 1; 
                     }
                     runTappingSegment();
                     break;
-                
+
                 case 'post_tapping_round':
-                    if (sessionState.pacingMode === 'auto') {
-                        sessionState.roundsToRun--;
-                        if (sessionState.roundsToRun > 0) {
-                            runTappingSegment(); 
-                            return; 
-                        } else {
-                            const promptName = details[sessionState.primaryEmotion].promptName || details[sessionState.primaryEmotion].displayName;
-                            await addBotMessage(`Okay, all done with the automatic rounds. Let's check in. On a scale from 0-10, how big is the feeling of <strong>${promptName.toLowerCase()}</strong> now?`);
-                            sessionState.currentStep = 'post_suds';
-                            showOptions(createSudsOptions());
-                        }
+                    // -- CHANGE: Simplified logic as manual mode is removed --
+                    sessionState.roundsToRun--;
+                    if (sessionState.roundsToRun > 0) {
+                        runTappingSegment(); 
+                        return; 
                     } else {
-                        sessionState.currentStep = 'ask_for_next_action';
-                        await addBotMessage("Good round. What feels right for you to do next?");
-                        showOptions([
-                            { text: "Do another round", value: 'another_round' },
-                            { text: "Check my number now", value: 'check_suds' }
-                        ]);
-                    }
-                    break;
-                
-                case 'ask_for_next_action':
-                    if (value === 'another_round') {
-                        runTappingSegment();
-                    } else { 
                         const promptName = details[sessionState.primaryEmotion].promptName || details[sessionState.primaryEmotion].displayName;
-                        await addBotMessage(`Okay, let's check in. On a scale from 0-10, how big is the feeling of <strong>${promptName.toLowerCase()}</strong> now?`);
+                        await addBotMessage(`Okay, all done with the automatic rounds. Let's check in. On a scale from 0-10, how big is the feeling of <strong>${promptName.toLowerCase()}</strong> now?`);
                         sessionState.currentStep = 'post_suds';
                         showOptions(createSudsOptions());
                     }
@@ -997,9 +968,8 @@
                                 ]);
                                 sessionState.currentStep = "ask_to_switch_or_continue";
                             } else {
-                                await addBotMessage("You're making progress. Shall we go again?");
-                                showOptions([{ text: "Yes, let's do another round", value: "another_round" }]);
-                                sessionState.currentStep = "ask_for_next_action";
+                                await addBotMessage("You're making progress. Let's go again.");
+                                runTappingSegment();
                             }
                         }
                     } else { // Positive path
@@ -1041,12 +1011,14 @@
 
                 case 'positive_next_action':
                     if (value === 'another_round') {
-                        sessionState.currentStep = 'choose_pacing_mode';
-                        await addBotMessage(`How would you like to proceed with the next round?`);
-                        showOptions([
-                            {text: "Manual Pace", value: 'manual'},
-                            {text: "Auto Pace", value: 'auto'}
-                        ]);
+                        // -- CHANGE: Directly start another auto-paced round --
+                        sessionState.pacingMode = 'auto';
+                        speedSliderContainer.classList.remove('hidden');
+                        const sudsPositive = sessionState.currentSuds; // Use current, not initial
+                        if (sudsPositive <= 3) sessionState.roundsToRun = 5;
+                        else if (sudsPositive <= 6) sessionState.roundsToRun = 3;
+                        else sessionState.roundsToRun = 2;
+                        runTappingSegment();
                     } else { 
                         sessionState.currentStep = 'end_session';
                         handleUserChoice('continue');
@@ -1088,13 +1060,12 @@
             sessionState.autoPaceSpeed = 5500 - sliderValue;
             
             // This formula makes the typing delay SHORTER (faster) as the slider value INCREASES (moves right)
-            // It maps the slider's range [1500, 4000] to a typing delay of [50ms, 10ms]
-            sessionState.typingSpeed = Math.round((-0.016 * sliderValue) + 74);
+            // It maps the slider's range [1500, 4000] to a comfortable reading pace.
+            sessionState.typingSpeed = Math.round((-0.024 * sliderValue) + 116);
         });
 
         window.addEventListener('load', init);
     </script>
 </body>
 </html>
-
 
