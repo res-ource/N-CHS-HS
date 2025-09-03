@@ -632,7 +632,10 @@
             sessionState = {
                 currentStep: 'start_triage', path: null, primaryEmotion: null,
                 currentSuds: null, initialSuds: null, tappingRoundCount: 0, pacingMode: 'manual',
-                roundsToRun: 0, autoPaceSpeed: 2500, isExploratory: false,
+                roundsToRun: 0, 
+                autoPaceSpeed: 3000, // Corresponds to default slider value 2500 (5500-2500)
+                typingSpeed: 34,     // Corresponds to default slider value 2500 (-0.016*2500 + 74)
+                isExploratory: false,
             };
         }
 
@@ -663,7 +666,7 @@
         async function typeOutText(fullText, bubbleElement) {
             return new Promise(resolve => {
                 let i = 0;
-                const typingSpeed = 30;
+                // REMOVED: const typingSpeed = 30; 
                 bubbleElement.innerHTML = ''; 
 
                 function type() {
@@ -679,7 +682,8 @@
                             i++;
                         }
                         chatBox.scrollTop = chatBox.scrollHeight;
-                        setTimeout(type, typingSpeed);
+                        // Use the new sessionState.typingSpeed, with a fallback
+                        setTimeout(type, sessionState.typingSpeed || 30);
                     } else {
                         resolve();
                     }
@@ -689,9 +693,12 @@
         }
         
         async function addBotMessage(text) {
-            showThinkingIndicator();
-            await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 400));
-            removeThinkingIndicator();
+            // Only show the thinking indicator and long pause for manual/initial steps
+            if (sessionState.pacingMode !== 'auto') {
+                showThinkingIndicator();
+                await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 400));
+                removeThinkingIndicator();
+            }
             
             const bubble = document.createElement('div');
             bubble.className = 'chat-bubble-bot self-start max-w-md p-4 text-sm';
@@ -759,7 +766,7 @@
                     });
                      showOptions([]);
                 } else if (sessionState.pacingMode === 'auto') {
-                    await new Promise(resolve => setTimeout(resolve, sessionState.autoPaceSpeed));
+                    // The pause between lines has been removed to create a continuous flow.
                 }
             }
             sessionState.tappingRoundCount++;
@@ -1075,17 +1082,19 @@
 
         // --- EVENT LISTENERS ---
         speedSlider.addEventListener('input', (e) => {
-            sessionState.autoPaceSpeed = 5500 - e.target.value; 
+            const sliderValue = parseInt(e.target.value, 10);
+
+            // This formula makes the pause SHORTER as the slider value INCREASES (moves right)
+            sessionState.autoPaceSpeed = 5500 - sliderValue;
+            
+            // This formula makes the typing delay SHORTER (faster) as the slider value INCREASES (moves right)
+            // It maps the slider's range [1500, 4000] to a typing delay of [50ms, 10ms]
+            sessionState.typingSpeed = Math.round((-0.016 * sliderValue) + 74);
         });
 
         window.addEventListener('load', init);
     </script>
 </body>
 </html>
-
-
-
-
-
 
 
