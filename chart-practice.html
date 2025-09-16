@@ -421,15 +421,19 @@
             });
 
             try {
-                await fetch(webhookUrl, {
+                const response = await fetch(webhookUrl, {
                     method: 'POST',
-                    mode: 'no-cors', 
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(payload)
                 });
-                console.log('Quiz results sent to webhook. Note: Response status cannot be checked due to CORS policy.');
+
+                if (response.ok) {
+                    console.log('Quiz results successfully sent and received by webhook.');
+                } else {
+                    console.error('Webhook server responded with an error:', response.status, response.statusText);
+                }
             } catch (error) {
                 console.error('Error sending data to webhook:', error);
             }
@@ -540,4 +544,5 @@ Here is a sample of the new, flat JSON structure. The full output will be much l
   "fruits_q5_answer": "25",
   "fruits_q5_correct": false
 }
+
 
