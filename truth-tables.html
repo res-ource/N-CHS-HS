@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truth Table Detective & Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .truth-table th, .truth-table td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: center;
+        }
+        .truth-table th {
+            background-color: #f8fafc;
+        }
+        .feedback {
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+        }
+        .feedback-correct {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+        .feedback-incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        .word-bank-btn, .statement-match-card, .logic-card, .sentence-card, .table-card {
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        .word-bank-btn.selected, .statement-match-card.selected, .logic-card.selected, .sentence-card.selected, .table-card.selected {
+            border-color: #3b82f6;
+            background-color: #dbeafe;
+            color: #1e40af;
+            font-weight: 600;
+        }
+        .matched {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #f1f5f9;
+        }
+        .correction-cell {
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .correction-cell:hover {
+            background-color: #fef9c3;
+        }
+        .cell-incorrect-flash {
+            animation: flash-red 0.8s;
+        }
+        @keyframes flash-red {
+            0%, 100% { background-color: inherit; }
+            50% { background-color: #fee2e2; }
+        }
+
+        /* Animation Styles */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .review-slide {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        @keyframes pulse-row {
+            0%, 100% { background-color: inherit; }
+            50% { background-color: #fef9c3; }
+        }
+        .and-table .row-tt { animation: pulse-row 2s infinite 0.5s; }
+        .or-table .row-tt { animation: pulse-row 2.5s infinite 0.5s; }
+        .or-table .row-tf { animation: pulse-row 2.5s infinite 1.0s; }
+        .or-table .row-ft { animation: pulse-row 2.5s infinite 1.5s; }
+        .cond-table .row-tf { animation: pulse-row 2s infinite 0.5s; }
+        .bicond-table .row-tt { animation: pulse-row 2.5s infinite 0.5s; }
+        .bicond-table .row-ff { animation: pulse-row 2.5s infinite 1.5s; }
+
+        
+        .cycling-text-container {
+            position: relative;
+            height: 3em;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        .cycling-text-container span {
+            position: absolute;
+            opacity: 0;
+            animation: cycle-text 12s linear infinite;
+            font-style: italic;
+        }
+        .cycling-text-container span:nth-child(1) { animation-delay: 0s; }
+        .cycling-text-container span:nth-child(2) { animation-delay: 4s; }
+        .cycling-text-container span:nth-child(3) { animation-delay: 8s; }
+
+        @keyframes cycle-text {
+            0%   { opacity: 0; transform: translateY(8px); }
+            8%   { opacity: 1; transform: translateY(0); }
+            33%  { opacity: 1; transform: translateY(0); }
+            41%  { opacity: 0; transform: translateY(-8px); }
+            100% { opacity: 0; }
+        }
+
+        /* Drag and Drop Builder Styles */
+        .symbol-palette {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .symbol-chip {
+            padding: 0.5rem 0.75rem;
+            background-color: #e2e8f0;
+            border-radius: 9999px;
+            font-weight: 500;
+            cursor: grab;
+            transition: background-color 0.2s;
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+        .symbol-chip:hover {
+            background-color: #cbd5e1;
+        }
+        .drop-zone {
+            min-height: 50px;
+            background-color: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .drop-zone.drag-over {
+            background-color: #e0f2fe;
+            border-color: #3b82f6;
+        }
+        .dropped-chip {
+            padding: 0.5rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            font-family: monospace;
+            font-size: 1.1rem;
+            cursor: pointer;
+            background-color: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+        .drop-zone-placeholder {
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        /* Part A drag and drop matching */
+        .statement-match-card.dragging {
+            opacity: 0.5;
+        }
+        .table-card.drag-over {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+         @keyframes flash-red-border {
+            0%, 100% { border-color: transparent; }
+            50% { border-color: #ef4444; }
+        }
+        .table-card.incorrect-drop {
+            animation: flash-red-border 0.5s;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
+        <header class="text-center mb-10">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Truth Table Detective & Builder</h1>
+            <p class="mt-2 text-lg text-gray-600">An interactive refresher for symbolic logic.</p>
+        </header>
+
+        <!-- Foundations Review Section -->
+        <section id="review" class="bg-white p-6 rounded-lg shadow-md mb-8 overflow-hidden">
+            <h2 class="text-2xl font-bold mb-4 text-center">Foundations Review</h2>
+            
+            <div id="review-slides-container" class="relative min-h-[250px]">
+                <div class="review-slide" data-slide="0">
+                    <h3 class="text-xl font-semibold text-center">Statements `p` & `q` are Placeholders</h3>
+                    <p class="mt-2 text-gray-600 text-center">They represent any whole statement that can be either <span class="font-bold text-green-600">True</span> or <span class="font-bold text-red-600">False</span>.</p>
+                    <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-lg">
+                        <div class="flex items-center p-4 bg-blue-50 border-2 border-blue-300 rounded-lg min-h-[90px]">
+                            <span class="text-3xl font-bold text-blue-700 mr-4">p</span>
+                            <div class="cycling-text-container w-full">
+                                <span>[It is sunny]</span>
+                                <span>[I wake up late]</span>
+                                <span>[The cat is on the mat]</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-purple-50 border-2 border-purple-300 rounded-lg min-h-[90px]">
+                             <span class="text-3xl font-bold text-purple-700 mr-4">q</span>
+                            <div class="cycling-text-container w-full">
+                                <span>[We go to the park]</span>
+                                <span>[I miss the bus]</span>
+                                <span>[The dog barks]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-slide hidden" data-slide="1">
+                    <div class="grid md:grid-cols-2 gap-6 items-center">
+                        <div class="text-center md:text-left">
+                            <h3 class="text-xl font-semibold">Conjunction (p ∧ q)</h3>
+                            <p class="mt-2 text-gray-600">True only when <span class="font-bold">BOTH</span> `p` and `q` are true.</p>
+                        </div>
+                        <table class="w-full truth-table text-sm and-table">
+                            <thead><tr><th>p</th><th>q</th><th>p ∧ q</th></tr></thead>
+                            <tbody>
+                                <tr class="row-tt"><td>T</td><td>T</td><td class="bg-green-100 font-bold">T</td></tr>
+                                <tr><td>T</td><td>F</td><td class="bg-red-100 font-bold">F</td></tr>
+                                <tr><td>F</td><td>T</td><td class="bg-red-100 font-bold">F</td></tr>
+                                <tr><td>F</td><td>F</td><td class="bg-red-100 font-bold">F</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="review-slide hidden" data-slide="2">
+                    <div class="grid md:grid-cols-2 gap-6 items-center">
+                        <div class="text-center md:text-left">
+                           <h3 class="text-xl font-semibold">Disjunction (p ∨ q)</h3>
+                           <p class="mt-2 text-gray-600">True if <span class="font-bold">AT LEAST ONE</span> of `p` or `q` is true.</p>
+                        </div>
+                        <table class="w-full truth-table text-sm or-table">
+                            <thead><tr><th>p</th><th>q</th><th>p ∨ q</th></tr></thead>
+                            <tbody>
+                                <tr class="row-tt"><td>T</td><td>T</td><td class="bg-green-100 font-bold">T</td></tr>
+                                <tr class="row-tf"><td>T</td><td>F</td><td class="bg-green-100 font-bold">T</td></tr>
+                                <tr class="row-ft"><td>F</td><td>T</td><td class="bg-green-100 font-bold">T</td></tr>
+                                <tr><td>F</td><td>F</td><td class="bg-red-100 font-bold">F</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="review-slide hidden" data-slide="3">
+                    <div class="grid md:grid-cols-2 gap-6 items-center">
+                        <div class="text-center md:text-left">
+                            <h3 class="text-xl font-semibold">Conditional (p → q)</h3>
+                            <p class="mt-2 text-gray-600">Only false when a <span class="font-bold text-green-600">True</span> premise leads to a <span class="font-bold text-red-600">False</span> conclusion.</p>
+                        </div>
+                        <table class="w-full truth-table text-sm cond-table">
+                            <thead><tr><th>p</th><th>q</th><th>p → q</th></tr></thead>
+                            <tbody>
+                                <tr><td>T</td><td>T</td><td class="bg-green-100 font-bold">T</td></tr>
+                                <tr class="row-tf"><td>T</td><td>F</td><td class="bg-red-100 font-bold">F</td></tr>
+                                <tr><td>F</td><td>T</td><td class="bg-green-100 font-bold">T</td></tr>
+                                <tr><td>F</td><td>F</td><td class="bg-green-100 font-bold">T</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="review-slide hidden" data-slide="4">
+                    <div class="grid md:grid-cols-2 gap-6 items-center">
+                        <div class="text-center md:text-left">
+                            <h3 class="text-xl font-semibold">Biconditional (p ↔ q)</h3>
+                            <p class="mt-2 text-gray-600">True only when `p` and `q` have the <span class="font-bold">SAME</span> truth value.</p>
+                        </div>
+                        <table class="w-full truth-table text-sm bicond-table">
+                            <thead><tr><th>p</th><th>q</th><th>p ↔ q</th></tr></thead>
+                            <tbody>
+                                <tr class="row-tt"><td>T</td><td>T</td><td class="bg-green-100 font-bold">T</td></tr>
+                                <tr><td>T</td><td>F</td><td class="bg-red-100 font-bold">F</td></tr>
+                                <tr><td>F</td><td>T</td><td class="bg-red-100 font-bold">F</td></tr>
+                                <tr class="row-ff"><td>F</td><td>F</td><td class="bg-green-100 font-bold">T</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div id="review-navigation" class="mt-6 flex justify-between items-center pt-4 border-t">
+                <button id="prev-btn" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-md hover:bg-gray-300 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+                <span id="slide-indicator" class="font-medium text-gray-600">1 / 5</span>
+                <button id="next-btn" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-300">Next</button>
+            </div>
+        </section>
+
+        <!-- Part A: Identify the Table -->
+        <section id="part-a" class="bg-white p-6 rounded-lg shadow-md mb-8" hidden>
+             <h2 class="text-2xl font-bold mb-4">Part A: Identify the Table</h2>
+             <p class="mb-6">Drag the logical statement on the left to its correct truth table on the right.</p>
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                 <div id="statement-card-container" class="space-y-4">
+                     <!-- Statement cards will be injected here -->
+                 </div>
+                 <div id="table-card-container" class="space-y-4">
+                     <!-- Table cards will be injected here -->
+                 </div>
+             </div>
+             <div id="table-matching-feedback" class="mt-4"></div>
+             <button id="continue-to-b" class="mt-8 w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 transition duration-300" hidden>Continue to Part B →</button>
+        </section>
+
+        <!-- Part B: Correct the Table -->
+        <section id="part-b" class="bg-white p-6 rounded-lg shadow-md mb-8" hidden>
+            <h2 class="text-2xl font-bold mb-4">Part B: Correct the Table</h2>
+            <p class="mb-6">Each table below has one mistake in the result column. Click the incorrect value to fix it, then check your answer.</p>
+            <div id="correction-puzzles-container" class="space-y-8">
+                <!-- Correction puzzles will be injected here -->
+            </div>
+            <button id="continue-to-c" class="mt-8 w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 transition duration-300" hidden>Continue to Part C →</button>
+        </section>
+
+        <!-- Part C: Truth Table Detective -->
+        <section id="part-c" class="bg-white p-6 rounded-lg shadow-md mb-8" hidden>
+            <h2 class="text-2xl font-bold mb-4">Part C: Truth Table Detective</h2>
+            <p class="mb-6">Your mission: find a compound statement that produces the given "Result" column. Build your statement using the symbols below.</p>
+            
+            <div id="prebuilt-puzzles">
+                <!-- Pre-built puzzles will be injected here by JS -->
+            </div>
+
+            <div id="dynamic-puzzles-container" class="mt-6 space-y-6">
+                <!-- User-created puzzles will be appended here -->
+            </div>
+            
+            <div class="mt-10 pt-6 border-t border-gray-200">
+                <h3 class="text-2xl font-bold mb-4">Create Your Own Puzzle</h3>
+                <p class="mb-4">Define your own result column and challenge yourself or a friend!</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 items-center bg-gray-50 p-4 rounded-lg">
+                    <div>
+                        <label for="res-tt" class="block font-medium text-sm">p=T, q=T:</label>
+                        <select id="res-tt" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"><option>T</option><option>F</option></select>
+                    </div>
+                    <div>
+                        <label for="res-tf" class="block font-medium text-sm">p=T, q=F:</label>
+                        <select id="res-tf" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"><option>T</option><option selected>F</option></select>
+                    </div>
+                    <div>
+                        <label for="res-ft" class="block font-medium text-sm">p=F, q=T:</label>
+                        <select id="res-ft" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"><option>T</option><option>F</option></select>
+                    </div>
+                    <div>
+                        <label for="res-ff" class="block font-medium text-sm">p=F, q=F:</label>
+                        <select id="res-ff" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"><option>T</option><option>F</option></select>
+                    </div>
+                </div>
+                <button id="create-puzzle-btn" class="mt-4 w-full bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-700 transition duration-300">Generate My Puzzle</button>
+            </div>
+            <button id="continue-to-d" class="mt-8 w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 transition duration-300" hidden>Continue to Part D →</button>
+        </section>
+
+        <!-- Part D: From Language to Logic -->
+        <section id="part-d" class="bg-white p-6 rounded-lg shadow-md mb-8" hidden>
+            <h2 class="text-2xl font-bold mb-4">Part D: From Language to Logic</h2>
+            <p class="mb-4">Let `p` = "It is sunny" and `q` = "We will go to the beach".</p>
+            
+            <div class="p-4 border border-gray-200 rounded-lg mb-8">
+                <h3 class="text-xl font-semibold mb-3">Part D.1: Match the Sentence</h3>
+                <p class="mb-4">Select one sentence card and one logic card, then check your match.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div id="sentence-card-container" class="space-y-3">
+                        <button data-id="1" class="sentence-card w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md">If it is sunny, then we will go to the beach.</button>
+                        <button data-id="2" class="sentence-card w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md">It is sunny and we will go to the beach.</button>
+                        <button data-id="3" class="sentence-card w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md">We will go to the beach or it is not sunny.</button>
+                    </div>
+                    <div id="logic-card-container" class="space-y-3">
+                        <button data-id="2" class="logic-card w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md font-mono">p ∧ q</button>
+                        <button data-id="3" class="logic-card w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md font-mono">q ∨ ~p</button>
+                        <button data-id="1" class="logic-card w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md font-mono">p → q</button>
+                    </div>
+                </div>
+                <button id="check-match-btn" class="mt-6 w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300">Check Match</button>
+                <div id="matching-feedback" class="mt-4"></div>
+            </div>
+
+            <div class="p-4 border border-gray-200 rounded-lg">
+                <h3 class="text-xl font-semibold mb-3">Part D.2: Build Your Own</h3>
+                <div id="builder1-container" class="mb-8">
+                    <h4 class="font-semibold mb-2">1. Sentence: "It is sunny or it is not sunny."</h4>
+                    <!-- Builder UI will be injected here -->
+                    <button data-builder-id="builder1" class="check-builder-btn mt-3 w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300">Build Truth Table</button>
+                    <div id="builder1-feedback" class="mt-4"></div>
+                </div>
+                 <div id="builder2-container">
+                    <h4 class="font-semibold mb-2">2. Sentence: "If it is not sunny, then we will not go to the beach."</h4>
+                    <!-- Builder UI will be injected here -->
+                    <button data-builder-id="builder2" class="check-builder-btn mt-3 w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300">Build Truth Table</button>
+                    <div id="builder2-feedback" class="mt-4"></div>
+                </div>
+            </div>
+            <button id="continue-to-e" class="mt-8 w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 transition duration-300" hidden>Continue to Part E →</button>
+        </section>
+
+        <!-- Part E: Name That Statement -->
+        <section id="part-e" class="bg-white p-6 rounded-lg shadow-md mb-8" hidden>
+            <h2 class="text-2xl font-bold mb-4">Part E: Name That Statement</h2>
+            <p class="mb-4">Match the logical statement to its proper name. Click a name from the word bank to select it, then check your answer.</p>
+
+            <div id="naming-problem-1" class="mb-8 p-4 border border-gray-200 rounded-lg">
+                <h3 class="text-xl font-semibold mb-3">Statement: <code class="bg-gray-100 p-1 rounded text-base">p ∧ q</code></h3>
+                <p class="font-medium mb-2">Select the correct name:</p>
+                <div class="flex flex-wrap gap-2 mb-4 word-bank">
+                    <button class="word-bank-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md">Conjunction (AND)</button>
+                    <button class="word-bank-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md">Disjunction (OR)</button>
+                    <button class="word-bank-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md">Conditional (IF...THEN)</button>
+                    <button class="word-bank-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md">Biconditional (IF AND ONLY IF)</button>
+                </div>
+                <button class="check-naming-btn mt-2 w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300">Check Name</button>
+                <div class="feedback-container mt-4"></div>
+            </div>
+            <div id="naming-problem-2" class="mb-8 p-4 border border-gray-200 rounded-lg">
+                <h3 class="text-xl font-semibold mb-3">Statement: <code class="bg-gray-100 p-1 rounded text-base">p → q</code></h3>
+                <p class="font-medium mb-2">Select the correct name:</p>
+                <div class="flex flex-wrap gap-2 mb-4 word-bank">
+                    <button class="word-bank-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md">Conjunction (AND)</button>
+                    <button class="word-bank-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md">Disjunction (OR)</button>
+                    <button class="word-bank-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md">Conditional (IF...THEN)</button>
+                    <button class="word-bank-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md">Biconditional (IF AND ONLY IF)</button>
+                </div>
+                <button class="check-naming-btn mt-2 w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300">Check Name</button>
+                <div class="feedback-container mt-4"></div>
+            </div>
+            <div id="naming-problem-3" class="mb-8 p-4 border border-gray-200 rounded-lg">
+                <h3 class="text-xl font-semibold mb-3">Statement: <code class="bg-gray-100 p-1 rounded text-base">p ∨ q</code></h3>
+                <p class="font-medium mb-2">Select the correct name:</p>
+                <div class="flex flex-wrap gap-2 mb-4 word-bank">
+                    <button class="word-bank-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md">Conjunction (AND)</button>
+                    <button class="word-bank-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md">Disjunction (OR)</button>
+                    <button class="word-bank-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md">Conditional (IF...THEN)</button>
+                    <button class="word-bank-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md">Biconditional (IF AND ONLY IF)</button>
+                </div>
+                <button class="check-naming-btn mt-2 w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300">Check Name</button>
+                <div class="feedback-container mt-4"></div>
+            </div>
+            <div id="naming-problem-4" class="p-4 border border-gray-200 rounded-lg">
+                <h3 class="text-xl font-semibold mb-3">Statement: <code class="bg-gray-100 p-1 rounded text-base">p ↔ q</code></h3>
+                <p class="font-medium mb-2">Select the correct name:</p>
+                <div class="flex flex-wrap gap-2 mb-4 word-bank">
+                    <button class="word-bank-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md">Conjunction (AND)</button>
+                    <button class="word-bank-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md">Disjunction (OR)</button>
+                    <button class="word-bank-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md">Conditional (IF...THEN)</button>
+                    <button class="word-bank-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md">Biconditional (IF AND ONLY IF)</button>
+                </div>
+                <button class="check-naming-btn mt-2 w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300">Check Name</button>
+                <div class="feedback-container mt-4"></div>
+            </div>
+             <div id="final-completion" class="mt-8 p-6 text-center bg-green-100 border border-green-300 rounded-lg" hidden>
+                <h3 class="text-2xl font-bold text-green-800">Congratulations!</h3>
+                <p class="mt-2 text-green-700">You have successfully completed all the exercises.</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const completionState = {
+                tableMatching: false,
+                correction1: false, correction2: false, correction3: false,
+                puzzle1: false, puzzle2: false, puzzle3: false,
+                matching: false, builder1: false, builder2: false,
+                'naming-problem-1': false, 'naming-problem-2': false, 'naming-problem-3': false, 'naming-problem-4': false
+            };
+
+            // --- Review Slideshow Logic ---
+            const reviewSection = document.getElementById('review');
+            const partASection = document.getElementById('part-a');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const slideIndicator = document.getElementById('slide-indicator');
+            const slides = document.querySelectorAll('.review-slide');
+            const totalSlides = slides.length;
+            let currentSlide = 0;
+
+            function showSlide(index) {
+                slides.forEach((slide, i) => slide.classList.toggle('hidden', i !== index));
+                slideIndicator.textContent = `${index + 1} / ${totalSlides}`;
+                prevBtn.disabled = index === 0;
+                nextBtn.textContent = (index === totalSlides - 1) ? 'Start Exercises →' : 'Next';
+            }
+
+            prevBtn.addEventListener('click', () => { if (currentSlide > 0) showSlide(--currentSlide); });
+            nextBtn.addEventListener('click', () => {
+                if (currentSlide < totalSlides - 1) {
+                    showSlide(++currentSlide);
+                } else {
+                    reviewSection.hidden = true;
+                    partASection.hidden = false;
+                    partASection.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+            showSlide(currentSlide);
+
+            // --- Core Logic & Data ---
+            const prebuiltPuzzles = [
+                { id: 'puzzle1', title: 'Puzzle #1', solution: ['T', 'F', 'T', 'T'], validStatements: ['p->q', 'q∨~p', '~p∨q'] },
+                { id: 'puzzle2', title: 'Puzzle #2', solution: ['T', 'F', 'F', 'T'], validStatements: ['p<->q', '(p->q)∧(q->p)'] },
+                { id: 'puzzle3', title: 'Puzzle #3 (Challenge)', solution: ['T', 'T', 'F', 'T'], validStatements: ['p∨~q', 'q->p'] }
+            ];
+            const builders = {
+                'builder1': { container: 'builder1-container', feedback: 'builder1-feedback', validStatements: ['p∨~p'] },
+                'builder2': { container: 'builder2-container', feedback: 'builder2-feedback', validStatements: ['~p->~q'] }
+            };
+            const truthValues = [{ p: true, q: true }, { p: true, q: false }, { p: false, q: true }, { p: false, q: false }];
+
+            function evaluateExpression(expression, p, q) {
+                try {
+                    let jsExpr = expression.toLowerCase().replace(/\s+/g, '');
+                    jsExpr = jsExpr.replace(/↔/g, '<->').replace(/→/g, '->');
+                    jsExpr = jsExpr.replace(/∧/g, '&&').replace(/∨/g, '||').replace(/~/g, '! ');
+                    jsExpr = jsExpr.replace(/(!?\s*\w+|\([^)]+\))\s*<->\s*(!?\s*\w+|\([^)]+\))/g, (match, p1, p2) => `(${p1})===(${p2})`);
+                    const conditionalRegex = /(!?\s*\w+|\([^)]+\))\s*->\s*(!?\s*\w+|\([^)]+\))/g;
+                    jsExpr = jsExpr.replace(conditionalRegex, (match, p1, p2) => `!(${p1})||(${p2})`);
+                    jsExpr = jsExpr.replace(/p/g, p).replace(/q/g, q);
+                    return new Function(`return ${jsExpr}`)();
+                } catch (e) { console.error("Evaluation error:", e, "Original expression:", expression); return null; }
+            }
+
+            function generateResultArray(expression) {
+                if (!expression) return null;
+                const results = [];
+                for (const values of truthValues) {
+                    const result = evaluateExpression(expression, values.p, values.q);
+                    if (result === null) return null;
+                    results.push(result ? 'T' : 'F');
+                }
+                return results;
+            }
+
+            function generateTableHTML(title, results) {
+                let html = `<div class="mt-4 overflow-x-auto"><h4 class="font-semibold text-center mb-2">Your Result: ${title}</h4><table class="w-full truth-table">`;
+                html += `<thead><tr><th>p</th><th>q</th><th class="bg-yellow-100 text-yellow-800">Result</th></tr></thead><tbody>`;
+                results.forEach((res, i) => {
+                    const vals = truthValues[i];
+                    html += `<tr><td>${vals.p ? 'T' : 'F'}</td><td>${vals.q ? 'T' : 'F'}</td><td class="font-semibold ${res === 'T' ? 'bg-green-50' : 'bg-red-50'}">${res}</td></tr>`;
+                });
+                html += `</tbody></table></div>`;
+                return html;
+            }
+            
+            function normalizeInput(input) {
+                return input.toLowerCase().replace(/\s+/g, '').replace(/↔/g,'<->').replace(/→/g, '->').replace(/and/g,'∧').replace(/or/g,'∨');
+            }
+            
+            const symbols = ['p', 'q', '~', '∧', '∨', '→', '↔', '(', ')'];
+            function createBuilderHTML(idPrefix) {
+                const symbolPaletteHTML = symbols.map(s => `<button class="symbol-chip" draggable="true" data-symbol="${s}">${s}</button>`).join('');
+                return `
+                    <div class="statement-builder" data-builder-id="${idPrefix}">
+                        <label class="block font-medium mb-2 text-sm">Statement:</label>
+                        <div class="symbol-palette">${symbolPaletteHTML}</div>
+                        <div class="drop-zone" data-placeholder="Click or drag symbols here..."></div>
+                        <div class="flex gap-2 mt-2">
+                             <button class="builder-backspace-btn text-sm bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">Backspace</button>
+                             <button class="builder-clear-btn text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Clear</button>
+                        </div>
+                    </div>`;
+            }
+            
+            // --- Part A: Identify the Table ---
+            const tableMatchingData = [
+                { id: 1, statement: 'p ∧ q', result: ['T', 'F', 'F', 'F'] },
+                { id: 2, statement: 'p ∨ q', result: ['T', 'T', 'T', 'F'] },
+                { id: 3, statement: 'p → q', result: ['T', 'F', 'T', 'T'] },
+                { id: 4, statement: 'p ↔ q', result: ['T', 'F', 'F', 'T'] }
+            ];
+
+            function shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            const statementCardContainer = document.getElementById('statement-card-container');
+            const tableCardContainer = document.getElementById('table-card-container');
+
+            shuffle([...tableMatchingData]).forEach(item => {
+                statementCardContainer.innerHTML += `<button data-id="${item.id}" draggable="true" class="statement-match-card w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md font-mono text-lg">${item.statement}</button>`;
+            });
+            shuffle([...tableMatchingData]).forEach(item => {
+                tableCardContainer.innerHTML += `
+                    <div data-id="${item.id}" class="table-card p-3 bg-gray-100 rounded-md border-2 border-transparent">
+                        <div class="table-drop-zone pointer-events-none">
+                            <h3 class="font-semibold text-gray-500 text-center mb-2 h-8">[Drop statement here]</h3>
+                            <table class="w-full truth-table text-sm">
+                                <thead><tr><th>p</th><th>q</th><th>?</th></tr></thead>
+                                <tbody>
+                                    <tr><td>T</td><td>T</td><td>${item.result[0]}</td></tr>
+                                    <tr><td>T</td><td>F</td><td>${item.result[1]}</td></tr>
+                                    <tr><td>F</td><td>T</td><td>${item.result[2]}</td></tr>
+                                    <tr><td>F</td><td>F</td><td>${item.result[3]}</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>`;
+            });
+
+            // --- Part B: Correct the Table ---
+            const correctionPuzzlesData = [
+                { id: 'correction1', statement: 'p ∧ q', correct: ['T','F','F','F'], incorrect: ['T','T','F','F'] },
+                { id: 'correction2', statement: '~p ∨ q', correct: ['T','F','T','T'], incorrect: ['T','F','F','T'] },
+                { id: 'correction3', statement: 'p → ~q', correct: ['F','T','T','T'], incorrect: ['F','F','T','T'] }
+            ];
+            
+            const correctionPuzzlesContainer = document.getElementById('correction-puzzles-container');
+            correctionPuzzlesData.forEach(puzzle => {
+                let tableRows = '';
+                for(let i = 0; i < 4; i++) {
+                    tableRows += `<tr><td>${truthValues[i].p ? 'T' : 'F'}</td><td>${truthValues[i].q ? 'T' : 'F'}</td><td class="correction-cell">${puzzle.incorrect[i]}</td></tr>`;
+                }
+                correctionPuzzlesContainer.innerHTML += `
+                    <div id="${puzzle.id}" class="p-4 border border-gray-200 rounded-lg">
+                        <h3 class="text-xl font-semibold mb-3">Table for: <code class="bg-gray-100 p-1 rounded text-base">${puzzle.statement}</code></h3>
+                        <div class="flex justify-center">
+                            <table class="truth-table w-full md:w-1/2">
+                                <thead><tr><th>p</th><th>q</th><th>Result</th></tr></thead>
+                                <tbody>${tableRows}</tbody>
+                            </table>
+                        </div>
+                        <button class="check-correction-btn mt-4 w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300">Check Correction</button>
+                        <div class="feedback-container mt-4"></div>
+                    </div>
+                `;
+            });
+
+
+            // --- Puzzle Creation & Handling (Part C) ---
+            const prebuiltPuzzlesContainer = document.getElementById('prebuilt-puzzles');
+            let userPuzzleCounter = 0;
+
+            function createPuzzleHTML(puzzle) {
+                return `
+                <div class="mb-8 p-4 border border-gray-200 rounded-lg" id="${puzzle.id}">
+                    <h3 class="text-xl font-semibold mb-3">${puzzle.title}</h3>
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <table class="truth-table">
+                            <thead><tr><th>p</th><th>q</th><th class="bg-green-100 text-green-800">Result</th></tr></thead>
+                            <tbody>
+                                <tr><td>T</td><td>T</td><td class="font-semibold">${puzzle.solution[0]}</td></tr>
+                                <tr><td>T</td><td>F</td><td class="font-semibold">${puzzle.solution[1]}</td></tr>
+                                <tr><td>F</td><td>T</td><td class="font-semibold">${puzzle.solution[2]}</td></tr>
+                                <tr><td>F</td><td>F</td><td class="font-semibold">${puzzle.solution[3]}</td></tr>
+                            </tbody>
+                        </table>
+                        <div class="flex-grow">
+                            ${createBuilderHTML(puzzle.id)}
+                            <button data-builder-id="${puzzle.id}" class="check-builder-btn mt-3 w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300">Check Statement</button>
+                        </div>
+                    </div>
+                    <div id="${puzzle.id}-feedback" class="mt-4"></div>
+                </div>`;
+            }
+
+            prebuiltPuzzlesContainer.innerHTML = prebuiltPuzzles.map(createPuzzleHTML).join('');
+            
+            document.getElementById('create-puzzle-btn').addEventListener('click', () => {
+                userPuzzleCounter++;
+                const newPuzzle = {
+                    id: `user-puzzle-${userPuzzleCounter}`,
+                    title: `Your Puzzle #${userPuzzleCounter}`,
+                    solution: [
+                        document.getElementById('res-tt').value, document.getElementById('res-tf').value,
+                        document.getElementById('res-ft').value, document.getElementById('res-ff').value
+                    ],
+                    validStatements: []
+                };
+                document.getElementById('dynamic-puzzles-container').insertAdjacentHTML('beforeend', createPuzzleHTML(newPuzzle));
+                initializeBuilders();
+            });
+
+            function getExpressionFromDropZone(builderId) {
+                const dropZone = document.querySelector(`.statement-builder[data-builder-id="${builderId}"] .drop-zone`);
+                return Array.from(dropZone.children).map(chip => chip.dataset.symbol).join('');
+            }
+            
+            function initializeBuilders() {
+                for (const key in builders) {
+                    const container = document.getElementById(builders[key].container);
+                    if (container && !container.querySelector('.statement-builder')) {
+                         container.insertAdjacentHTML('afterbegin', createBuilderHTML(key));
+                    }
+                }
+                document.querySelectorAll('.drop-zone:empty').forEach(dz => {
+                    const placeholder = document.createElement('span');
+                    placeholder.className = 'drop-zone-placeholder';
+                    placeholder.textContent = dz.dataset.placeholder;
+                    dz.appendChild(placeholder);
+                });
+            }
+
+            // --- Event Listeners ---
+            document.body.addEventListener('click', (e) => {
+                const builderEl = e.target.closest('.statement-builder');
+                if (builderEl) {
+                    const dropZone = builderEl.querySelector('.drop-zone');
+                    if (e.target.classList.contains('symbol-chip')) {
+                        dropZone.querySelector('.drop-zone-placeholder')?.remove();
+                        const newChip = document.createElement('button');
+                        newChip.className = 'dropped-chip'; newChip.textContent = e.target.dataset.symbol; newChip.dataset.symbol = e.target.dataset.symbol;
+                        dropZone.appendChild(newChip);
+                    }
+                    if (e.target.classList.contains('dropped-chip')) e.target.remove();
+                    if (e.target.classList.contains('builder-backspace-btn')) dropZone.lastElementChild?.remove();
+                    if (e.target.classList.contains('builder-clear-btn')) dropZone.innerHTML = '';
+                    if (dropZone.children.length === 0) {
+                        const placeholder = document.createElement('span');
+                        placeholder.className = 'drop-zone-placeholder';
+                        placeholder.textContent = dropZone.dataset.placeholder;
+                        dropZone.appendChild(placeholder);
+                    }
+                }
+                
+                if (e.target.classList.contains('correction-cell')) {
+                    e.target.textContent = e.target.textContent === 'T' ? 'F' : 'T';
+                }
+            });
+
+            function checkPartACompletion() {
+                if (completionState.tableMatching) document.getElementById('continue-to-b').hidden = false;
+            }
+            function checkPartBCompletion() {
+                if (completionState.correction1 && completionState.correction2 && completionState.correction3) document.getElementById('continue-to-c').hidden = false;
+            }
+            function checkPartCCompletion() {
+                if (completionState.puzzle1 && completionState.puzzle2 && completionState.puzzle3) document.getElementById('continue-to-d').hidden = false;
+            }
+            function checkPartDCompletion() {
+                if (completionState.matching && completionState.builder1 && completionState.builder2) document.getElementById('continue-to-e').hidden = false;
+            }
+            function checkPartECompletion() {
+                 if (completionState['naming-problem-1'] && completionState['naming-problem-2'] && completionState['naming-problem-3'] && completionState['naming-problem-4']) {
+                    document.getElementById('final-completion').hidden = false;
+                }
+            }
+            
+            document.body.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('check-builder-btn')) return;
+                const builderId = e.target.dataset.builderId;
+                const isPuzzle = prebuiltPuzzles.some(p => p.id === builderId) || builderId.startsWith('user-puzzle');
+                const isBuilder = builders[builderId];
+                let feedbackEl, puzzleData, validStatements;
+
+                if(isPuzzle){
+                    feedbackEl = document.getElementById(`${builderId}-feedback`);
+                    const puzzle = prebuiltPuzzles.find(p => p.id === builderId);
+                    if(puzzle){ puzzleData = puzzle; } 
+                    else {
+                        const puzzleEl = document.getElementById(builderId);
+                        const solutionCells = puzzleEl.querySelectorAll('tbody td:last-child');
+                        puzzleData = { solution: Array.from(solutionCells).map(cell => cell.textContent), validStatements: [] };
+                    }
+                    validStatements = puzzleData.validStatements;
+                } else if(isBuilder) {
+                    feedbackEl = document.getElementById(builders[builderId].feedback);
+                    validStatements = builders[builderId].validStatements;
+                }
+
+                const userInput = getExpressionFromDropZone(builderId);
+                if (!userInput) { feedbackEl.innerHTML = `<div class="feedback feedback-incorrect">Please build a statement.</div>`; return; }
+                const userResults = generateResultArray(userInput);
+                if (userResults === null) { feedbackEl.innerHTML = `<div class="feedback feedback-incorrect"><strong>Syntax Error:</strong> Check structure.</div>`; return; }
+                
+                let isCorrect = isPuzzle ? JSON.stringify(userResults) === JSON.stringify(puzzleData.solution) : validStatements.includes(normalizeInput(userInput));
+
+                if (isCorrect) {
+                     let message = `<strong>Correct!</strong> Your statement works.`;
+                     if(isPuzzle && !validStatements.includes(normalizeInput(userInput)) && validStatements.length > 0){ message += ` You found a different, but logically equivalent solution!`; }
+                    feedbackEl.innerHTML = `<div class="feedback feedback-correct">${message}</div>` + generateTableHTML(userInput, userResults);
+                    if (completionState.hasOwnProperty(builderId)) completionState[builderId] = true;
+                    if (isPuzzle) checkPartCCompletion();
+                    if (isBuilder) checkPartDCompletion();
+                } else {
+                    let message = isBuilder ? `<strong>Incorrect Translation.</strong>` : `<strong>Not quite.</strong>`;
+                    feedbackEl.innerHTML = `<div class="feedback feedback-incorrect">${message}</div>` + generateTableHTML(userInput, userResults);
+                }
+            });
+            
+            // Part A - Drag and Drop Table Matching
+            let draggedStatementId = null;
+            document.getElementById('part-a').addEventListener('dragstart', e => {
+                if (e.target.classList.contains('statement-match-card')) {
+                    draggedStatementId = e.target.dataset.id;
+                    e.target.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', draggedStatementId);
+                }
+            });
+             document.getElementById('part-a').addEventListener('dragend', e => {
+                if (e.target.classList.contains('statement-match-card')) {
+                    e.target.classList.remove('dragging');
+                }
+            });
+            document.getElementById('part-a').addEventListener('dragover', e => {
+                const tableCard = e.target.closest('.table-card');
+                if(tableCard && !tableCard.classList.contains('matched')){
+                    e.preventDefault();
+                    tableCard.classList.add('drag-over');
+                }
+            });
+            document.getElementById('part-a').addEventListener('dragleave', e => {
+                const tableCard = e.target.closest('.table-card');
+                if(tableCard){
+                    tableCard.classList.remove('drag-over');
+                }
+            });
+            document.getElementById('part-a').addEventListener('drop', e => {
+                const tableCard = e.target.closest('.table-card');
+                if(tableCard && !tableCard.classList.contains('matched')){
+                    e.preventDefault();
+                    tableCard.classList.remove('drag-over');
+                    const droppedStatementId = e.dataTransfer.getData('text/plain');
+                    if (droppedStatementId === tableCard.dataset.id) {
+                        const draggedCard = document.querySelector(`.statement-match-card[data-id="${droppedStatementId}"]`);
+                        
+                        tableCard.querySelector('h3').innerHTML = `<code class="bg-gray-200 p-1 rounded text-base">${draggedCard.textContent}</code>`;
+                        tableCard.classList.add('matched');
+                        draggedCard.classList.add('matched');
+
+                        if (Array.from(document.querySelectorAll('#part-a .statement-match-card')).every(c => c.classList.contains('matched'))) {
+                            document.getElementById('table-matching-feedback').innerHTML = `<div class="feedback feedback-correct mt-2"><strong>Congratulations!</strong> You've matched all tables.</div>`;
+                            completionState.tableMatching = true;
+                            checkPartACompletion();
+                        }
+                    } else {
+                        tableCard.classList.add('incorrect-drop');
+                        setTimeout(() => tableCard.classList.remove('incorrect-drop'), 500);
+                    }
+                }
+            });
+
+            // Part B - Correction Listener
+            document.getElementById('part-b').addEventListener('click', e => {
+                if(!e.target.classList.contains('check-correction-btn')) return;
+                const puzzleEl = e.target.closest('div.p-4');
+                const puzzleId = puzzleEl.id;
+                const puzzleData = correctionPuzzlesData.find(p => p.id === puzzleId);
+                const feedbackEl = puzzleEl.querySelector('.feedback-container');
+                const cells = puzzleEl.querySelectorAll('.correction-cell');
+                const userAnswers = Array.from(cells).map(c => c.textContent);
+
+                if(JSON.stringify(userAnswers) === JSON.stringify(puzzleData.correct)) {
+                    feedbackEl.innerHTML = `<div class="feedback feedback-correct"><strong>Correct!</strong> Table fixed.</div>`;
+                    completionState[puzzleId] = true;
+                    checkPartBCompletion();
+                } else {
+                    feedbackEl.innerHTML = `<div class="feedback feedback-incorrect"><strong>Not quite.</strong> There's still an error in the table.</div>`;
+                    userAnswers.forEach((answer, i) => {
+                        if(answer !== puzzleData.correct[i]){
+                            cells[i].classList.add('cell-incorrect-flash');
+                            setTimeout(()=> cells[i].classList.remove('cell-incorrect-flash'), 800);
+                        }
+                    })
+                }
+            });
+
+            // Part D - Sentence Matching
+            const sentenceCards = document.querySelectorAll('#part-d .sentence-card');
+            const logicCards = document.querySelectorAll('#part-d .logic-card');
+            const checkMatchBtn = document.getElementById('check-match-btn');
+            const matchingFeedback = document.getElementById('matching-feedback');
+            let selectedSentence = null, selectedLogic = null;
+            sentenceCards.forEach(card => card.addEventListener('click', () => { if (!card.classList.contains('matched')) { sentenceCards.forEach(c => c.classList.remove('selected')); card.classList.add('selected'); selectedSentence = card; } }));
+            logicCards.forEach(card => card.addEventListener('click', () => { if (!card.classList.contains('matched')) { logicCards.forEach(c => c.classList.remove('selected')); card.classList.add('selected'); selectedLogic = card; } }));
+            checkMatchBtn.addEventListener('click', () => {
+                if (!selectedSentence || !selectedLogic) { matchingFeedback.innerHTML = `<div class="feedback feedback-incorrect">Please select one of each card.</div>`; return; }
+                if (selectedSentence.dataset.id === selectedLogic.dataset.id) {
+                    matchingFeedback.innerHTML = `<div class="feedback feedback-correct"><strong>Correct Match!</strong></div>`;
+                    [selectedSentence, selectedLogic].forEach(el => { el.classList.add('matched'); el.classList.remove('selected'); });
+                    selectedSentence = selectedLogic = null;
+                    if (Array.from(sentenceCards).every(c => c.classList.contains('matched'))) {
+                        matchingFeedback.innerHTML += `<div class="feedback feedback-correct mt-2"><strong>Congratulations!</strong> You've matched all cards.</div>`;
+                        completionState.matching = true;
+                        checkPartDCompletion();
+                    }
+                } else { matchingFeedback.innerHTML = `<div class="feedback feedback-incorrect"><strong>Not a match.</strong> Try again!</div>`; }
+            });
+
+            // Part E - Naming Problems
+            const namingProblems = { 
+                'naming-problem-1': 'Conjunction (AND)', 
+                'naming-problem-2': 'Conditional (IF...THEN)', 
+                'naming-problem-3': 'Disjunction (OR)',
+                'naming-problem-4': 'Biconditional (IF AND ONLY IF)'
+            };
+            for (const id in namingProblems) {
+                const problemEl = document.getElementById(id);
+                problemEl.querySelector('.word-bank').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('word-bank-btn')) {
+                        problemEl.querySelectorAll('.word-bank-btn').forEach(btn => btn.classList.remove('selected'));
+                        e.target.classList.add('selected');
+                    }
+                });
+                problemEl.querySelector('.check-naming-btn').addEventListener('click', () => {
+                    const selectedBtn = problemEl.querySelector('.word-bank-btn.selected');
+                    const feedbackEl = problemEl.querySelector('.feedback-container');
+                    if (!selectedBtn) { feedbackEl.innerHTML = `<div class="feedback feedback-incorrect">Please select a name.</div>`; return; }
+                    if (selectedBtn.textContent === namingProblems[id]) {
+                        feedbackEl.innerHTML = `<div class="feedback feedback-correct"><strong>Correct!</strong></div>`;
+                        completionState[id] = true;
+                        checkPartECompletion();
+                    } else { feedbackEl.innerHTML = `<div class="feedback feedback-incorrect"><strong>Not quite.</strong> Try again!</div>`; }
+                });
+            }
+            
+            document.getElementById('continue-to-b').addEventListener('click', () => { document.getElementById('part-a').hidden = true; document.getElementById('part-b').hidden = false; document.getElementById('part-b').scrollIntoView({ behavior: 'smooth' }); });
+            document.getElementById('continue-to-c').addEventListener('click', () => { document.getElementById('part-b').hidden = true; document.getElementById('part-c').hidden = false; document.getElementById('part-c').scrollIntoView({ behavior: 'smooth' }); });
+            document.getElementById('continue-to-d').addEventListener('click', () => { document.getElementById('part-c').hidden = true; document.getElementById('part-d').hidden = false; document.getElementById('part-d').scrollIntoView({ behavior: 'smooth' }); });
+            document.getElementById('continue-to-e').addEventListener('click', () => { document.getElementById('part-d').hidden = true; document.getElementById('part-e').hidden = false; document.getElementById('part-e').scrollIntoView({ behavior: 'smooth' }); });
+
+            initializeBuilders();
+        });
+    </script>
+</body>
+</html>
+
