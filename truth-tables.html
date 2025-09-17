@@ -345,29 +345,6 @@
                 <!-- User-created puzzles will be appended here -->
             </div>
             
-            <div class="mt-10 pt-6 border-t border-gray-200">
-                <h3 class="text-2xl font-bold mb-4">Create Your Own Puzzle</h3>
-                <p class="mb-4">Define your own result column and challenge yourself or a friend!</p>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 items-center bg-gray-50 p-4 rounded-lg">
-                    <div>
-                        <label for="res-tt" class="block font-medium text-sm">p=T, q=T:</label>
-                        <select id="res-tt" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"><option>T</option><option>F</option></select>
-                    </div>
-                    <div>
-                        <label for="res-tf" class="block font-medium text-sm">p=T, q=F:</label>
-                        <select id="res-tf" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"><option>T</option><option selected>F</option></select>
-                    </div>
-                    <div>
-                        <label for="res-ft" class="block font-medium text-sm">p=F, q=T:</label>
-                        <select id="res-ft" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"><option>T</option><option>F</option></select>
-                    </div>
-                    <div>
-                        <label for="res-ff" class="block font-medium text-sm">p=F, q=F:</label>
-                        <select id="res-ff" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"><option>T</option><option>F</option></select>
-                    </div>
-                </div>
-                <button id="create-puzzle-btn" class="mt-4 w-full bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-700 transition duration-300">Generate My Puzzle</button>
-            </div>
             <button id="continue-to-d" class="mt-8 w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 transition duration-300" hidden>Continue to Part D →</button>
         </section>
 
@@ -483,6 +460,22 @@
                 'naming-problem-1': false, 'naming-problem-2': false, 'naming-problem-3': false, 'naming-problem-4': false
             };
 
+            const WEBHOOK_URL = 'https://automations.emoalchemy.com/webhook-test/truth-tables-1';
+
+            function sendToWebhook(taskType, data) {
+                const payload = {
+                    event: taskType,
+                    timestamp: new Date().toISOString(),
+                    ...data
+                };
+                fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).catch(error => console.error('Webhook Error:', error));
+            }
+
+
             // --- Review Slideshow Logic ---
             const reviewSection = document.getElementById('review');
             const partASection = document.getElementById('part-a');
@@ -519,8 +512,8 @@
                 { id: 'puzzle3', title: 'Puzzle #3 (Challenge)', solution: ['T', 'T', 'F', 'T'], validStatements: ['p∨~q', 'q->p'] }
             ];
             const builders = {
-                'builder1': { container: 'builder1-container', feedback: 'builder1-feedback', validStatements: ['p∨~p'] },
-                'builder2': { container: 'builder2-container', feedback: 'builder2-feedback', validStatements: ['~p->~q'] }
+                'builder1': { container: 'builder1-container', feedback: 'builder1-feedback', validStatements: ['p∨~p'], sentence: "It is sunny or it is not sunny." },
+                'builder2': { container: 'builder2-container', feedback: 'builder2-feedback', validStatements: ['~p->~q'], sentence: "If it is not sunny, then we will not go to the beach." }
             };
             const truthValues = [{ p: true, q: true }, { p: true, q: false }, { p: false, q: true }, { p: false, q: false }];
 
@@ -666,8 +659,7 @@
 
             // --- Puzzle Creation & Handling (Part C) ---
             const prebuiltPuzzlesContainer = document.getElementById('prebuilt-puzzles');
-            let userPuzzleCounter = 0;
-
+           
             function createPuzzleHTML(puzzle) {
                 return `
                 <div class="mb-8 p-4 border border-gray-200 rounded-lg" id="${puzzle.id}">
@@ -693,21 +685,6 @@
 
             prebuiltPuzzlesContainer.innerHTML = prebuiltPuzzles.map(createPuzzleHTML).join('');
             
-            document.getElementById('create-puzzle-btn').addEventListener('click', () => {
-                userPuzzleCounter++;
-                const newPuzzle = {
-                    id: `user-puzzle-${userPuzzleCounter}`,
-                    title: `Your Puzzle #${userPuzzleCounter}`,
-                    solution: [
-                        document.getElementById('res-tt').value, document.getElementById('res-tf').value,
-                        document.getElementById('res-ft').value, document.getElementById('res-ff').value
-                    ],
-                    validStatements: []
-                };
-                document.getElementById('dynamic-puzzles-container').insertAdjacentHTML('beforeend', createPuzzleHTML(newPuzzle));
-                initializeBuilders();
-            });
-
             function getExpressionFromDropZone(builderId) {
                 const dropZone = document.querySelector(`.statement-builder[data-builder-id="${builderId}"] .drop-zone`);
                 return Array.from(dropZone.children).map(chip => chip.dataset.symbol).join('');
@@ -776,19 +753,13 @@
             document.body.addEventListener('click', (e) => {
                 if (!e.target.classList.contains('check-builder-btn')) return;
                 const builderId = e.target.dataset.builderId;
-                const isPuzzle = prebuiltPuzzles.some(p => p.id === builderId) || builderId.startsWith('user-puzzle');
+                const isPuzzle = prebuiltPuzzles.some(p => p.id === builderId);
                 const isBuilder = builders[builderId];
                 let feedbackEl, puzzleData, validStatements;
 
                 if(isPuzzle){
                     feedbackEl = document.getElementById(`${builderId}-feedback`);
-                    const puzzle = prebuiltPuzzles.find(p => p.id === builderId);
-                    if(puzzle){ puzzleData = puzzle; } 
-                    else {
-                        const puzzleEl = document.getElementById(builderId);
-                        const solutionCells = puzzleEl.querySelectorAll('tbody td:last-child');
-                        puzzleData = { solution: Array.from(solutionCells).map(cell => cell.textContent), validStatements: [] };
-                    }
+                    puzzleData = prebuiltPuzzles.find(p => p.id === builderId);
                     validStatements = puzzleData.validStatements;
                 } else if(isBuilder) {
                     feedbackEl = document.getElementById(builders[builderId].feedback);
@@ -807,8 +778,14 @@
                      if(isPuzzle && !validStatements.includes(normalizeInput(userInput)) && validStatements.length > 0){ message += ` You found a different, but logically equivalent solution!`; }
                     feedbackEl.innerHTML = `<div class="feedback feedback-correct">${message}</div>` + generateTableHTML(userInput, userResults);
                     if (completionState.hasOwnProperty(builderId)) completionState[builderId] = true;
-                    if (isPuzzle) checkPartCCompletion();
-                    if (isBuilder) checkPartDCompletion();
+                    if (isPuzzle) {
+                        sendToWebhook('puzzle_solved', { puzzleId: builderId, answer: userInput, correct: true });
+                        checkPartCCompletion();
+                    }
+                    if (isBuilder) {
+                        sendToWebhook('statement_build', { sentence: builders[builderId].sentence, answer: userInput, correct: true });
+                        checkPartDCompletion();
+                    }
                 } else {
                     let message = isBuilder ? `<strong>Incorrect Translation.</strong>` : `<strong>Not quite.</strong>`;
                     feedbackEl.innerHTML = `<div class="feedback feedback-incorrect">${message}</div>` + generateTableHTML(userInput, userResults);
@@ -848,10 +825,12 @@
                     const droppedId = e.dataTransfer.getData('text/plain');
                     if (droppedId === dropBox.dataset.id) {
                         dropBox.classList.add('correct');
+                        const matchedStatement = tableMatchingData.find(t=>t.id==droppedId).statement;
                         dropBox.innerHTML = `
                             <span class="text-3xl text-green-500">✔</span>
-                            <span class="font-mono text-xl font-bold text-green-700">${tableMatchingData.find(t=>t.id==droppedId).statement}</span>
+                            <span class="font-mono text-xl font-bold text-green-700">${matchedStatement}</span>
                         `;
+                        sendToWebhook('table_sort_match', { statement: matchedStatement, tableId: droppedId, correct: true });
                         loadNextTableToSort();
                     } else {
                         dropBox.classList.add('incorrect-drop');
@@ -873,6 +852,7 @@
                 if(JSON.stringify(userAnswers) === JSON.stringify(puzzleData.correct)) {
                     feedbackEl.innerHTML = `<div class="feedback feedback-correct"><strong>Correct!</strong> Table fixed.</div>`;
                     completionState[puzzleId] = true;
+                    sendToWebhook('table_correction', { puzzleId: puzzleId, statement: puzzleData.statement, answer: userAnswers, correct: true });
                     checkPartBCompletion();
                 } else {
                     feedbackEl.innerHTML = `<div class="feedback feedback-incorrect"><strong>Not quite.</strong> There's still an error in the table.</div>`;
@@ -898,6 +878,7 @@
                 if (selectedSentence.dataset.id === selectedLogic.dataset.id) {
                     matchingFeedback.innerHTML = `<div class="feedback feedback-correct"><strong>Correct Match!</strong></div>`;
                     [selectedSentence, selectedLogic].forEach(el => { el.classList.add('matched'); el.classList.remove('selected'); });
+                    sendToWebhook('sentence_match', { sentence: selectedSentence.textContent, logic: selectedLogic.textContent, correct: true });
                     selectedSentence = selectedLogic = null;
                     if (Array.from(sentenceCards).every(c => c.classList.contains('matched'))) {
                         matchingFeedback.innerHTML += `<div class="feedback feedback-correct mt-2"><strong>Congratulations!</strong> You've matched all cards.</div>`;
@@ -909,10 +890,10 @@
 
             // Part E - Naming Problems
             const namingProblems = { 
-                'naming-problem-1': 'Conjunction (AND)', 
-                'naming-problem-2': 'Conditional (IF...THEN)', 
-                'naming-problem-3': 'Disjunction (OR)',
-                'naming-problem-4': 'Biconditional (IF AND ONLY IF)'
+                'naming-problem-1': { statement: 'p ∧ q', name: 'Conjunction (AND)' },
+                'naming-problem-2': { statement: 'p → q', name: 'Conditional (IF...THEN)' },
+                'naming-problem-3': { statement: 'p ∨ q', name: 'Disjunction (OR)' },
+                'naming-problem-4': { statement: 'p ↔ q', name: 'Biconditional (IF AND ONLY IF)' }
             };
             for (const id in namingProblems) {
                 const problemEl = document.getElementById(id);
@@ -926,9 +907,10 @@
                     const selectedBtn = problemEl.querySelector('.word-bank-btn.selected');
                     const feedbackEl = problemEl.querySelector('.feedback-container');
                     if (!selectedBtn) { feedbackEl.innerHTML = `<div class="feedback feedback-incorrect">Please select a name.</div>`; return; }
-                    if (selectedBtn.textContent === namingProblems[id]) {
+                    if (selectedBtn.textContent === namingProblems[id].name) {
                         feedbackEl.innerHTML = `<div class="feedback feedback-correct"><strong>Correct!</strong></div>`;
                         completionState[id] = true;
+                        sendToWebhook('naming_task', { statement: namingProblems[id].statement, answer: selectedBtn.textContent, correct: true });
                         checkPartECompletion();
                     } else { feedbackEl.innerHTML = `<div class="feedback feedback-incorrect"><strong>Not quite.</strong> Try again!</div>`; }
                 });
@@ -947,4 +929,6 @@
     </script>
 </body>
 </html>
+
+
 
