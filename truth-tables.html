@@ -37,6 +37,7 @@
         .word-bank-btn, .statement-match-card, .logic-card, .sentence-card, .table-card {
             transition: all 0.2s;
             border: 2px solid transparent;
+            cursor: pointer;
         }
         .word-bank-btn.selected, .statement-match-card.selected, .logic-card.selected, .sentence-card.selected, .table-card.selected {
             border-color: #3b82f6;
@@ -161,22 +162,6 @@
             color: #94a3b8;
             font-style: italic;
         }
-
-        /* Part A drag and drop matching */
-        .statement-match-card.dragging {
-            opacity: 0.5;
-        }
-        .table-card.drag-over {
-            border-color: #3b82f6;
-            background-color: #eff6ff;
-        }
-         @keyframes flash-red-border {
-            0%, 100% { border-color: transparent; }
-            50% { border-color: #ef4444; }
-        }
-        .table-card.incorrect-drop {
-            animation: flash-red-border 0.5s;
-        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -293,7 +278,7 @@
         <!-- Part A: Identify the Table -->
         <section id="part-a" class="bg-white p-6 rounded-lg shadow-md mb-8" hidden>
              <h2 class="text-2xl font-bold mb-4">Part A: Identify the Table</h2>
-             <p class="mb-6">Drag the logical statement on the left to its correct truth table on the right.</p>
+             <p class="mb-6">Select a statement and a table, then check your match.</p>
              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                  <div id="statement-card-container" class="space-y-4">
                      <!-- Statement cards will be injected here -->
@@ -302,6 +287,7 @@
                      <!-- Table cards will be injected here -->
                  </div>
              </div>
+             <button id="check-table-match-btn" class="mt-8 w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300">Check Match</button>
              <div id="table-matching-feedback" class="mt-4"></div>
              <button id="continue-to-b" class="mt-8 w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 transition duration-300" hidden>Continue to Part B →</button>
         </section>
@@ -582,13 +568,12 @@
             const tableCardContainer = document.getElementById('table-card-container');
 
             shuffle([...tableMatchingData]).forEach(item => {
-                statementCardContainer.innerHTML += `<button data-id="${item.id}" draggable="true" class="statement-match-card w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md font-mono text-lg">${item.statement}</button>`;
+                statementCardContainer.innerHTML += `<button data-id="${item.id}" class="statement-match-card w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md font-mono text-lg">${item.statement}</button>`;
             });
             shuffle([...tableMatchingData]).forEach(item => {
                 tableCardContainer.innerHTML += `
                     <div data-id="${item.id}" class="table-card p-3 bg-gray-100 rounded-md border-2 border-transparent">
                         <div class="table-drop-zone pointer-events-none">
-                            <h3 class="font-semibold text-gray-500 text-center mb-2 h-8">[Drop statement here]</h3>
                             <table class="w-full truth-table text-sm">
                                 <thead><tr><th>p</th><th>q</th><th>?</th></tr></thead>
                                 <tbody>
@@ -782,55 +767,46 @@
                 }
             });
             
-            // Part A - Drag and Drop Table Matching
-            let draggedStatementId = null;
-            document.getElementById('part-a').addEventListener('dragstart', e => {
-                if (e.target.classList.contains('statement-match-card')) {
-                    draggedStatementId = e.target.dataset.id;
-                    e.target.classList.add('dragging');
-                    e.dataTransfer.setData('text/plain', draggedStatementId);
-                }
-            });
-             document.getElementById('part-a').addEventListener('dragend', e => {
-                if (e.target.classList.contains('statement-match-card')) {
-                    e.target.classList.remove('dragging');
-                }
-            });
-            document.getElementById('part-a').addEventListener('dragover', e => {
+            // Part A - Click-to-Match Table Logic
+            let selectedStatementCard = null;
+            let selectedTableCard = null;
+            document.getElementById('part-a').addEventListener('click', e => {
+                const statementCard = e.target.closest('.statement-match-card');
                 const tableCard = e.target.closest('.table-card');
-                if(tableCard && !tableCard.classList.contains('matched')){
-                    e.preventDefault();
-                    tableCard.classList.add('drag-over');
-                }
-            });
-            document.getElementById('part-a').addEventListener('dragleave', e => {
-                const tableCard = e.target.closest('.table-card');
-                if(tableCard){
-                    tableCard.classList.remove('drag-over');
-                }
-            });
-            document.getElementById('part-a').addEventListener('drop', e => {
-                const tableCard = e.target.closest('.table-card');
-                if(tableCard && !tableCard.classList.contains('matched')){
-                    e.preventDefault();
-                    tableCard.classList.remove('drag-over');
-                    const droppedStatementId = e.dataTransfer.getData('text/plain');
-                    if (droppedStatementId === tableCard.dataset.id) {
-                        const draggedCard = document.querySelector(`.statement-match-card[data-id="${droppedStatementId}"]`);
-                        
-                        tableCard.querySelector('h3').innerHTML = `<code class="bg-gray-200 p-1 rounded text-base">${draggedCard.textContent}</code>`;
-                        tableCard.classList.add('matched');
-                        draggedCard.classList.add('matched');
 
-                        if (Array.from(document.querySelectorAll('#part-a .statement-match-card')).every(c => c.classList.contains('matched'))) {
-                            document.getElementById('table-matching-feedback').innerHTML = `<div class="feedback feedback-correct mt-2"><strong>Congratulations!</strong> You've matched all tables.</div>`;
-                            completionState.tableMatching = true;
-                            checkPartACompletion();
-                        }
-                    } else {
-                        tableCard.classList.add('incorrect-drop');
-                        setTimeout(() => tableCard.classList.remove('incorrect-drop'), 500);
+                if (statementCard && !statementCard.classList.contains('matched')) {
+                    document.querySelectorAll('#part-a .statement-match-card').forEach(c => c.classList.remove('selected'));
+                    statementCard.classList.add('selected');
+                    selectedStatementCard = statementCard;
+                }
+                if (tableCard && !tableCard.classList.contains('matched')) {
+                    document.querySelectorAll('#part-a .table-card').forEach(c => c.classList.remove('selected'));
+                    tableCard.classList.add('selected');
+                    selectedTableCard = tableCard;
+                }
+            });
+            document.getElementById('check-table-match-btn').addEventListener('click', () => {
+                const feedbackEl = document.getElementById('table-matching-feedback');
+                if (!selectedStatementCard || !selectedTableCard) {
+                    feedbackEl.innerHTML = `<div class="feedback feedback-incorrect">Please select one statement and one table to match.</div>`;
+                    return;
+                }
+                if (selectedStatementCard.dataset.id === selectedTableCard.dataset.id) {
+                    feedbackEl.innerHTML = `<div class="feedback feedback-correct"><strong>Correct Match!</strong></div>`;
+                    [selectedStatementCard, selectedTableCard].forEach(el => {
+                        el.classList.add('matched');
+                        el.classList.remove('selected');
+                    });
+                    selectedStatementCard = selectedTableCard = null;
+                    if (Array.from(document.querySelectorAll('#part-a .statement-match-card')).every(c => c.classList.contains('matched'))) {
+                        feedbackEl.innerHTML += `<div class="feedback feedback-correct mt-2"><strong>Congratulations!</strong> You've matched all tables.</div>`;
+                        completionState.tableMatching = true;
+                        checkPartACompletion();
                     }
+                } else {
+                    feedbackEl.innerHTML = `<div class="feedback feedback-incorrect"><strong>Not a match.</strong> Try again!</div>`;
+                    [selectedStatementCard, selectedTableCard].forEach(el => el.classList.remove('selected'));
+                    selectedStatementCard = selectedTableCard = null;
                 }
             });
 
