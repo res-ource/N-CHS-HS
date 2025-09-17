@@ -34,12 +34,12 @@
             color: #991b1b;
             border: 1px solid #fca5a5;
         }
-        .word-bank-btn, .statement-match-card, .logic-card, .sentence-card, .table-card {
+        .word-bank-btn, .logic-card, .sentence-card {
             transition: all 0.2s;
             border: 2px solid transparent;
             cursor: pointer;
         }
-        .word-bank-btn.selected, .statement-match-card.selected, .logic-card.selected, .sentence-card.selected, .table-card.selected {
+        .word-bank-btn.selected, .logic-card.selected, .sentence-card.selected {
             border-color: #3b82f6;
             background-color: #dbeafe;
             color: #1e40af;
@@ -162,6 +162,36 @@
             color: #94a3b8;
             font-style: italic;
         }
+
+        /* Part A Card Sort */
+        .table-sort-card {
+            cursor: grab;
+            transition: transform 0.2s;
+        }
+        .table-sort-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+        .table-drop-box {
+            border: 2px dashed #cbd5e1;
+            transition: all 0.2s;
+        }
+        .table-drop-box.drag-over {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .table-drop-box.correct {
+            border-style: solid;
+            border-color: #22c55e;
+            background-color: #f0fdf4;
+        }
+         @keyframes flash-red-border {
+            0%, 100% { border-color: #cbd5e1; }
+            50% { border-color: #ef4444; }
+        }
+        .table-drop-box.incorrect-drop {
+            animation: flash-red-border 0.5s;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -278,16 +308,16 @@
         <!-- Part A: Identify the Table -->
         <section id="part-a" class="bg-white p-6 rounded-lg shadow-md mb-8" hidden>
              <h2 class="text-2xl font-bold mb-4">Part A: Identify the Table</h2>
-             <p class="mb-6">Select a statement and a table, then check your match.</p>
-             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                 <div id="statement-card-container" class="space-y-4">
-                     <!-- Statement cards will be injected here -->
-                 </div>
-                 <div id="table-card-container" class="space-y-4">
-                     <!-- Table cards will be injected here -->
-                 </div>
+             <p class="mb-6">Drag the truth table below to the box with its matching statement.</p>
+             
+             <div id="active-table-container" class="my-8 flex justify-center items-center min-h-[200px]">
+                 <!-- Draggable table will be loaded here -->
              </div>
-             <button id="check-table-match-btn" class="mt-8 w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300">Check Match</button>
+
+             <div id="table-drop-zones" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                 <!-- Drop zone boxes will be injected here -->
+             </div>
+             
              <div id="table-matching-feedback" class="mt-4"></div>
              <button id="continue-to-b" class="mt-8 w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 transition duration-300" hidden>Continue to Part B →</button>
         </section>
@@ -548,13 +578,17 @@
                     </div>`;
             }
             
-            // --- Part A: Identify the Table ---
+            // --- Part A: Identify the Table (Card Sort) ---
             const tableMatchingData = [
                 { id: 1, statement: 'p ∧ q', result: ['T', 'F', 'F', 'F'] },
                 { id: 2, statement: 'p ∨ q', result: ['T', 'T', 'T', 'F'] },
                 { id: 3, statement: 'p → q', result: ['T', 'F', 'T', 'T'] },
                 { id: 4, statement: 'p ↔ q', result: ['T', 'F', 'F', 'T'] }
             ];
+
+            let tableSortData = [];
+            const activeTableContainer = document.getElementById('active-table-container');
+            const tableDropZonesContainer = document.getElementById('table-drop-zones');
 
             function shuffle(array) {
                 for (let i = array.length - 1; i > 0; i--) {
@@ -564,29 +598,43 @@
                 return array;
             }
 
-            const statementCardContainer = document.getElementById('statement-card-container');
-            const tableCardContainer = document.getElementById('table-card-container');
+            function loadNextTableToSort() {
+                activeTableContainer.innerHTML = '';
+                if (tableSortData.length === 0) {
+                    document.getElementById('table-matching-feedback').innerHTML = `<div class="feedback feedback-correct"><strong>Great job!</strong> All tables have been matched.</div>`;
+                    completionState.tableMatching = true;
+                    checkPartACompletion();
+                    return;
+                }
+                const tableData = tableSortData.pop();
+                const tableEl = document.createElement('div');
+                tableEl.className = 'table-sort-card inline-block p-3 bg-gray-100 rounded-md border-2 border-transparent';
+                tableEl.draggable = true;
+                tableEl.dataset.id = tableData.id;
+                tableEl.innerHTML = `
+                    <table class="w-full truth-table text-sm pointer-events-none">
+                        <thead><tr><th>p</th><th>q</th><th>?</th></tr></thead>
+                        <tbody>
+                            <tr><td>T</td><td>T</td><td>${tableData.result[0]}</td></tr>
+                            <tr><td>T</td><td>F</td><td>${tableData.result[1]}</td></tr>
+                            <tr><td>F</td><td>T</td><td>${tableData.result[2]}</td></tr>
+                            <tr><td>F</td><td>F</td><td>${tableData.result[3]}</td></tr>
+                        </tbody>
+                    </table>`;
+                activeTableContainer.appendChild(tableEl);
+            }
 
-            shuffle([...tableMatchingData]).forEach(item => {
-                statementCardContainer.innerHTML += `<button data-id="${item.id}" class="statement-match-card w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md font-mono text-lg">${item.statement}</button>`;
-            });
-            shuffle([...tableMatchingData]).forEach(item => {
-                tableCardContainer.innerHTML += `
-                    <div data-id="${item.id}" class="table-card p-3 bg-gray-100 rounded-md border-2 border-transparent">
-                        <div class="table-drop-zone pointer-events-none">
-                            <table class="w-full truth-table text-sm">
-                                <thead><tr><th>p</th><th>q</th><th>?</th></tr></thead>
-                                <tbody>
-                                    <tr><td>T</td><td>T</td><td>${item.result[0]}</td></tr>
-                                    <tr><td>T</td><td>F</td><td>${item.result[1]}</td></tr>
-                                    <tr><td>F</td><td>T</td><td>${item.result[2]}</td></tr>
-                                    <tr><td>F</td><td>F</td><td>${item.result[3]}</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>`;
-            });
-
+            function initializeTableSort() {
+                tableSortData = shuffle([...tableMatchingData]);
+                tableMatchingData.forEach(item => {
+                    tableDropZonesContainer.innerHTML += `
+                        <div data-id="${item.id}" class="table-drop-box p-4 rounded-lg flex items-center justify-center min-h-[100px]">
+                            <span class="font-mono text-xl font-bold text-gray-700">${item.statement}</span>
+                        </div>`;
+                });
+                loadNextTableToSort();
+            }
+            
             // --- Part B: Correct the Table ---
             const correctionPuzzlesData = [
                 { id: 'correction1', statement: 'p ∧ q', correct: ['T','F','F','F'], incorrect: ['T','T','F','F'] },
@@ -767,46 +815,48 @@
                 }
             });
             
-            // Part A - Click-to-Match Table Logic
-            let selectedStatementCard = null;
-            let selectedTableCard = null;
-            document.getElementById('part-a').addEventListener('click', e => {
-                const statementCard = e.target.closest('.statement-match-card');
-                const tableCard = e.target.closest('.table-card');
-
-                if (statementCard && !statementCard.classList.contains('matched')) {
-                    document.querySelectorAll('#part-a .statement-match-card').forEach(c => c.classList.remove('selected'));
-                    statementCard.classList.add('selected');
-                    selectedStatementCard = statementCard;
-                }
-                if (tableCard && !tableCard.classList.contains('matched')) {
-                    document.querySelectorAll('#part-a .table-card').forEach(c => c.classList.remove('selected'));
-                    tableCard.classList.add('selected');
-                    selectedTableCard = tableCard;
+            // Part A - Drag/Drop Table Sort
+            let draggedTableId = null;
+            activeTableContainer.addEventListener('dragstart', e => {
+                if (e.target.classList.contains('table-sort-card')) {
+                    draggedTableId = e.target.dataset.id;
+                    e.target.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', draggedTableId);
                 }
             });
-            document.getElementById('check-table-match-btn').addEventListener('click', () => {
-                const feedbackEl = document.getElementById('table-matching-feedback');
-                if (!selectedStatementCard || !selectedTableCard) {
-                    feedbackEl.innerHTML = `<div class="feedback feedback-incorrect">Please select one statement and one table to match.</div>`;
-                    return;
+            activeTableContainer.addEventListener('dragend', e => {
+                 if (e.target.classList.contains('table-sort-card')) {
+                    e.target.classList.remove('dragging');
+                 }
+            });
+            tableDropZonesContainer.addEventListener('dragover', e => {
+                const dropBox = e.target.closest('.table-drop-box');
+                if(dropBox && !dropBox.classList.contains('correct')){
+                    e.preventDefault();
+                    dropBox.classList.add('drag-over');
                 }
-                if (selectedStatementCard.dataset.id === selectedTableCard.dataset.id) {
-                    feedbackEl.innerHTML = `<div class="feedback feedback-correct"><strong>Correct Match!</strong></div>`;
-                    [selectedStatementCard, selectedTableCard].forEach(el => {
-                        el.classList.add('matched');
-                        el.classList.remove('selected');
-                    });
-                    selectedStatementCard = selectedTableCard = null;
-                    if (Array.from(document.querySelectorAll('#part-a .statement-match-card')).every(c => c.classList.contains('matched'))) {
-                        feedbackEl.innerHTML += `<div class="feedback feedback-correct mt-2"><strong>Congratulations!</strong> You've matched all tables.</div>`;
-                        completionState.tableMatching = true;
-                        checkPartACompletion();
+            });
+            tableDropZonesContainer.addEventListener('dragleave', e => {
+                const dropBox = e.target.closest('.table-drop-box');
+                if(dropBox) dropBox.classList.remove('drag-over');
+            });
+            tableDropZonesContainer.addEventListener('drop', e => {
+                const dropBox = e.target.closest('.table-drop-box');
+                if(dropBox && !dropBox.classList.contains('correct')){
+                    e.preventDefault();
+                    dropBox.classList.remove('drag-over');
+                    const droppedId = e.dataTransfer.getData('text/plain');
+                    if (droppedId === dropBox.dataset.id) {
+                        dropBox.classList.add('correct');
+                        dropBox.innerHTML = `
+                            <span class="text-3xl text-green-500">✔</span>
+                            <span class="font-mono text-xl font-bold text-green-700">${tableMatchingData.find(t=>t.id==droppedId).statement}</span>
+                        `;
+                        loadNextTableToSort();
+                    } else {
+                        dropBox.classList.add('incorrect-drop');
+                        setTimeout(() => dropBox.classList.remove('incorrect-drop'), 500);
                     }
-                } else {
-                    feedbackEl.innerHTML = `<div class="feedback feedback-incorrect"><strong>Not a match.</strong> Try again!</div>`;
-                    [selectedStatementCard, selectedTableCard].forEach(el => el.classList.remove('selected'));
-                    selectedStatementCard = selectedTableCard = null;
                 }
             });
 
@@ -884,12 +934,15 @@
                 });
             }
             
+            // --- Sequential Navigation ---
             document.getElementById('continue-to-b').addEventListener('click', () => { document.getElementById('part-a').hidden = true; document.getElementById('part-b').hidden = false; document.getElementById('part-b').scrollIntoView({ behavior: 'smooth' }); });
             document.getElementById('continue-to-c').addEventListener('click', () => { document.getElementById('part-b').hidden = true; document.getElementById('part-c').hidden = false; document.getElementById('part-c').scrollIntoView({ behavior: 'smooth' }); });
             document.getElementById('continue-to-d').addEventListener('click', () => { document.getElementById('part-c').hidden = true; document.getElementById('part-d').hidden = false; document.getElementById('part-d').scrollIntoView({ behavior: 'smooth' }); });
             document.getElementById('continue-to-e').addEventListener('click', () => { document.getElementById('part-d').hidden = true; document.getElementById('part-e').hidden = false; document.getElementById('part-e').scrollIntoView({ behavior: 'smooth' }); });
 
+            // --- Final Initialization ---
             initializeBuilders();
+            initializeTableSort();
         });
     </script>
 </body>
