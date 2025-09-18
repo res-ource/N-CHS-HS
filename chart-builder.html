@@ -1,1 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Chart Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .new-row, .fade-in-element {
+            animation: fadeIn 0.4s ease-out;
+        }
+        .hidden-element {
+            display: none;
+        }
+        /* Animation for lesson cards */
+        .modal-card {
+            transform: scale(0.95);
+            opacity: 0;
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+        }
+        .modal-card.visible {
+            transform: scale(1);
+            opacity: 1;
+        }
+        /* Bar animation */
+        .bar-anim { transform-origin: bottom; transform: scaleY(0); }
+        .animate .bar-anim-1 { animation: grow 0.5s 0.2s ease-out forwards; }
+        .animate .bar-anim-2 { animation: grow 0.5s 0.4s ease-out forwards; }
+        .animate .bar-anim-3 { animation: grow 0.5s 0.6s ease-out forwards; }
+        @keyframes grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+        /* Pie animation */
+        .pie-slice { opacity: 0; }
+        .animate .pie-slice-1 { animation: fadeInSlice 0.5s 0.2s ease-out forwards; }
+        .animate .pie-slice-2 { animation: fadeInSlice 0.5s 0.5s ease-out forwards; }
+        .animate .pie-slice-3 { animation: fadeInSlice 0.5s 0.8s ease-out forwards; }
+        @keyframes fadeInSlice { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-gray-100">
+    
+    <!-- Student ID Modal -->
+    <div id="student-id-modal" class="fixed inset-0 bg-gray-100 flex items-center justify-center z-50">
+        <div class="modal-card bg-white rounded-2xl shadow-xl p-8 text-center w-11/12 max-w-lg">
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Welcome to the Chart Builder!</h2>
+            <p class="text-gray-600 mb-6">Please enter your full name to begin.</p>
+            <div class="my-6">
+                <label for="student-name" class="sr-only">Your Full Name</label>
+                <input type="text" id="student-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter your name here">
+            </div>
+            <button id="start-lesson-btn" class="w-full bg-green-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-green-600 transition-transform transform hover:scale-105">Start Lesson</button>
+        </div>
+    </div>
+
+
+    <!-- Mini-Lesson Modals -->
+    <div id="lesson-container" class="hidden">
+        <!-- Bar Chart Lesson -->
+        <div id="bar-lesson-modal" class="fixed inset-0 bg-gray-100 flex items-center justify-center z-40">
+            <div class="modal-card bg-white rounded-2xl shadow-xl p-8 text-center w-11/12 max-w-lg">
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4">First, What's a Bar Chart?</h2>
+                <div class="flex justify-center my-6 h-48 items-end gap-4 px-4" id="bar-animation-container">
+                    <div class="w-1/3 text-center">
+                        <div class="h-24 bg-blue-400 rounded-t-lg bar-anim bar-anim-1"></div>
+                        <p class="font-semibold mt-2 text-sm">Dogs</p>
+                    </div>
+                    <div class="w-1/3 text-center">
+                        <div class="h-40 bg-blue-400 rounded-t-lg bar-anim bar-anim-2"></div>
+                        <p class="font-semibold mt-2 text-sm">Cats</p>
+                    </div>
+                    <div class="w-1/3 text-center">
+                        <div class="h-16 bg-blue-400 rounded-t-lg bar-anim bar-anim-3"></div>
+                        <p class="font-semibold mt-2 text-sm">Fish</p>
+                    </div>
+                </div>
+                <p class="text-gray-700 font-medium mb-2">A bar chart uses bars to <strong class="font-semibold text-blue-700">compare</strong> different groups.</p>
+                <p class="text-gray-600 mb-6">The <strong class="font-semibold">X-axis</strong> (bottom) shows the categories, and the <strong class="font-semibold">Y-axis</strong> (side) shows how many are in each category.</p>
+                <button id="next-to-pie-btn" class="w-full bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-600 transition-transform transform hover:scale-105">Next</button>
+            </div>
+        </div>
+
+        <!-- Pie Chart Lesson -->
+        <div id="pie-lesson-modal" class="fixed inset-0 bg-gray-100 flex items-center justify-center z-30 hidden">
+            <div class="modal-card bg-white rounded-2xl shadow-xl p-8 text-center w-11/12 max-w-lg">
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4">Next, What's a Pie Chart?</h2>
+                <div class="flex justify-center my-6 h-48 items-center" id="pie-animation-container">
+                     <svg viewBox="0 0 100 100" class="w-40 h-40">
+                        <circle cx="50" cy="50" r="45" fill="#E5E7EB"/>
+                        <path class="pie-slice pie-slice-1" d="M50 5 A 45 45 0 0 1 95 50 L 50 50 Z" fill="#8B5CF6"></path>
+                        <path class="pie-slice pie-slice-2" d="M5 50 A 45 45 0 0 1 50 5 L 50 50 Z" fill="#A78BFA"></path>
+                        <path class="pie-slice pie-slice-3" d="M50 95 A 45 45 0 0 1 5 50 L 50 50 Z" fill="#C4B5FD"></path>
+                     </svg>
+                </div>
+                <p class="text-gray-700 font-medium mb-2">A pie chart shows the <strong class="font-semibold text-purple-700">parts of a whole</strong>, like slices of a pizza.</p>
+                <p class="text-gray-600 mb-6">Each slice represents a category, and all the slices together make up 100% of the data.</p>
+                <button id="start-task-btn" class="w-full bg-green-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-green-600 transition-transform transform hover:scale-105">Let's Get Started!</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Application -->
+    <div id="main-app" class="hidden">
+        <div class="container mx-auto p-4 md:p-8">
+            <header class="text-center mb-8">
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-800">Data Detective: Chart Builder</h1>
+                <p class="text-gray-500 mt-2">Enter your survey data below and choose how to display it!</p>
+            </header>
+
+            <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 w-full max-w-4xl mx-auto mb-8">
+                <h2 class="text-2xl font-bold text-gray-700 mb-6 border-b pb-3">Step 1: Configure Your Chart</h2>
+                
+                <div class="mb-6">
+                    <label for="chart-title" class="block text-lg font-semibold text-gray-600 mb-2">Chart Title</label>
+                    <input type="text" id="chart-title" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500" placeholder="e.g., Favorite Seasons">
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-lg font-semibold text-gray-600 mb-3">Chart Type</label>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <label class="flex-1 p-4 border-2 border-gray-300 rounded-lg has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 transition-all cursor-pointer">
+                            <input type="radio" name="chart-type" value="bar" class="mr-3" checked>
+                            <div>
+                                <span class="font-bold text-gray-800">Bar Chart</span>
+                                <p class="text-sm text-gray-500">Good for comparing values between different groups.</p>
+                            </div>
+                        </label>
+                        <label class="flex-1 p-4 border-2 border-gray-300 rounded-lg has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50 transition-all cursor-pointer">
+                            <input type="radio" name="chart-type" value="pie" class="mr-3">
+                            <div>
+                               <span class="font-bold text-gray-800">Pie Chart</span>
+                               <p class="text-sm text-gray-500">Good for showing parts of a whole.</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="axis-labels-container" class="mb-6 fade-in-element">
+                    <label class="block text-lg font-semibold text-gray-600 mb-2">Axis Labels</label>
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <input type="text" id="x-axis-label" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="X-Axis Label (e.g., Type of Pet)">
+                        <input type="text" id="y-axis-label" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Y-Axis Label (e.g., Number of Votes)">
+                    </div>
+                </div>
+
+                <div id="data-rows-container">
+                     <label class="block text-lg font-semibold text-gray-600 mb-2">Categories & Counts</label>
+                </div>
+                
+                <p id="error-message" class="text-red-500 text-sm mt-2 h-5"></p>
+
+                <div class="mt-6 flex flex-col sm:flex-row gap-4">
+                    <button id="add-row-btn" class="w-full sm:w-auto bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-600 transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                        Add Category
+                    </button>
+                    <button id="create-chart-btn" class="w-full sm:w-auto bg-green-500 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-600 transition-transform transform hover:scale-105 flex-grow">
+                        Create My Chart!
+                    </button>
+                </div>
+            </div>
+
+            <div id="chart-output" class="hidden">
+                 <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 w-full max-w-4xl mx-auto">
+                    <h2 class="text-2xl font-bold text-gray-700 mb-6 text-center border-b pb-3">Step 2: Your Chart</h2>
+                    <div class="bg-gray-50 p-4 rounded-xl min-h-[400px] md:min-h-[500px] mt-4">
+                        <canvas id="chartCanvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- ID & Lesson Elements ---
+        const studentIdModal = document.getElementById('student-id-modal');
+        const startLessonBtn = document.getElementById('start-lesson-btn');
+        const studentNameInput = document.getElementById('student-name');
+        const lessonContainer = document.getElementById('lesson-container');
+        const barLessonModal = document.getElementById('bar-lesson-modal');
+        const pieLessonModal = document.getElementById('pie-lesson-modal');
+        const nextToPieBtn = document.getElementById('next-to-pie-btn');
+        const startTaskBtn = document.getElementById('start-task-btn');
+        const barAnimationContainer = document.getElementById('bar-animation-container');
+        const pieAnimationContainer = document.getElementById('pie-animation-container');
+        const mainApp = document.getElementById('main-app');
+        let studentName = "Anonymous";
+
+        // --- Chart Builder Elements ---
+        const addRowBtn = document.getElementById('add-row-btn');
+        const createChartBtn = document.getElementById('create-chart-btn');
+        const dataRowsContainer = document.getElementById('data-rows-container');
+        const chartOutput = document.getElementById('chart-output');
+        const chartTitleInput = document.getElementById('chart-title');
+        const errorMessageEl = document.getElementById('error-message');
+        const axisLabelsContainer = document.getElementById('axis-labels-container');
+        const xAxisLabelInput = document.getElementById('x-axis-label');
+        const yAxisLabelInput = document.getElementById('y-axis-label');
+        const chartTypeRadios = document.querySelectorAll('input[name="chart-type"]');
+        let chartInstance;
+
+        // --- App Flow Logic ---
+        window.addEventListener('load', () => {
+             setTimeout(() => {
+                studentIdModal.querySelector('.modal-card').classList.add('visible');
+             }, 100);
+        });
+
+        startLessonBtn.addEventListener('click', () => {
+            studentName = studentNameInput.value.trim() || 'Anonymous';
+            studentIdModal.querySelector('.modal-card').classList.remove('visible');
+            setTimeout(() => {
+                studentIdModal.classList.add('hidden');
+                lessonContainer.classList.remove('hidden');
+                setTimeout(() => {
+                    barLessonModal.querySelector('.modal-card').classList.add('visible');
+                    barAnimationContainer.classList.add('animate');
+                }, 50);
+            }, 300);
+        });
+
+        nextToPieBtn.addEventListener('click', () => {
+            barLessonModal.querySelector('.modal-card').classList.remove('visible');
+            setTimeout(() => {
+                barLessonModal.classList.add('hidden');
+                pieLessonModal.classList.remove('hidden');
+                setTimeout(() => {
+                    pieLessonModal.querySelector('.modal-card').classList.add('visible');
+                    pieAnimationContainer.classList.add('animate');
+                }, 50);
+            }, 300);
+        });
+
+        startTaskBtn.addEventListener('click', () => {
+            pieLessonModal.querySelector('.modal-card').classList.remove('visible');
+            setTimeout(() => {
+                lessonContainer.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                mainApp.classList.add('fade-in-element');
+            }, 300);
+        });
+
+
+        // --- Chart Builder Logic ---
+        const addDataRow = () => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'flex items-center gap-4 mb-3 new-row';
+            rowDiv.innerHTML = `
+                <input type="text" class="category-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500" placeholder="Category Name">
+                <input type="number" class="count-input w-1/3 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500" placeholder="Count" min="0">
+                <button class="remove-row-btn bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-transform transform hover:scale-110">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>
+                </button>
+            `;
+            dataRowsContainer.appendChild(rowDiv);
+        };
+        
+        const toggleAxisLabels = () => {
+            const selectedType = document.querySelector('input[name="chart-type"]:checked').value;
+            if (selectedType === 'bar') {
+                axisLabelsContainer.classList.remove('hidden-element');
+                axisLabelsContainer.classList.add('fade-in-element');
+            } else {
+                axisLabelsContainer.classList.add('hidden-element');
+                axisLabelsContainer.classList.remove('fade-in-element');
+            }
+        };
+
+        const createChart = () => {
+            errorMessageEl.textContent = '';
+            const labels = [], data = [];
+            let chartTitle = chartTitleInput.value.trim();
+            if (!chartTitle) {
+                chartTitle = `Chart by ${studentName}`;
+            }
+            const selectedType = document.querySelector('input[name="chart-type"]:checked').value;
+
+            dataRowsContainer.querySelectorAll('.new-row').forEach(row => {
+                const category = row.querySelector('.category-input').value.trim();
+                const count = parseInt(row.querySelector('.count-input').value, 10);
+                if (category && !isNaN(count) && count >= 0) {
+                    labels.push(category);
+                    data.push(count);
+                }
+            });
+
+            if (labels.length === 0) {
+                errorMessageEl.textContent = 'Please add at least one category with a valid count.';
+                return;
+            }
+
+            if (chartInstance) chartInstance.destroy();
+            
+            const ctx = document.getElementById('chartCanvas').getContext('2d');
+            let config;
+
+            if (selectedType === 'bar') {
+                const xAxisLabel = xAxisLabelInput.value.trim() || 'Categories';
+                const yAxisLabel = yAxisLabelInput.value.trim() || 'Count';
+                config = {
+                    type: 'bar',
+                    data: { labels, datasets: [{ label: 'Count', data, backgroundColor: 'rgba(54, 162, 235, 0.6)', borderColor: 'rgba(54, 162, 235, 1)', borderWidth: 1, borderRadius: 5 }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: yAxisLabel, font: { weight: 'bold' } } }, x: { title: { display: true, text: xAxisLabel, font: { weight: 'bold' } } } }, plugins: { legend: { display: false }, title: { display: true, text: chartTitle, font: { size: 18 } } } }
+                };
+            } else {
+                config = {
+                    type: 'pie',
+                    data: { labels, datasets: [{ data, backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#34D399', '#F97316', '#EC4899'], borderColor: '#fff', borderWidth: 2 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: chartTitle, font: { size: 18 } } } }
+                };
+            }
+
+            chartInstance = new Chart(ctx, config);
+            chartOutput.classList.remove('hidden');
+            chartOutput.scrollIntoView({ behavior: 'smooth' });
+        };
+
+        // --- Event Listeners ---
+        addRowBtn.addEventListener('click', addDataRow);
+        createChartBtn.addEventListener('click', createChart);
+        chartTypeRadios.forEach(radio => radio.addEventListener('change', toggleAxisLabels));
+        dataRowsContainer.addEventListener('click', (event) => {
+            if (event.target.closest('.remove-row-btn')) {
+                event.target.closest('.new-row').remove();
+            }
+        });
+
+        // --- Initial State ---
+        addDataRow();
+        addDataRow();
+        addDataRow();
+        toggleAxisLabels();
+    </script>
+
+</body>
+</html>
 
