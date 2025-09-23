@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Two-Way Tables Lesson</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .question-container {
+            display: none;
+            min-height: 450px;
+        }
+        .question-container.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .draggable {
+            cursor: grab;
+            transition: transform 0.2s;
+        }
+        .draggable:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+        .drop-zone {
+            transition: background-color 0.3s, border-color 0.3s;
+            border: 2px dashed #cbd5e1;
+        }
+        .drop-zone.drag-over {
+            background-color: #dbeafe;
+            border-color: #60a5fa;
+        }
+        .drop-zone.dropped {
+            border: 2px solid #22c55e;
+            background-color: #f0fdf4;
+        }
+        .drop-zone.incorrect {
+             border: 2px solid #ef4444;
+             background-color: #fef2f2;
+        }
+        .feedback {
+            display: none;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+        .feedback.correct {
+            display: block;
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .feedback.incorrect {
+            display: block;
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .math-input {
+            width: 80px;
+            text-align: center;
+        }
+        .calculation {
+            font-family: monospace;
+            font-size: 1.1rem;
+            color: #3b82f6;
+            background-color: #eff6ff;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-4xl p-6 md:p-8">
+        
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-slate-800">Two-Way Tables</h1>
+            <div class="flex items-center gap-2">
+                 <span id="page-indicator" class="text-slate-500 font-medium">1 of 10</span>
+            </div>
+        </div>
+        
+        <div class="relative">
+            <!-- Intro -->
+            <div id="q-0" class="question-container active">
+                 <h2 class="text-lg font-semibold text-slate-700 mb-2">Step 1: What is a Two-Way Table?</h2>
+                 <p class="text-slate-600 mb-4">A two-way table helps us organize data about two different categories. For example, we can survey students about whether they ride a bike AND whether they ride a skateboard.</p>
+                 <p class="text-slate-600">The rows show one category (riding a bike), and the columns show another (riding a skateboard). The "Total" cells show the sum of each row or column. Let's practice filling one out!</p>
+            </div>
+            
+            <!-- Question 1.1 -->
+            <div id="q-1" class="question-container">
+                <h2 class="text-lg font-semibold text-slate-700 mb-1">Step 2: Calculate a Row Total</h2>
+                <p class="text-slate-600 mb-4">First, find the total number of students who <strong class="text-blue-600">ride a bike</strong>. Add the numbers in that row.</p>
+                <div class="flex flex-col items-center gap-6">
+                    <p class="calculation">98 + 59 = 157</p>
+                    <p class="text-slate-600">Now, drag the correct total to the table.</p>
+                    <div id="drag-157" class="draggable bg-blue-500 text-white font-bold text-xl p-4 rounded-lg shadow-md" draggable="true" data-value="157">157</div>
+                    <table class="w-full max-w-lg text-center border-collapse">
+                        <thead>
+                           <tr>
+                                <th class="p-2 border w-2/5"></th>
+                                <th class="p-2 border bg-slate-200">Yes, Skateboard</th>
+                                <th class="p-2 border bg-slate-200">No, Skateboard</th>
+                                <th class="p-2 border bg-yellow-200">Total</th>
+                           </tr>
+                        </thead>
+                         <tbody>
+                            <tr>
+                               <th class="p-2 border bg-slate-200 text-left">Yes, I ride a bike.</th>
+                               <td class="p-2 border">98</td>
+                               <td class="p-2 border">59</td>
+                               <td id="drop-bike-total" class="p-2 border drop-zone h-16" data-correct="157"></td>
+                            </tr>
+                            <tr>
+                               <th class="p-2 border bg-slate-200 text-left">No, I don't ride a bike.</th>
+                               <td class="p-2 border">118</td>
+                               <td class="p-2 border">157</td>
+                               <td class="p-2 border h-16"></td>
+                            </tr>
+                         </tbody>
+                    </table>
+                    <div id="feedback-1" class="feedback"></div>
+                </div>
+            </div>
+
+            <!-- Question 1.2 -->
+            <div id="q-2" class="question-container">
+                <h2 class="text-lg font-semibold text-slate-700 mb-1">Step 3: Calculate a Column Total</h2>
+                <p class="text-slate-600 mb-4">Great! Now find the total number of students who <strong class="text-blue-600">ride a skateboard</strong>. Add the numbers in that column.</p>
+                 <div class="flex flex-col items-center gap-6">
+                    <p class="calculation">98 + 118 = 216</p>
+                    <p class="text-slate-600">Drag the correct total to the table.</p>
+                    <div id="drag-216" class="draggable bg-blue-500 text-white font-bold text-xl p-4 rounded-lg shadow-md" draggable="true" data-value="216">216</div>
+                     <table class="w-full max-w-lg text-center border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="p-2 border w-2/5"></th>
+                                <th class="p-2 border bg-slate-200">Yes, I ride a skateboard.</th>
+                                <th class="p-2 border bg-slate-200">No, I don't ride a skateboard.</th>
+                            </tr>
+                        </thead>
+                         <tbody>
+                             <tr>
+                               <th class="p-2 border bg-slate-200 text-left">Yes, I ride a bike.</th>
+                               <td class="p-2 border">98</td>
+                               <td class="p-2 border">59</td>
+                            </tr>
+                            <tr>
+                               <th class="p-2 border bg-slate-200 text-left">No, I don't ride a bike.</th>
+                               <td class="p-2 border">118</td>
+                               <td class="p-2 border">157</td>
+                            </tr>
+                             <tr>
+                               <th class="p-2 border bg-yellow-200">Total</th>
+                               <td id="drop-skateboard-total" class="p-2 border drop-zone h-16" data-correct="216"></td>
+                               <td class="p-2 border h-16"></td>
+                            </tr>
+                         </tbody>
+                    </table>
+                    <div id="feedback-2" class="feedback"></div>
+                </div>
+            </div>
+            
+            <!-- Question 2.1 -->
+            <div id="q-3" class="question-container">
+                <h2 class="text-lg font-semibold text-slate-700 mb-1">Step 4: Placing Given Data</h2>
+                <p class="text-slate-600 mb-4">Sometimes, information is given in a sentence. Drag the orange tiles to their correct spaces based on the text below.</p>
+                <div class="flex flex-col items-center gap-6">
+                    <p class="bg-orange-50 p-3 rounded-md text-orange-800 text-center">"Of the <strong class="font-semibold">157</strong> students who <strong class="font-semibold">don't ride a skateboard</strong>, <strong class="font-semibold">87</strong> of them <strong class="font-semibold">don't ride a bike</strong>."</p>
+                    <div class="flex gap-4">
+                         <div class="draggable bg-orange-500 text-white font-bold text-xl p-4 rounded-lg shadow-md" draggable="true" data-value="87">87</div>
+                         <div class="draggable bg-orange-500 text-white font-bold text-xl p-4 rounded-lg shadow-md" draggable="true" data-value="157">157</div>
+                    </div>
+                    <table class="w-full max-w-md text-center border-collapse">
+                        <!-- ... table headers ... -->
+                        <tbody>
+                            <tr><th class="p-2 border bg-slate-200 text-left">Yes, I ride a bike.</th><td class="p-2 border h-16"></td><td class="p-2 border h-16"></td></tr>
+                            <tr><th class="p-2 border bg-slate-200 text-left">No, I don't ride a bike.</th><td class="p-2 border h-16"></td><td id="drop-q2-no-bike-no-skate" class="p-2 border drop-zone h-16" data-correct="87"></td></tr>
+                            <tr><th class="p-2 border bg-yellow-200">Total</th><td class="p-2 border h-16"></td><td id="drop-q2-no-skate-total" class="p-2 border drop-zone h-16" data-correct="157"></td></tr>
+                        </tbody>
+                    </table>
+                    <div id="feedback-3" class="feedback"></div>
+                </div>
+            </div>
+
+            <!-- Question 2.2 -->
+             <div id="q-4" class="question-container">
+                <h2 class="text-lg font-semibold text-slate-700 mb-1">Step 5: Find the Missing Piece</h2>
+                <p class="text-slate-600 mb-4">Now, use the numbers you just placed to find the missing value. How many students <strong class="text-blue-600">ride a bike</strong> but <strong class="text-blue-600">don't ride a skateboard</strong>?</p>
+                <div class="flex flex-col items-center gap-4">
+                    <table class="w-full max-w-sm text-center border-collapse mb-4">
+                         <tbody>
+                            <tr><th class="p-2 border bg-slate-200 text-left">Yes, I ride a bike.</th><td class="p-2 border h-16 bg-green-200 font-bold text-2xl">?</td></tr>
+                            <tr><th class="p-2 border bg-slate-200 text-left">No, I don't ride a bike.</th><td class="p-2 border h-16 font-bold text-2xl">87</td></tr>
+                            <tr><th class="p-2 border bg-yellow-200">Total</th><td class="p-2 border h-16 font-bold text-2xl">157</td></tr>
+                        </tbody>
+                    </table>
+                    <p class="calculation">157 - 87 = ?</p>
+                    <div class="flex items-center gap-2">
+                        <input id="q2-calculation" type="number" class="math-input p-2 border rounded-md shadow-sm" placeholder="?">
+                        <button id="check-q2-calc" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Check</button>
+                    </div>
+                    <div id="feedback-4" class="feedback"></div>
+                </div>
+            </div>
+            
+            <!-- Intro to Q3 -->
+            <div id="q-5" class="question-container">
+                 <h2 class="text-lg font-semibold text-slate-700 mb-2">Step 6: Let's Complete a Full Table</h2>
+                 <p class="text-slate-600 mb-4">Now you have all the skills! We'll complete a new table about sports and instruments one step at a time.</p>
+                 <p class="text-slate-600">Here's the starting information. Click "Next" to begin filling it out.</p>
+                 <table class="w-full max-w-lg text-center border-collapse mt-4">
+                    <thead><tr><th class="p-2 border"></th><th class="p-2 border bg-slate-200">Yes, I play an instrument.</th><th class="p-2 border bg-slate-200">No, I don't play an instrument.</th><th class="p-2 border bg-yellow-200">Total</th></tr></thead>
+                    <tbody>
+                        <tr><th class="p-2 border bg-slate-200 text-left">Yes, I play a sport.</th><td class="p-2 border font-bold text-xl">45</td><td class="p-2 border bg-green-200"></td><td class="p-2 border font-bold text-xl">135</td></tr>
+                        <tr><th class="p-2 border bg-slate-200 text-left">No, I don't play a sport.</th><td class="p-2 border font-bold text-xl">65</td><td class="p-2 border font-bold text-xl">30</td><td class="p-2 border bg-orange-200"></td></tr>
+                        <tr><th class="p-2 border bg-yellow-200">Total</th><td class="p-2 border bg-purple-200"></td><td class="p-2 border font-bold text-xl">120</td><td class="p-2 border bg-blue-200"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+             <!-- Question 3.1 -->
+             <div id="q-6" class="question-container">
+                <h2 class="text-lg font-semibold text-slate-700 mb-1">Step 7: The Green Box</h2>
+                <p class="text-slate-600 mb-4">Find the value for the <strong class="text-green-600">green box</strong>. How many students play a sport, but not an instrument?</p>
+                <div class="grid md:grid-cols-2 gap-6 items-center">
+                    <div class="flex flex-col items-center gap-4">
+                        <p class="calculation">135 - 45 = ?</p>
+                        <div class="q3-calc-area">
+                            <input type="number" data-correct="90" class="math-input p-2 border rounded-md shadow-sm">
+                            <button class="check-q3-step bg-green-600 text-white font-semibold py-2 px-4 rounded-lg">Check</button>
+                        </div>
+                        <div id="feedback-6" class="feedback"></div>
+                    </div>
+                    <div class="flex justify-center">
+                        <table class="w-full max-w-lg text-center border-collapse">
+                             <tbody>
+                                <tr><th class="p-2 border bg-slate-200 text-left">Yes, I play a sport.</th><td class="p-2 border font-bold text-xl">45</td><td id="drop-green" class="p-2 border bg-green-200 drop-zone h-16" data-correct="90"></td><td class="p-2 border font-bold text-xl">135</td></tr>
+                                <tr><th class="p-2 border bg-slate-200 text-left">No, I don't play a sport.</th><td class="p-2 border font-bold text-xl">65</td><td class="p-2 border font-bold text-xl">30</td><td class="p-2 border bg-orange-200"></td></tr>
+                                <tr><th class="p-2 border bg-yellow-200">Total</th><td class="p-2 border bg-purple-200"></td><td class="p-2 border font-bold text-xl">120</td><td class="p-2 border bg-blue-200"></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+             <!-- Question 3.2 -->
+             <div id="q-7" class="question-container">
+                <h2 class="text-lg font-semibold text-slate-700 mb-1">Step 8: The Orange Box</h2>
+                <p class="text-slate-600 mb-4">Find the total for the <strong class="text-orange-600">orange box</strong>. How many students don't play a sport?</p>
+                <div class="grid md:grid-cols-2 gap-6 items-center">
+                    <div class="flex flex-col items-center gap-4">
+                        <p class="calculation">65 + 30 = ?</p>
+                        <div class="q3-calc-area">
+                            <input type="number" data-correct="95" class="math-input p-2 border rounded-md shadow-sm">
+                            <button class="check-q3-step bg-orange-500 text-white font-semibold py-2 px-4 rounded-lg">Check</button>
+                        </div>
+                        <div id="feedback-7" class="feedback"></div>
+                    </div>
+                    <div class="flex justify-center">
+                        <table class="w-full max-w-lg text-center border-collapse">
+                             <tbody>
+                                <tr><th class="p-2 border bg-slate-200 text-left">Yes, I play a sport.</th><td class="p-2 border font-bold text-xl">45</td><td class="p-2 border font-bold text-xl bg-green-50 text-slate-400">90</td><td class="p-2 border font-bold text-xl">135</td></tr>
+                                <tr><th class="p-2 border bg-slate-200 text-left">No, I don't play a sport.</th><td class="p-2 border font-bold text-xl">65</td><td class="p-2 border font-bold text-xl">30</td><td id="drop-orange" class="p-2 border bg-orange-200 drop-zone h-16" data-correct="95"></td></tr>
+                                <tr><th class="p-2 border bg-yellow-200">Total</th><td class="p-2 border bg-purple-200"></td><td class="p-2 border font-bold text-xl">120</td><td class="p-2 border bg-blue-200"></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+             </div>
+
+             <!-- Question 3.3 -->
+             <div id="q-8" class="question-container">
+                <h2 class="text-lg font-semibold text-slate-700 mb-1">Step 9: The Purple Box</h2>
+                <p class="text-slate-600 mb-4">Find the total for the <strong class="text-purple-600">purple box</strong>. How many students play an instrument?</p>
+                <div class="grid md:grid-cols-2 gap-6 items-center">
+                    <div class="flex flex-col items-center gap-4">
+                        <p class="calculation">45 + 65 = ?</p>
+                        <div class="q3-calc-area">
+                            <input type="number" data-correct="110" class="math-input p-2 border rounded-md shadow-sm">
+                            <button class="check-q3-step bg-purple-500 text-white font-semibold py-2 px-4 rounded-lg">Check</button>
+                        </div>
+                        <div id="feedback-8" class="feedback"></div>
+                    </div>
+                    <div class="flex justify-center">
+                        <table class="w-full max-w-lg text-center border-collapse">
+                             <tbody>
+                                <tr><th class="p-2 border bg-slate-200 text-left">Yes, I play a sport.</th><td class="p-2 border font-bold text-xl">45</td><td class="p-2 border font-bold text-xl bg-green-50 text-slate-400">90</td><td class="p-2 border font-bold text-xl">135</td></tr>
+                                <tr><th class="p-2 border bg-slate-200 text-left">No, I don't play a sport.</th><td class="p-2 border font-bold text-xl">65</td><td class="p-2 border font-bold text-xl">30</td><td class="p-2 border font-bold text-xl bg-orange-50 text-slate-400">95</td></tr>
+                                <tr><th class="p-2 border bg-yellow-200">Total</th><td id="drop-purple" class="p-2 border bg-purple-200 drop-zone h-16" data-correct="110"></td><td class="p-2 border font-bold text-xl">120</td><td class="p-2 border bg-blue-200"></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+             </div>
+             
+             <!-- Question 3.4 -->
+             <div id="q-9" class="question-container">
+                <h2 class="text-lg font-semibold text-slate-700 mb-1">Step 10: The Grand Total</h2>
+                <p class="text-slate-600 mb-4">Find the grand total for the <strong class="text-blue-600">blue box</strong>. How many total students were surveyed?</p>
+                <div class="grid md:grid-cols-2 gap-6 items-center">
+                    <div class="flex flex-col items-center gap-4">
+                        <p class="calculation">135 + 95 = ?</p>
+                        <div class="q3-calc-area">
+                            <input type="number" data-correct="230" class="math-input p-2 border rounded-md shadow-sm">
+                            <button class="check-q3-step bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg">Check</button>
+                        </div>
+                        <div id="feedback-9" class="feedback"></div>
+                    </div>
+                     <div class="flex justify-center">
+                        <table class="w-full max-w-lg text-center border-collapse">
+                             <tbody>
+                                <tr><th class="p-2 border bg-slate-200 text-left">Yes, I play a sport.</th><td class="p-2 border font-bold text-xl">45</td><td class="p-2 border font-bold text-xl bg-green-50 text-slate-400">90</td><td class="p-2 border font-bold text-xl">135</td></tr>
+                                <tr><th class="p-2 border bg-slate-200 text-left">No, I don't play a sport.</th><td class="p-2 border font-bold text-xl">65</td><td class="p-2 border font-bold text-xl">30</td><td class="p-2 border font-bold text-xl bg-orange-50 text-slate-400">95</td></tr>
+                                <tr><th class="p-2 border bg-yellow-200">Total</th><td class="p-2 border font-bold text-xl bg-purple-50 text-slate-400">110</td><td class="p-2 border font-bold text-xl">120</td><td id="drop-blue" class="p-2 border bg-blue-200 drop-zone h-16" data-correct="230"></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+             </div>
+
+            <!-- Final Score -->
+            <div id="final-score" class="question-container items-center">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Lesson Complete!</h2>
+                <p class="text-slate-600 text-xl mb-6">Your final score is:</p>
+                <p id="score-display" class="text-5xl font-bold text-blue-600 mb-8">0 / 9</p>
+                <button id="restart-btn" class="bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg hover:bg-blue-700 transition text-lg">Restart Lesson</button>
+            </div>
+        </div>
+        
+        <!-- Navigation -->
+        <div class="flex justify-between mt-8 pt-4 border-t">
+            <button id="prev-btn" class="bg-slate-300 text-slate-800 font-semibold py-2 px-6 rounded-lg hover:bg-slate-400 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>Previous</button>
+            <button id="next-btn" class="bg-slate-800 text-white font-semibold py-2 px-6 rounded-lg hover:bg-slate-900 transition">Next</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = document.querySelectorAll('.question-container');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const pageIndicator = document.getElementById('page-indicator');
+        const finalScoreContainer = document.getElementById('final-score');
+        const scoreDisplay = document.getElementById('score-display');
+        const restartBtn = document.getElementById('restart-btn');
+
+        let currentQuestion = 0;
+        let score = 0;
+        const totalQuestions = 9;
+
+        function showQuestion(index) {
+            questions.forEach((q, i) => {
+                q.classList.toggle('active', i === index);
+            });
+            // The last "question" is the score screen, so we adjust the step count.
+            const totalSteps = questions.length - 1;
+            pageIndicator.textContent = `Step ${index + 1} of ${totalSteps}`;
+            
+            if (index >= totalSteps) { // If on score screen
+                 pageIndicator.textContent = 'Results';
+            }
+
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = index === totalSteps;
+
+            if (index === totalSteps - 1) { // If on the last actual question
+                nextBtn.textContent = 'Finish';
+            } else {
+                nextBtn.textContent = 'Next';
+            }
+        }
+
+        function showFinalScore() {
+            currentQuestion = questions.length - 1;
+            showQuestion(currentQuestion);
+            scoreDisplay.textContent = `${score} / ${totalQuestions}`;
+            prevBtn.style.display = 'none';
+            nextBtn.style.display = 'none';
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion(currentQuestion);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (nextBtn.textContent === 'Finish') {
+                showFinalScore();
+            } else if (currentQuestion < questions.length - 2) {
+                currentQuestion++;
+                showQuestion(currentQuestion);
+            }
+        });
+
+        function incrementScore(element) {
+            if (!element.dataset.scored) {
+                score++;
+                element.dataset.scored = 'true';
+            }
+        }
+
+        // --- Drag and Drop Logic ---
+        let draggedItem = null;
+
+        function addDragEvents(element) {
+            element.addEventListener('dragstart', (e) => {
+                draggedItem = e.target;
+                setTimeout(() => e.target.style.display = 'none', 0);
+            });
+            element.addEventListener('dragend', () => {
+                 setTimeout(() => {
+                    if (draggedItem) {
+                       draggedItem.style.display = 'flex';
+                       draggedItem = null;
+                    }
+                }, 0);
+            });
+        }
+        
+        document.querySelectorAll('.draggable').forEach(draggable => addDragEvents(draggable));
+        
+        document.querySelectorAll('.drop-zone').forEach(zone => {
+            zone.addEventListener('dragover', e => e.preventDefault());
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (draggedItem && zone.innerHTML === '') {
+                    const droppedValue = draggedItem.dataset.value;
+                    const correctValue = zone.dataset.correct;
+                    const newElem = draggedItem.cloneNode(true);
+                    newElem.classList.remove('draggable');
+                    newElem.style.cursor = 'default';
+                    zone.appendChild(newElem);
+                    
+                    const feedbackEl = zone.closest('.question-container').querySelector('.feedback');
+                    if (droppedValue === correctValue) {
+                        zone.classList.add('dropped');
+                        incrementScore(zone);
+                        feedbackEl.textContent = 'Perfectly placed! Click "Next" to continue.';
+                        feedbackEl.className = 'feedback correct';
+                    } else {
+                        zone.classList.add('incorrect');
+                        feedbackEl.textContent = 'Not quite, try that one again.';
+                        feedbackEl.className = 'feedback incorrect';
+                    }
+                }
+            });
+        });
+
+        // --- Q2 Logic ---
+        document.getElementById('check-q2-calc').addEventListener('click', (e) => {
+            const input = document.getElementById('q2-calculation');
+            const feedback = document.getElementById('feedback-4');
+            if (input.value === '70') {
+                incrementScore(e.target);
+                feedback.textContent = 'Exactly! 157 - 87 = 70. Great job!';
+                feedback.className = 'feedback correct';
+            } else {
+                feedback.textContent = 'Not quite. The total is 157, and one part is 87. Subtract to find the other part.';
+                feedback.className = 'feedback incorrect';
+            }
+        });
+
+        // --- Q3 Logic ---
+        const colorMap = {
+            green: 'bg-green-500',
+            orange: 'bg-orange-500',
+            purple: 'bg-purple-500',
+            blue: 'bg-blue-500'
+        };
+
+        document.querySelectorAll('.check-q3-step').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const container = e.target.closest('.question-container');
+                const input = container.querySelector('input');
+                const feedback = container.querySelector('.feedback');
+                const calcArea = container.querySelector('.q3-calc-area');
+                const dropZone = container.querySelector('.drop-zone');
+                
+                if (input.value === input.dataset.correct) {
+                     feedback.textContent = 'Correct! The table has been updated.';
+                     feedback.className = 'feedback correct';
+                     if(calcArea) calcArea.style.display = 'none';
+
+                     if (dropZone) {
+                        dropZone.textContent = input.dataset.correct;
+                        dropZone.classList.add('dropped', 'flex', 'items-center', 'justify-center', 'font-bold', 'text-xl');
+                        incrementScore(dropZone);
+                     }
+                } else {
+                    feedback.textContent = 'That\'s not the right number. Check your calculation and try again.';
+                    feedback.className = 'feedback incorrect';
+                }
+            });
+        });
+
+        function resetState() {
+            score = 0;
+            currentQuestion = 0;
+
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.innerHTML = '';
+                zone.classList.remove('dropped', 'incorrect');
+                delete zone.dataset.scored;
+            });
+
+            document.querySelectorAll('input[type="number"]').forEach(input => input.value = '');
+            document.querySelectorAll('.feedback').forEach(fb => {
+                fb.textContent = '';
+                fb.className = 'feedback';
+            });
+            document.querySelectorAll('.q3-calc-area').forEach(area => area.style.display = 'block');
+            document.querySelectorAll('.draggable').forEach(drag => drag.style.display = 'flex');
+            delete document.getElementById('check-q2-calc').dataset.scored;
+
+            prevBtn.style.display = 'block';
+            nextBtn.style.display = 'block';
+
+            showQuestion(0);
+        }
+
+        restartBtn.addEventListener('click', resetState);
+
+        // Initialize first question
+        showQuestion(currentQuestion);
+    </script>
+</body>
+</html>
+
+
+
+
