@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Loan & Mortgage Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .flow-card {
+            display: none;
+        }
+        .flow-card.active {
+            display: block;
+        }
+        /* Custom styles for calculator tabs */
+        .calculator-tab {
+            cursor: pointer;
+            padding: 0.75rem 1.5rem;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .calculator-tab.active {
+            border-color: #3b82f6; /* blue-600 */
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        .calculator-content {
+            display: none;
+        }
+        .calculator-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900">Interactive Loan & Mortgage Activity</h1>
+            <p class="mt-2 text-lg text-gray-600">Learn, test your knowledge, and then calculate your own scenario.</p>
+        </header>
+
+        <main id="app-flow">
+            <!-- Card 1: Name Input -->
+            <section id="name-card" class="flow-card active">
+                 <div class="bg-white p-8 rounded-2xl shadow-md max-w-lg mx-auto">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 text-center">Welcome!</h2>
+                    <p class="text-center text-gray-600 mb-6">Let's get started. Please enter your name.</p>
+                    <div class="mb-4">
+                        <label for="full-name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        <input type="text" id="full-name" name="full-name" class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Alex Johnson">
+                    </div>
+                    <div class="mt-6">
+                         <button id="start-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition">Start Lesson</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Card 2: Lesson Part 1.1 -->
+            <section id="lesson-card-1" class="flow-card">
+                 <div class="bg-white p-8 rounded-2xl shadow-md">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 text-center">Part 1.1: Principal & Interest</h2>
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div class="text-gray-700 space-y-4">
+                             <p>When you take out a loan, you borrow a specific amount of money. This initial amount is called the <strong class="text-blue-600">Principal</strong>.</p>
+                             <p>You don't just pay back the principal, though. The lender charges a fee for letting you borrow the money, which is called <strong class="text-blue-600">Interest</strong>. It's usually a percentage of the remaining loan balance.</p>
+                             <p>Your monthly payment is a combination of both principal and interest. Together, they make up your total payment.</p>
+                        </div>
+                         <div class="bg-blue-50 p-6 rounded-xl border border-blue-200 text-center">
+                            <h3 class="font-bold text-lg text-blue-800">Key Terms</h3>
+                            <div class="mt-4 space-y-3">
+                                <div>
+                                    <h4 class="font-semibold">Principal</h4>
+                                    <p class="text-sm text-blue-700">The amount of money you borrowed.</p>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold">Interest</h4>
+                                    <p class="text-sm text-blue-700">The cost of borrowing the money.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 flex justify-end">
+                        <button data-next="lesson-card-2" class="flow-nav-btn bg-blue-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-blue-700 transition">Next</button>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Card 3: Lesson Part 1.2 -->
+            <section id="lesson-card-2" class="flow-card">
+                 <div class="bg-white p-8 rounded-2xl shadow-md">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 text-center">Part 1.2: The Shift Over Time</h2>
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <p class="text-gray-600 mb-4">
+                                Early in your loan, most of your payment goes to interest. As your balance shrinks, more of your payment goes towards principal. Use the slider to see this change in action.
+                            </p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-xl border">
+                            <div class="text-center mb-2"><h4 class="font-semibold text-sm">Breakdown for a $300k Loan @ 6.5%</h4><p class="text-xs text-gray-600">Payment: <span class="font-bold">$1,896.20</span></p></div>
+                            <div class="relative mx-auto" style="height: 150px; width: 150px;">
+                                <canvas id="lesson-chart"></canvas>
+                            </div>
+                            <div class="mt-2 px-1">
+                                <label for="month-slider" class="block text-xs font-medium text-gray-700">Loan Progress: <span id="month-label" class="font-bold">Month 1 of 360 (Year 1, Month 1)</span></label>
+                                <input id="month-slider" type="range" min="1" max="360" value="1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 flex justify-between">
+                        <button data-back="lesson-card-1" class="flow-nav-btn bg-gray-200 text-gray-800 font-bold py-2.5 px-6 rounded-lg hover:bg-gray-300 transition">Back</button>
+                        <button data-next="lesson-card-3" class="flow-nav-btn bg-blue-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-blue-700 transition">Next</button>
+                    </div>
+                </div>
+            </section>
+
+             <!-- Card 4: Lesson Part 1.3 -->
+            <section id="lesson-card-3" class="flow-card">
+                 <div class="bg-white p-8 rounded-2xl shadow-md">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4 text-center">Part 1.3: The Power of Extra Payments</h2>
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                         <div class="text-gray-700 space-y-4">
+                             <p>Want to pay off your loan faster and save money? Make <strong class="text-green-600">extra payments</strong>.</p>
+                             <p>Any amount you pay above your required monthly payment goes <strong class="text-green-600">100% towards the principal</strong>. This is powerful because:</p>
+                             <ul class="list-disc list-inside space-y-2 pl-2">
+                                 <li>It reduces your loan balance faster.</li>
+                                 <li>A lower balance means you'll be charged less interest over time.</li>
+                                 <li>It shortens your <strong class="text-green-600">payoff horizon</strong> (the total time it takes to pay off the loan).</li>
+                             </ul>
+                         </div>
+                         <div class="bg-green-50 p-6 rounded-xl border border-green-200 text-center">
+                            <h3 class="font-bold text-lg text-green-800">Big Idea</h3>
+                            <div class="mt-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                                <p class="mt-2 text-green-700">Paying more than your minimum payment saves you money on interest and gets you out of debt sooner.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 flex justify-between">
+                        <button data-back="lesson-card-2" class="flow-nav-btn bg-gray-200 text-gray-800 font-bold py-2.5 px-6 rounded-lg hover:bg-gray-300 transition">Back</button>
+                        <button data-next="quiz-card" class="flow-nav-btn bg-blue-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-blue-700 transition">Let's Check Your Knowledge</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Card 5: Quiz -->
+            <section id="quiz-card" class="flow-card">
+                 <div class="bg-white p-8 rounded-2xl shadow-md">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2 text-center">Part 2: Knowledge Check</h2>
+                    <p class="text-center text-gray-600 mb-6">Let's see what you've learned, <span id="student-name-quiz" class="font-semibold"></span>!</p>
+                    <div id="quiz-container" class="space-y-6">
+                        <!-- Quiz questions will be injected here -->
+                    </div>
+                    <div class="mt-8 flex items-center space-x-4">
+                        <button id="submit-quiz-btn" class="bg-blue-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-blue-700 transition">Submit Answers</button>
+                        <div id="quiz-score" class="font-semibold text-lg"></div>
+                    </div>
+                     <div class="mt-8 flex justify-between">
+                        <button data-back="lesson-card-3" class="flow-nav-btn bg-gray-200 text-gray-800 font-bold py-2.5 px-6 rounded-lg hover:bg-gray-300 transition">Back to Lesson</button>
+                        <button data-next="challenge-card" id="next-from-quiz" class="flow-nav-btn bg-blue-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-blue-700 transition hidden">Next: Challenge</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Card 6: Calculator Challenge -->
+            <section id="challenge-card" class="flow-card">
+                 <div class="bg-white p-8 rounded-2xl shadow-md">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2 text-center">Part 3: Calculator Challenge</h2>
+                    <p class="text-center text-gray-600 mb-6 max-w-3xl mx-auto">Time to apply what you've learned. Use the mini-calculator below to solve the problem step-by-step.</p>
+                    
+                    <div class="grid lg:grid-cols-2 gap-8">
+                        <!-- Left Side: Scenario & Steps -->
+                        <div class="bg-gray-50 p-6 rounded-lg border">
+                            <p class="text-lg text-gray-800 mb-4">
+                                <strong>Scenario:</strong> Maria has a <strong>$15,000</strong> personal loan with an <strong>8%</strong> interest rate for <strong>5 years</strong>. She decides to pay an extra <strong>$50</strong> every month.
+                            </p>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="challenge-step1" class="block font-semibold text-gray-800">Step 1: Find the original payoff time.</label>
+                                    <p class="text-sm text-gray-600 mb-2">Use the calculator with an extra payment of $0. What is the total number of payments (months)?</p>
+                                    <input type="number" id="challenge-step1" class="block w-full sm:w-1/2 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm" placeholder="Original months">
+                                </div>
+                                 <div>
+                                    <label for="challenge-step2" class="block font-semibold text-gray-800">Step 2: Find the new payoff time.</label>
+                                    <p class="text-sm text-gray-600 mb-2">Now, calculate with the <strong>$50 extra payment</strong>. What's the new payoff time in months?</p>
+                                    <input type="number" id="challenge-step2" class="block w-full sm:w-1/2 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm" placeholder="New months">
+                                </div>
+                                 <div>
+                                    <label for="challenge-answer" class="block font-semibold text-gray-800">Step 3: Calculate the months saved.</label>
+                                    <p class="text-sm text-gray-600 mb-2">Subtract your answer from Step 2 from your answer in Step 1.</p>
+                                    <input type="number" id="challenge-answer" class="block w-full sm:w-1/2 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm" placeholder="Enter months saved">
+                                </div>
+                            </div>
+
+                            <div class="mt-6 flex items-center space-x-4">
+                                <button id="check-challenge-btn" class="bg-blue-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-blue-700 transition">Check Answer</button>
+                                 <div id="challenge-feedback" class="font-semibold"></div>
+                            </div>
+                        </div>
+
+                        <!-- Right Side: Mini-Calculator -->
+                        <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                            <h3 class="font-bold text-lg text-center text-blue-800 mb-4">Challenge Calculator</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <label for="challenge-loan-amount" class="text-sm font-medium">Loan Amount ($)</label>
+                                    <input type="number" id="challenge-loan-amount" value="15000" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                                </div>
+                                <div>
+                                    <label for="challenge-interest-rate" class="text-sm font-medium">Interest Rate (%)</label>
+                                    <input type="number" id="challenge-interest-rate" value="8" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                                </div>
+                                <div>
+                                    <label for="challenge-loan-term" class="text-sm font-medium">Loan Term (Years)</label>
+                                    <input type="number" id="challenge-loan-term" value="5" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                                </div>
+                                <div>
+                                    <label for="challenge-extra-payment" class="text-sm font-medium">Extra Payment ($)</label>
+                                    <input type="number" id="challenge-extra-payment" value="0" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                                </div>
+                            </div>
+                            <button id="challenge-calculate-btn" class="mt-4 w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition">Calculate</button>
+                            <div id="challenge-results" class="mt-4 bg-white p-3 rounded-md text-center hidden">
+                                <h4 class="font-semibold">Results</h4>
+                                <p class="text-sm">Monthly Payment: <span id="challenge-monthly-payment" class="font-bold"></span></p>
+                                <p class="text-sm">Total Payments: <span id="challenge-total-payments" class="font-bold"></span> months</p>
+                                <p class="text-sm">Total Interest: <span id="challenge-total-interest" class="font-bold"></span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                     <div class="mt-8 flex justify-between">
+                        <button data-back="quiz-card" class="flow-nav-btn bg-gray-200 text-gray-800 font-bold py-2.5 px-6 rounded-lg hover:bg-gray-300 transition">Back to Quiz</button>
+                        <button data-next="calculator-card" class="flow-nav-btn bg-blue-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-blue-700 transition">Next: Interactive Calculators</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Card 7: Interactive Calculator Suite -->
+            <section id="calculator-card" class="flow-card">
+                 <div class="bg-white p-8 rounded-2xl shadow-md">
+                     <h2 class="text-3xl font-bold text-gray-900 mb-2 text-center">Part 4: Loan Calculator Suite</h2>
+                     <p class="text-center text-gray-600 mb-6">Explore different loan types and see how extra payments impact them.</p>
+
+                    <!-- Calculator Tabs -->
+                    <div class="border-b border-gray-200 mb-6">
+                        <nav id="calculator-tabs" class="-mb-px flex justify-center space-x-6" aria-label="Tabs">
+                            <a data-tab="mortgage" class="calculator-tab active">Mortgage</a>
+                            <a data-tab="personal" class="calculator-tab">Personal Loan</a>
+                            <a data-tab="credit-card" class="calculator-tab">Credit Card</a>
+                        </nav>
+                    </div>
+
+                    <!-- Mortgage Calculator -->
+                    <div id="mortgage-content" class="calculator-content active">
+                        <div class="grid md:grid-cols-3 gap-8">
+                            <!-- Inputs -->
+                            <div class="md:col-span-1">
+                                <h3 class="text-lg font-semibold mb-4">Mortgage Details</h3>
+                                <div class="space-y-4">
+                                     <div>
+                                        <label for="mortgage-amount" class="block text-sm font-medium text-gray-700">Home Price ($)</label>
+                                        <input type="number" id="mortgage-amount" value="350000" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                                    </div>
+                                    <div>
+                                        <label for="mortgage-rate" class="block text-sm font-medium text-gray-700">Interest Rate (%)</label>
+                                        <input type="number" id="mortgage-rate" value="6.5" step="0.01" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                                    </div>
+                                    <div>
+                                        <label for="mortgage-term" class="block text-sm font-medium text-gray-700">Loan Term (Years)</label>
+                                        <select id="mortgage-term" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                                            <option>30</option>
+                                            <option>20</option>
+                                            <option>15</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="mortgage-extra" class="block text-sm font-medium text-gray-700">Extra Monthly Payment ($)</label>
+                                        <input type="number" id="mortgage-extra" value="200" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Summary & Chart -->
+                            <div class="md:col-span-2">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 text-center">
+                                    <div class="bg-blue-50 p-4 rounded-lg"><div class="text-sm">Monthly Payment</div><div id="mortgage-monthly-payment" class="font-bold text-xl text-blue-700"></div></div>
+                                    <div class="bg-green-50 p-4 rounded-lg"><div class="text-sm">Interest Saved</div><div id="mortgage-interest-saved" class="font-bold text-xl text-green-700"></div></div>
+                                    <div class="bg-orange-50 p-4 rounded-lg"><div class="text-sm">Paid Off Early by</div><div id="mortgage-paid-off-early" class="font-bold text-xl text-orange-700"></div></div>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg border relative h-80">
+                                    <canvas id="mortgage-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personal Loan Calculator -->
+                    <div id="personal-content" class="calculator-content">
+                        <!-- Similar structure to mortgage -->
+                        <div class="grid md:grid-cols-3 gap-8">
+                            <!-- Inputs -->
+                            <div class="md:col-span-1">
+                                <h3 class="text-lg font-semibold mb-4">Personal Loan Details</h3>
+                                <div class="space-y-4">
+                                     <div>
+                                        <label for="personal-amount" class="block text-sm font-medium text-gray-700">Loan Amount ($)</label>
+                                        <input type="number" id="personal-amount" value="20000" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                                    </div>
+                                    <div>
+                                        <label for="personal-rate" class="block text-sm font-medium text-gray-700">Interest Rate (%)</label>
+                                        <input type="number" id="personal-rate" value="9.2" step="0.01" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                                    </div>
+                                    <div>
+                                        <label for="personal-term" class="block text-sm font-medium text-gray-700">Loan Term (Years)</label>
+                                        <input type="number" id="personal-term" value="5" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                                    </div>
+                                    <div>
+                                        <label for="personal-extra" class="block text-sm font-medium text-gray-700">Extra Monthly Payment ($)</label>
+                                        <input type="number" id="personal-extra" value="100" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Summary & Chart -->
+                            <div class="md:col-span-2">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 text-center">
+                                    <div class="bg-blue-50 p-4 rounded-lg"><div class="text-sm">Monthly Payment</div><div id="personal-monthly-payment" class="font-bold text-xl text-blue-700"></div></div>
+                                    <div class="bg-green-50 p-4 rounded-lg"><div class="text-sm">Interest Saved</div><div id="personal-interest-saved" class="font-bold text-xl text-green-700"></div></div>
+                                    <div class="bg-orange-50 p-4 rounded-lg"><div class="text-sm">Paid Off Early by</div><div id="personal-paid-off-early" class="font-bold text-xl text-orange-700"></div></div>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg border relative h-80">
+                                    <canvas id="personal-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Credit Card Calculator -->
+                    <div id="credit-card-content" class="calculator-content">
+                        <!-- Similar structure to mortgage -->
+                         <div class="grid md:grid-cols-3 gap-8">
+                            <!-- Inputs -->
+                            <div class="md:col-span-1">
+                                <h3 class="text-lg font-semibold mb-4">Credit Card Details</h3>
+                                <div class="space-y-4">
+                                     <div>
+                                        <label for="cc-balance" class="block text-sm font-medium text-gray-700">Card Balance ($)</label>
+                                        <input type="number" id="cc-balance" value="5000" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                                    </div>
+                                    <div>
+                                        <label for="cc-rate" class="block text-sm font-medium text-gray-700">APR (%)</label>
+                                        <input type="number" id="cc-rate" value="21.5" step="0.01" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                                    </div>
+                                    <div>
+                                        <label for="cc-payment" class="block text-sm font-medium text-gray-700">Monthly Payment ($)</label>
+                                        <input type="number" id="cc-payment" value="150" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                                    </div>
+                                     <div>
+                                        <label for="cc-extra" class="block text-sm font-medium text-gray-700">Extra Monthly Payment ($)</label>
+                                        <input type="number" id="cc-extra" value="50" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Summary & Chart -->
+                            <div class="md:col-span-2">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 text-center">
+                                    <div class="bg-blue-50 p-4 rounded-lg"><div class="text-sm">Standard Payment</div><div id="cc-monthly-payment" class="font-bold text-xl text-blue-700"></div></div>
+                                    <div class="bg-green-50 p-4 rounded-lg"><div class="text-sm">Interest Saved</div><div id="cc-interest-saved" class="font-bold text-xl text-green-700"></div></div>
+                                    <div class="bg-orange-50 p-4 rounded-lg"><div class="text-sm">Paid Off Early by</div><div id="cc-paid-off-early" class="font-bold text-xl text-orange-700"></div></div>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg border relative h-80">
+                                    <canvas id="credit-card-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 flex justify-between">
+                        <button data-back="challenge-card" class="flow-nav-btn bg-gray-200 text-gray-800 font-bold py-2.5 px-6 rounded-lg hover:bg-gray-300 transition">Back to Challenge</button>
+                        <button data-next="results-card" class="flow-nav-btn bg-blue-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-blue-700 transition">See My Results</button>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Card 8: Final Results -->
+            <section id="results-card" class="flow-card">
+                 <div class="bg-white p-8 rounded-2xl shadow-md max-w-2xl mx-auto text-center">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Congratulations, <span id="student-name-final"></span>!</h2>
+                    <p class="text-gray-600 mb-6">You've completed the Interactive Loan Activity.</p>
+                    <div class="bg-gray-50 p-6 rounded-lg border grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="text-sm font-medium text-gray-500">Quiz Score</div>
+                            <div id="final-quiz-score" class="text-3xl font-bold text-blue-600"></div>
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-500">Challenge Result</div>
+                            <div id="final-challenge-result" class="text-3xl font-bold"></div>
+                        </div>
+                    </div>
+                     <div class="mt-8">
+                        <button data-back="calculator-card" class="flow-nav-btn bg-gray-200 text-gray-800 font-bold py-2.5 px-6 rounded-lg hover:bg-gray-300 transition">Back to Calculators</button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const flowCards = document.querySelectorAll('.flow-card');
+            const navButtons = document.querySelectorAll('.flow-nav-btn');
+            const startBtn = document.getElementById('start-btn');
+            const fullNameInput = document.getElementById('full-name');
+            const studentNameQuiz = document.getElementById('student-name-quiz');
+            const studentNameFinal = document.getElementById('student-name-final');
+            const quizContainer = document.getElementById('quiz-container');
+            const submitQuizBtn = document.getElementById('submit-quiz-btn');
+            const quizScoreEl = document.getElementById('quiz-score');
+            const nextFromQuizBtn = document.getElementById('next-from-quiz');
+
+            let currentCardId = 'name-card';
+            let studentProgress = {
+                name: '',
+                quizScore: 0,
+                quizAnswers: [],
+                challengeCorrect: null
+            };
+
+            const quizQuestions = [
+                {
+                    question: "What is the initial amount of money you borrow called?",
+                    options: ["Interest", "Principal", "Payoff", "Term"],
+                    answer: "Principal"
+                },
+                {
+                    question: "Early in a long-term loan (like a mortgage), your monthly payment is mostly...",
+                    options: ["Principal", "Fees", "Interest", "Taxes"],
+                    answer: "Interest"
+                },
+                {
+                    question: "What is the primary benefit of making extra payments on a loan?",
+                    options: [
+                        "It lowers your interest rate.",
+                        "It reduces the principal, saving you interest over time.",
+                        "It decreases your required monthly payment.",
+                        "It improves your credit score immediately."
+                    ],
+                    answer: "It reduces the principal, saving you interest over time."
+                },
+                {
+                    question: "If two people have identical loans, but Person A makes an extra $100 payment each month, what will happen?",
+                    options: [
+                        "Person A will pay more in total interest.",
+                        "Person B will pay off the loan first.",
+                        "Person A will pay off the loan sooner.",
+                        "Their payoff dates will be the same."
+                    ],
+                    answer: "Person A will pay off the loan sooner."
+                },
+                {
+                    question: "The total length of time it takes to pay off a loan is known as the...",
+                    options: ["Interest Period", "Amortization", "Payoff Horizon", "Principal Term"],
+                    answer: "Payoff Horizon"
+                }
+            ];
+
+            function switchCard(targetId) {
+                const currentCard = document.getElementById(currentCardId);
+                const targetCard = document.getElementById(targetId);
+                if (currentCard && targetCard) {
+                    currentCard.classList.remove('active');
+                    targetCard.classList.add('active');
+                    currentCardId = targetId;
+                    window.scrollTo(0, 0);
+
+                    // Initialize charts only when their card becomes active
+                    if (targetId === 'lesson-card-2' && !lessonChart) {
+                        initLessonChart();
+                    } else if (targetId === 'calculator-card') {
+                        // ALWAYS destroy existing charts when entering this card to ensure a clean slate
+                        if (mortgageChart) { mortgageChart.destroy(); mortgageChart = null; }
+                        if (personalChart) { personalChart.destroy(); personalChart = null; }
+                        if (creditCardChart) { creditCardChart.destroy(); creditCardChart = null; }
+
+                        // Use a timeout to ensure the container is visible and has dimensions before initializing the chart
+                        setTimeout(() => {
+                            // This will initialize the chart for the default active tab.
+                            const activeTab = document.querySelector('.calculator-tab.active').dataset.tab;
+                            if (activeTab === 'mortgage') updateMortgageCalculatorUI();
+                        }, 50);
+                    } else if (targetId === 'results-card') {
+                        displayFinalScore();
+                    }
+                }
+            }
+            
+            startBtn.addEventListener('click', () => {
+                const name = fullNameInput.value.trim();
+                if (name) {
+                    studentProgress.name = name;
+                    const firstName = name.split(' ')[0];
+                    studentNameQuiz.textContent = firstName;
+                    studentNameFinal.textContent = firstName;
+                    switchCard('lesson-card-1');
+                } else {
+                    fullNameInput.classList.add('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+                    fullNameInput.placeholder = "A name is required to continue";
+                }
+            });
+
+            fullNameInput.addEventListener('input', () => {
+                if (fullNameInput.value.trim() !== '') {
+                    fullNameInput.classList.remove('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+                }
+            });
+
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.next || button.dataset.back;
+                    if (targetId) {
+                        switchCard(targetId);
+                    }
+                });
+            });
+
+            // --- Lesson Chart ---
+            let lessonChart = null;
+            let lessonSchedule = [];
+            const monthSlider = document.getElementById('month-slider');
+            const monthLabel = document.getElementById('month-label');
+            
+            function initLessonChart() {
+                // Pre-calculate the entire schedule for the lesson example
+                const lessonAmortization = calculateAmortization(300000, 6.5, 30, 0);
+                lessonSchedule = lessonAmortization.schedule;
+
+                const ctx = document.getElementById('lesson-chart').getContext('2d');
+                lessonChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Principal', 'Interest'],
+                        datasets: [{
+                            data: [lessonSchedule[0].principalPaid, lessonSchedule[0].interestPaid],
+                            backgroundColor: ['#3b82f6', '#ef4444'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom',
+                                labels: {
+                                    boxWidth: 12,
+                                    font: { size: 10 }
+                                }
+                            }
+                        },
+                        cutout: '50%'
+                    }
+                });
+
+                monthSlider.addEventListener('input', (e) => {
+                    updateLessonChart(parseInt(e.target.value));
+                });
+            }
+
+            function updateLessonChart(month) {
+                if (!lessonChart || !lessonSchedule[month-1]) return;
+                const { principalPaid, interestPaid } = lessonSchedule[month-1];
+                lessonChart.data.datasets[0].data = [principalPaid, interestPaid];
+                lessonChart.update();
+                
+                const year = Math.floor((month - 1) / 12) + 1;
+                const monthOfYear = ((month - 1) % 12) + 1;
+                monthLabel.textContent = `Month ${month} of 360 (Year ${year}, Month ${monthOfYear})`;
+            }
+            
+            // --- Quiz Logic ---
+            function buildQuiz() {
+                quizContainer.innerHTML = '';
+                quizQuestions.forEach((q, index) => {
+                    const questionEl = document.createElement('div');
+                    questionEl.className = 'border p-4 rounded-lg';
+                    let optionsHTML = '';
+                    q.options.forEach(opt => {
+                        optionsHTML += `
+                            <label class="block p-2 rounded-md hover:bg-gray-100 cursor-pointer">
+                                <input type="radio" name="question${index}" value="${opt}" class="mr-2">
+                                ${opt}
+                            </label>
+                        `;
+                    });
+
+                    questionEl.innerHTML = `
+                        <p class="font-semibold mb-2">${index + 1}. ${q.question}</p>
+                        <div class="space-y-1">${optionsHTML}</div>
+                        <div id="feedback${index}" class="mt-2 text-sm"></div>
+                    `;
+                    quizContainer.appendChild(questionEl);
+                });
+            }
+            
+            function checkQuizAnswers() {
+                let score = 0;
+                studentProgress.quizAnswers = [];
+                quizQuestions.forEach((q, index) => {
+                    const selected = document.querySelector(`input[name="question${index}"]:checked`);
+                    const feedbackEl = document.getElementById(`feedback${index}`);
+                    if (selected) {
+                        studentProgress.quizAnswers[index] = selected.value;
+                        const parentLabel = selected.parentElement;
+                        if (selected.value === q.answer) {
+                            score++;
+                            parentLabel.classList.add('bg-green-100', 'text-green-800');
+                            feedbackEl.innerHTML = `<span class="font-bold text-green-600">Correct!</span>`;
+                        } else {
+                            parentLabel.classList.add('bg-red-100', 'text-red-800');
+                            feedbackEl.innerHTML = `<span class="font-bold text-red-600">Incorrect.</span> The correct answer is: <strong class="underline">${q.answer}</strong>`;
+                        }
+                    } else {
+                        feedbackEl.innerHTML = `<span class="font-bold text-red-600">No answer selected.</span> The correct answer is: <strong class="underline">${q.answer}</strong>`;
+                    }
+                    
+                    // Disable inputs after submission
+                    document.querySelectorAll(`input[name="question${index}"]`).forEach(input => input.disabled = true);
+                });
+                studentProgress.quizScore = score;
+                quizScoreEl.textContent = `Your Score: ${score} out of ${quizQuestions.length}`;
+                submitQuizBtn.disabled = true;
+                submitQuizBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+                nextFromQuizBtn.classList.remove('hidden');
+            }
+
+            submitQuizBtn.addEventListener('click', checkQuizAnswers);
+
+            // --- Calculator Challenge ---
+            const checkChallengeBtn = document.getElementById('check-challenge-btn');
+            const challengeStep1El = document.getElementById('challenge-step1');
+            const challengeStep2El = document.getElementById('challenge-step2');
+            const challengeAnswerEl = document.getElementById('challenge-answer');
+            const challengeFeedbackEl = document.getElementById('challenge-feedback');
+            const challengeCalculateBtn = document.getElementById('challenge-calculate-btn');
+            const challengeResultsEl = document.getElementById('challenge-results');
+
+            challengeCalculateBtn.addEventListener('click', () => {
+                const amount = parseFloat(document.getElementById('challenge-loan-amount').value);
+                const rate = parseFloat(document.getElementById('challenge-interest-rate').value);
+                const term = parseFloat(document.getElementById('challenge-loan-term').value);
+                const extra = parseFloat(document.getElementById('challenge-extra-payment').value);
+
+                const result = calculateAmortization(amount, rate, term, extra);
+                
+                document.getElementById('challenge-monthly-payment').textContent = `$${result.monthlyPayment.toFixed(2)}`;
+                document.getElementById('challenge-total-payments').textContent = `${result.schedule.length}`;
+                document.getElementById('challenge-total-interest').textContent = `$${result.totalInterest.toFixed(2)}`;
+                challengeResultsEl.classList.remove('hidden');
+            });
+            
+            checkChallengeBtn.addEventListener('click', () => {
+                const standard = calculateAmortization(15000, 8, 5, 0);
+                const accelerated = calculateAmortization(15000, 8, 5, 50);
+
+                const originalMonths = standard.schedule.length;
+                const newMonths = accelerated.schedule.length;
+                const monthsSaved = originalMonths - newMonths;
+
+                const userStep1 = parseInt(challengeStep1El.value);
+                const userStep2 = parseInt(challengeStep2El.value);
+                const userAnswer = parseInt(challengeAnswerEl.value);
+                
+                if (userStep1 === originalMonths && userStep2 === newMonths && userAnswer === monthsSaved) {
+                    challengeFeedbackEl.textContent = "Perfect! All steps are correct. You nailed it.";
+                    challengeFeedbackEl.className = 'font-semibold text-green-600';
+                    studentProgress.challengeCorrect = true;
+                } else {
+                    let feedback = "Not quite. Let's check your steps. ";
+                    if (userStep1 !== originalMonths) {
+                        feedback += "Re-check your calculation for Step 1 (without the extra payment). ";
+                    } else if (userStep2 !== newMonths) {
+                        feedback += "Step 1 is correct! Now re-check your calculation for Step 2 (with the extra payment). ";
+                    } else {
+                        feedback += "Steps 1 and 2 are correct! Check your subtraction for Step 3.";
+                    }
+                    challengeFeedbackEl.textContent = feedback;
+                    challengeFeedbackEl.className = 'font-semibold text-red-600';
+                    studentProgress.challengeCorrect = false;
+                }
+            });
+
+
+            // --- Calculators ---
+            let mortgageChart, personalChart, creditCardChart;
+            const calculatorTabs = document.getElementById('calculator-tabs');
+            const calculatorContents = document.querySelectorAll('.calculator-content');
+            
+            calculatorTabs.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (e.target.tagName === 'A') {
+                    const tabId = e.target.dataset.tab;
+
+                    // FIRST, destroy any existing charts to prevent rendering errors
+                    if (mortgageChart) { mortgageChart.destroy(); mortgageChart = null; }
+                    if (personalChart) { personalChart.destroy(); personalChart = null; }
+                    if (creditCardChart) { creditCardChart.destroy(); creditCardChart = null; }
+                    
+                    // Update tab styles
+                    document.querySelectorAll('.calculator-tab').forEach(tab => tab.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    // Update content visibility
+                    calculatorContents.forEach(content => content.classList.remove('active'));
+                    document.getElementById(`${tabId}-content`).classList.add('active');
+                    
+                    // Use a timeout to ensure the container is visible and has dimensions before initializing the new chart
+                    setTimeout(() => {
+                        if (tabId === 'mortgage') updateMortgageCalculatorUI();
+                        if (tabId === 'personal') updatePersonalLoanCalculatorUI();
+                        if (tabId === 'credit-card') updateCreditCardCalculatorUI();
+                    }, 50);
+                }
+            });
+
+            // Mortgage Calculator
+            const mortgageInputs = ['mortgage-amount', 'mortgage-rate', 'mortgage-term', 'mortgage-extra'];
+            mortgageInputs.forEach(id => document.getElementById(id).addEventListener('input', updateMortgageCalculatorUI));
+            
+            function updateMortgageCalculatorUI() {
+                const amount = parseFloat(document.getElementById('mortgage-amount').value);
+                const rate = parseFloat(document.getElementById('mortgage-rate').value);
+                const term = parseInt(document.getElementById('mortgage-term').value);
+                const extra = parseFloat(document.getElementById('mortgage-extra').value) || 0;
+
+                const standard = calculateAmortization(amount, rate, term, 0);
+                const accelerated = calculateAmortization(amount, rate, term, extra);
+
+                document.getElementById('mortgage-monthly-payment').textContent = `$${standard.monthlyPayment.toFixed(2)}`;
+                const interestSaved = standard.totalInterest - accelerated.totalInterest;
+                document.getElementById('mortgage-interest-saved').textContent = `$${interestSaved.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+                
+                const monthsSaved = standard.schedule.length - accelerated.schedule.length;
+                const yearsSaved = Math.floor(monthsSaved / 12);
+                const remainingMonths = monthsSaved % 12;
+                document.getElementById('mortgage-paid-off-early').textContent = `${yearsSaved}y ${remainingMonths}m`;
+                
+                const chartData = {
+                    standard: standard.chartData,
+                    accelerated: accelerated.chartData
+                };
+                if (!mortgageChart) {
+                    mortgageChart = createChart('mortgage-chart', chartData);
+                } else {
+                    updateChart(mortgageChart, chartData);
+                }
+            }
+
+            // Personal Loan Calculator
+            const personalInputs = ['personal-amount', 'personal-rate', 'personal-term', 'personal-extra'];
+            personalInputs.forEach(id => document.getElementById(id).addEventListener('input', updatePersonalLoanCalculatorUI));
+
+            function updatePersonalLoanCalculatorUI() {
+                 const amount = parseFloat(document.getElementById('personal-amount').value);
+                const rate = parseFloat(document.getElementById('personal-rate').value);
+                const term = parseInt(document.getElementById('personal-term').value);
+                const extra = parseFloat(document.getElementById('personal-extra').value) || 0;
+
+                const standard = calculateAmortization(amount, rate, term, 0);
+                const accelerated = calculateAmortization(amount, rate, term, extra);
+
+                document.getElementById('personal-monthly-payment').textContent = `$${standard.monthlyPayment.toFixed(2)}`;
+                const interestSaved = standard.totalInterest - accelerated.totalInterest;
+                document.getElementById('personal-interest-saved').textContent = `$${interestSaved.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+                
+                const monthsSaved = standard.schedule.length - accelerated.schedule.length;
+                const yearsSaved = Math.floor(monthsSaved / 12);
+                const remainingMonths = monthsSaved % 12;
+                document.getElementById('personal-paid-off-early').textContent = `${yearsSaved}y ${remainingMonths}m`;
+                
+                const chartData = {
+                    standard: standard.chartData,
+                    accelerated: accelerated.chartData
+                };
+
+                if (!personalChart) {
+                    personalChart = createChart('personal-chart', chartData);
+                } else {
+                    updateChart(personalChart, chartData);
+                }
+            }
+
+            // Credit Card Calculator
+            const ccInputs = ['cc-balance', 'cc-rate', 'cc-payment', 'cc-extra'];
+            ccInputs.forEach(id => document.getElementById(id).addEventListener('input', updateCreditCardCalculatorUI));
+
+            function updateCreditCardCalculatorUI() {
+                const balance = parseFloat(document.getElementById('cc-balance').value);
+                const apr = parseFloat(document.getElementById('cc-rate').value);
+                const payment = parseFloat(document.getElementById('cc-payment').value);
+                const extra = parseFloat(document.getElementById('cc-extra').value) || 0;
+
+                const standard = calculateCCPayoff(balance, apr, payment, 0);
+                const accelerated = calculateCCPayoff(balance, apr, payment, extra);
+
+                document.getElementById('cc-monthly-payment').textContent = `$${payment.toFixed(2)}`;
+                const interestSaved = standard.totalInterest - accelerated.totalInterest;
+                document.getElementById('cc-interest-saved').textContent = `$${interestSaved.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+                
+                const monthsSaved = standard.schedule.length - accelerated.schedule.length;
+                const yearsSaved = Math.floor(monthsSaved / 12);
+                const remainingMonths = monthsSaved % 12;
+                document.getElementById('cc-paid-off-early').textContent = `${yearsSaved}y ${remainingMonths}m`;
+                
+                const chartData = {
+                    standard: standard.chartData,
+                    accelerated: accelerated.chartData
+                };
+                if (!creditCardChart) {
+                    creditCardChart = createChart('credit-card-chart', chartData);
+                } else {
+                    updateChart(creditCardChart, chartData);
+                }
+            }
+            
+            /**
+             * CORRECTED LOAN CALCULATION FUNCTION
+             * This function calculates a standard loan amortization schedule.
+             * It correctly handles extra payments and the final payment of the loan.
+             */
+            function calculateAmortization(principal, annualRate, years, extraPayment) {
+                if (principal <= 0 || annualRate < 0 || years <= 0) { // Allow 0% interest rate
+                    return { monthlyPayment: 0, totalInterest: 0, schedule: [], chartData: { labels: [], balances: [] } };
+                }
+                const monthlyRate = annualRate / 100 / 12;
+                const numberOfPayments = years * 12;
+                
+                const monthlyPayment = monthlyRate > 0 
+                    ? principal * (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
+                    : principal / numberOfPayments;
+                
+                let remainingBalance = principal;
+                let totalInterest = 0;
+                const schedule = [];
+                const chartData = { labels: [`Start`], balances: [principal] };
+                let month = 0;
+
+                // Safety break well beyond the expected term in case of calculation issues
+                while (remainingBalance > 0.01 && month < (numberOfPayments * 2) && month < 720) {
+                    month++;
+                    const interestPaid = remainingBalance * monthlyRate;
+                    const standardPrincipalPaid = monthlyPayment - interestPaid;
+                    let totalPrincipalPaid = standardPrincipalPaid + extraPayment;
+
+                    // The final payment is just what's left
+                    if (remainingBalance <= totalPrincipalPaid) {
+                        totalPrincipalPaid = remainingBalance;
+                        remainingBalance = 0;
+                    } else {
+                        remainingBalance -= totalPrincipalPaid;
+                    }
+                    
+                    totalInterest += interestPaid;
+                    schedule.push({ month, principalPaid: totalPrincipalPaid, interestPaid, remainingBalance });
+
+                    if (month % 12 === 0) {
+                        chartData.labels.push(`Year ${month / 12}`);
+                        chartData.balances.push(remainingBalance);
+                    }
+                }
+                
+                // Ensure the chart line goes all the way to zero
+                const lastMonth = schedule.length > 0 ? schedule[schedule.length - 1].month : 0;
+                const finalYearLabel = `Year ${Math.ceil(lastMonth / 12)}`;
+                 if (chartData.labels[chartData.labels.length - 1] !== finalYearLabel) {
+                    chartData.labels.push(finalYearLabel);
+                    chartData.balances.push(0);
+                } else if (chartData.balances[chartData.balances.length-1] > 0) {
+                    chartData.balances[chartData.balances.length-1] = 0;
+                }
+
+                return { monthlyPayment, totalInterest, schedule, chartData };
+            }
+
+            function calculateCCPayoff(balance, apr, payment, extraPayment) {
+                if (balance <= 0 || apr < 0 || payment <= 0) {
+                    return { totalInterest: 0, schedule: [], chartData: { labels: [], balances: [] } };
+                }
+                const monthlyRate = apr / 100 / 12;
+                const totalPayment = payment + extraPayment;
+
+                let remainingBalance = balance;
+                let totalInterest = 0;
+                const schedule = [];
+                const chartData = { labels: [`Start`], balances: [balance] };
+                let month = 0;
+
+                // Safety break after 50 years
+                while (remainingBalance > 0 && month < 600) {
+                    month++;
+                    const interestPaid = remainingBalance * monthlyRate;
+
+                    if (totalPayment <= interestPaid) { // User will never pay it off
+                        return { totalInterest: Infinity, schedule: [], chartData: { labels: [], balances: [] } };
+                    }
+                    
+                    let principalPaid = totalPayment - interestPaid;
+                    
+                    if(remainingBalance < principalPaid) {
+                        principalPaid = remainingBalance;
+                    }
+
+                    remainingBalance -= principalPaid;
+                    totalInterest += interestPaid;
+                    schedule.push({ month, principalPaid, interestPaid, remainingBalance });
+                    
+                    if (month % 12 === 0) {
+                        chartData.labels.push(`Year ${Math.floor(month/12)}`);
+                        chartData.balances.push(remainingBalance);
+                    }
+                }
+                chartData.labels.push(`Paid Off`);
+                chartData.balances.push(0);
+
+                return { totalInterest, schedule, chartData };
+            }
+
+            function createChart(canvasId, data) {
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                return new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.standard.labels,
+                        datasets: [
+                            {
+                                label: 'Original Payoff',
+                                data: data.standard.balances,
+                                borderColor: '#9ca3af', // gray-400
+                                backgroundColor: 'transparent',
+                                borderWidth: 2,
+                                tension: 0.1
+                            },
+                            {
+                                label: 'Accelerated Payoff',
+                                data: data.accelerated.balances,
+                                borderColor: '#3b82f6', // blue-600
+                                backgroundColor: 'transparent',
+                                borderWidth: 3,
+                                tension: 0.1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top' },
+                            title: { display: true, text: 'Loan Balance Over Time' }
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + (value / 1000) + 'k';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function updateChart(chart, data) {
+                const labels = data.standard.labels.length >= data.accelerated.labels.length ? data.standard.labels : data.accelerated.labels;
+                
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = data.standard.balances;
+                chart.data.datasets[1].data = data.accelerated.balances;
+                chart.update();
+            }
+
+            // --- Final Score Display ---
+            function displayFinalScore() {
+                document.getElementById('final-quiz-score').textContent = `${studentProgress.quizScore} / ${quizQuestions.length}`;
+                const challengeResultEl = document.getElementById('final-challenge-result');
+                if (studentProgress.challengeCorrect === true) {
+                    challengeResultEl.textContent = "Correct";
+                    challengeResultEl.className = 'text-3xl font-bold text-green-600';
+                } else if (studentProgress.challengeCorrect === false) {
+                     challengeResultEl.textContent = "Incorrect";
+                     challengeResultEl.className = 'text-3xl font-bold text-red-600';
+                } else {
+                     challengeResultEl.textContent = "Not Attempted";
+                     challengeResultEl.className = 'text-3xl font-bold text-gray-500';
+                }
+            }
+
+
+            // Initial setup
+            buildQuiz();
+        });
+    </script>
+
+</body>
+</html>
+
