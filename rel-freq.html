@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relative Frequency Interactive Tutorial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .table-highlight-grand-total {
+            background-color: #fef9c3; /* yellow-100 */
+        }
+        .table-highlight-row {
+            background-color: #fce7f3; /* pink-100 */
+        }
+        .table-highlight-column {
+            background-color: #dbeafe; /* blue-200 */
+        }
+        .table-highlight-part, .table-highlight-joint {
+            background-color: #dcfce7; /* green-100 */
+            border: 2px solid #22c55e;
+        }
+        .table-highlight-marginal {
+             background-color: #e0e7ff; /* indigo-200 */
+             border: 2px solid #4f46e5;
+        }
+        .question-part {
+            cursor: pointer;
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            font-weight: 600;
+        }
+        .feedback {
+            transition: opacity 0.3s ease-in-out;
+        }
+        table td, table th {
+            transition: background-color 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Relative Frequency Interactive Tutorial</h1>
+            <p class="text-lg text-gray-600 mt-2">Learn how to find the "part" and the "whole"!</p>
+        </header>
+
+        <main class="space-y-8">
+            <!-- Step 1: The Basics -->
+            <section id="step-1-card" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h2 class="text-2xl font-bold mb-4 text-indigo-700">Step 1: The Basics (One-Way Tables)</h2>
+                <p class="mb-4">Relative frequency is a way to show what portion of a whole dataset a certain "part" makes up. The formula is always <strong class="text-indigo-600">Part / Whole</strong>. Let's start with a simple frequency table.</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 border rounded-lg" id="class-table">
+                        <caption class="text-lg font-medium text-gray-700 mb-2">Leo's Survey: Favorite Class</caption>
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Class</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Frequency</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr><td class="px-6 py-4 whitespace-nowrap">Science</td><td class="px-6 py-4 whitespace-nowrap" data-row="0" data-col="0">45</td></tr>
+                            <tr><td class="px-6 py-4 whitespace-nowrap">Math</td><td class="px-6 py-4 whitespace-nowrap" data-row="1" data-col="0">32</td></tr>
+                            <tr><td class="px-6 py-4 whitespace-nowrap">History</td><td class="px-6 py-4 whitespace-nowrap" data-row="2" data-col="0">23</td></tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-gray-200 font-bold"><td class="px-6 py-4">Total</td><td class="px-6 py-4" data-row="3" data-col="0">100</td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="mt-6 bg-indigo-50 p-4 rounded-lg">
+                    <p class="font-semibold mb-2">Question 1.1: What is the relative frequency of students who prefer <span class="question-part text-green-600" onclick="highlight('class', 0, 0, 3, 0)">Science</span>?</p>
+                    <div id="formula-class" class="my-2 text-xl font-mono text-center bg-white p-3 rounded-md shadow-inner">-- / --</div>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="answer-class" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button onclick="checkAnswer('class', 0.45)" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">Check</button>
+                    </div>
+                    <p id="feedback-class" class="mt-2 text-sm font-medium feedback opacity-0"></p>
+                </div>
+                 <div class="mt-6 flex justify-end">
+                    <button onclick="goToStep(2)" class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition font-semibold">Next: Two-Way Tables &rarr;</button>
+                </div>
+            </section>
+
+            <!-- Extra Practice for Step 3 -->
+            <section id="step-3-extra" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+              <h2 class="text-2xl font-bold mb-4 text-purple-700">Extra Practice: Joint & Marginal Frequencies</h2>
+              <div class="space-y-6">
+                <div class="bg-green-50 p-4 rounded-lg">
+                  <h3 class="text-lg font-semibold text-green-700">Extra Joint Frequency</h3>
+                  <p>How many <strong>Seniors</strong> traveled by <strong>Bus</strong>?</p>
+                  <input type="text" id="answer-extra-joint" class="mt-2 w-full px-3 py-2 border rounded">
+                  <button onclick="checkAnswer('extra-joint',40)" class="mt-2 bg-green-600 text-white px-4 py-2 rounded">Check</button>
+                  <p id="feedback-extra-joint" class="mt-2 text-sm"></p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                  <h3 class="text-lg font-semibold text-green-700">Extra Joint Frequency #2</h3>
+                  <p>How many <strong>Juniors</strong> traveled by <strong>Bus</strong>?</p>
+                  <input type="text" id="answer-extra-joint2" class="mt-2 w-full px-3 py-2 border rounded">
+                  <button onclick="checkAnswer('extra-joint2',60)" class="mt-2 bg-green-600 text-white px-4 py-2 rounded">Check</button>
+                  <p id="feedback-extra-joint2" class="mt-2 text-sm"></p>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                  <h3 class="text-lg font-semibold text-indigo-700">Extra Marginal Frequency</h3>
+                  <p>What is the total number of <strong>all students</strong> in the <strong>Bus</strong> column?</p>
+                  <input type="text" id="answer-extra-marginal" class="mt-2 w-full px-3 py-2 border rounded">
+                  <button onclick="checkAnswer('extra-marginal',100)" class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded">Check</button>
+                  <p id="feedback-extra-marginal" class="mt-2 text-sm"></p>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                  <h3 class="text-lg font-semibold text-indigo-700">Extra Marginal Frequency #2</h3>
+                  <p>What is the total number of <strong>all students</strong> in the <strong>Car</strong> column?</p>
+                  <input type="text" id="answer-extra-marginal2" class="mt-2 w-full px-3 py-2 border rounded">
+                  <button onclick="checkAnswer('extra-marginal2',200)" class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded">Check</button>
+                  <p id="feedback-extra-marginal2" class="mt-2 text-sm"></p>
+                </div>
+              </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        const tableData = {
+            class: [ [45], [32], [23], [100] ],
+            icecream: [
+                [25, 14, 11, 50],
+                [15, 20, 15, 50],
+                [40, 34, 26, 100]
+            ],
+            transport: [
+                [60, 90, 150],
+                [40, 110, 150],
+                [100, 200, 300]
+            ]
+        };
+
+        function goToStep(stepNumber) {
+            document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(`step-${stepNumber}-card`).classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        function restartTutorial() {
+            document.querySelectorAll('input[type="text"]').forEach(input => input.value = '');
+            document.querySelectorAll('.feedback').forEach(p => { p.textContent = ''; p.style.opacity = '0'; });
+            document.querySelectorAll('[id^="formula-"]').forEach(el => el.textContent = '-- / --');
+            clearHighlights('class-table');
+            clearHighlights('icecream-table');
+            clearHighlights('transport-table');
+            goToStep(1);
+        }
+
+        function clearHighlights(tableId) {
+            document.querySelectorAll(`#${tableId} td, #${tableId} th`).forEach(cell => {
+                cell.className = cell.className.replace(/table-highlight-\w+/g, '').trim();
+            });
+        }
+
+        function highlight(table, partRow, partCol, wholeRow, wholeCol) {
+            const tableId = `${table}-table`;
+            clearHighlights(tableId);
+            const data = tableData[table];
+            const partCell = document.querySelector(`#${tableId} td[data-row='${partRow}'][data-col='${partCol}']`);
+            const wholeCell = document.querySelector(`#${tableId} td[data-row='${wholeRow}'][data-col='${wholeCol}']`);
+            partCell.classList.add('table-highlight-part');
+            wholeCell.classList.add('table-highlight-grand-total');
+            document.getElementById(`formula-${table}`).textContent = `${data[partRow][partCol]} / ${data[wholeRow][wholeCol]}`;
+        }
+
+        function checkAnswer(id, correctAnswer) {
+            const answerInput = document.getElementById(`answer-${id}`);
+            const feedback = document.getElementById(`feedback-${id}`);
+            const userAnswer = parseFloat(answerInput.value);
+            feedback.style.opacity = '1';
+            if (isNaN(userAnswer)) {
+                 feedback.textContent = 'Please enter a number.';
+                 feedback.className = 'mt-2 text-sm font-medium feedback text-red-600';
+                 return;
+            }
+            if (Math.abs(userAnswer - correctAnswer) < 0.01) {
+                feedback.textContent = 'Correct! Great job!';
+                feedback.className = 'mt-2 text-sm font-medium feedback text-green-600';
+            } else {
+                const correctPercent = (correctAnswer * 100).toFixed(1);
+                feedback.textContent = `Not quite. The correct decimal is ${correctAnswer.toFixed(2)}, which is ${correctPercent}%. Try again!`;
+                feedback.className = 'mt-2 text-sm font-medium feedback text-red-600';
+            }
+        }
+
+        // --- Initial State ---
+        goToStep(1);
+    </script>
+
+</body>
+</html>
