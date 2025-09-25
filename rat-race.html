@@ -460,6 +460,11 @@
                     <p class="quiz-feedback mt-3 text-lg font-bold h-6"></p>
                 </div>
             </div>
+            <div id="quiz-results" class="mt-8 text-center opacity-0 transition-opacity duration-500 ease-in-out">
+                <h3 class="text-2xl font-bold">Your Results</h3>
+                <p id="quiz-score" class="text-4xl font-bold mt-2"></p>
+                <p id="quiz-feedback-summary" class="text-lg mt-2"></p>
+            </div>
         </div>
 
     </div>
@@ -897,7 +902,18 @@
             }
 
             function runQuiz() {
-                const quizQuestions = document.querySelectorAll('.quiz-question');
+                const quizContainer = document.getElementById('quiz-container');
+                if (!quizContainer) return;
+
+                const quizQuestions = quizContainer.querySelectorAll('.quiz-question');
+                const resultsContainer = document.getElementById('quiz-results');
+                const scoreEl = document.getElementById('quiz-score');
+                const feedbackSummaryEl = document.getElementById('quiz-feedback-summary');
+
+                let score = 0;
+                let questionsAnswered = 0;
+                const totalQuestions = quizQuestions.length;
+
                 quizQuestions.forEach(question => {
                     const options = question.querySelectorAll('.quiz-option');
                     const feedbackEl = question.querySelector('.quiz-feedback');
@@ -907,6 +923,7 @@
                         option.addEventListener('click', () => {
                             if (answered) return;
                             answered = true;
+                            questionsAnswered++;
 
                             // Disable all buttons in this question
                             options.forEach(btn => btn.disabled = true);
@@ -914,6 +931,7 @@
                             const isCorrect = option.getAttribute('data-correct') === 'true';
 
                             if (isCorrect) {
+                                score++;
                                 option.classList.add('correct');
                                 feedbackEl.textContent = 'Correct!';
                                 feedbackEl.classList.add('correct');
@@ -927,9 +945,30 @@
                                     correctOption.classList.add('correct');
                                 }
                             }
+
+                            if (questionsAnswered === totalQuestions) {
+                                showFinalScore();
+                            }
                         });
                     });
                 });
+
+                function showFinalScore() {
+                    scoreEl.textContent = `${score} / ${totalQuestions}`;
+                    let feedbackText = '';
+                    const percentage = (score / totalQuestions) * 100;
+                    if (percentage === 100) {
+                        feedbackText = "Excellent! You've mastered the concepts.";
+                    } else if (percentage >= 75) {
+                        feedbackText = "Great job! You have a solid understanding.";
+                    } else if (percentage >= 50) {
+                        feedbackText = "Good start! A review of the slides might be helpful.";
+                    } else {
+                        feedbackText = "It might be a good idea to review the presentation again to solidify the concepts.";
+                    }
+                    feedbackSummaryEl.textContent = feedbackText;
+                    resultsContainer.style.opacity = '1';
+                }
             }
 
             function clearAnimations() {
@@ -1011,4 +1050,5 @@
     </script>
 </body>
 </html>
+
 
