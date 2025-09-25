@@ -313,6 +313,7 @@
                         <p class="text-gray-600 mt-2">This certifies that</p>
                         <p class="text-2xl font-semibold text-indigo-600 my-4" id="certificate-name"></p>
                         <p class="text-gray-600">has successfully analyzed debt payoff strategies.</p>
+                        <p class="text-gray-600 mt-4">You scored <strong id="final-score" class="text-emerald-600"></strong> on the knowledge check.</p>
                         <p class="text-sm text-gray-500 mt-4" id="certificate-date"></p>
                     </div>
                     <div class="mt-8 flex justify-center gap-4">
@@ -750,6 +751,8 @@
             // --- QUIZ & CERTIFICATE LOGIC ---
             checkAnswersBtn.addEventListener('click', () => {
                 let allCorrect = true;
+                let score = 0;
+                const totalQuestions = 2;
                 
                 // --- Reset quiz styles ---
                 document.querySelectorAll('.quiz-question label').forEach(label => {
@@ -769,6 +772,8 @@
                         allCorrect = false;
                         q1Answer.parentElement.classList.add('bg-red-100', 'border-red-300');
                         showAlert('Almost! Check your answer for question 1. Look at which method had the lowest "Total Interest" in your results.');
+                    } else {
+                        score++;
                     }
                 }
 
@@ -783,6 +788,8 @@
                          allCorrect = false;
                          q2Answer.parentElement.classList.add('bg-red-100', 'border-red-300');
                          showAlert('Not quite! Check your answer for question 2. Remember which method focuses on quick wins for motivation.');
+                    } else {
+                        score++;
                     }
                 }
 
@@ -798,6 +805,7 @@
 
                 // --- Final Check ---
                 if (allCorrect) {
+                    document.getElementById('final-score').textContent = `${score}/${totalQuestions}`;
                     certificateNameEl.textContent = studentName;
                     certificateDateEl.textContent = `Completed on: ${new Date().toLocaleDateString()}`;
                     quizSection.classList.add('hidden');
@@ -862,4 +870,5 @@
     </script>
 </body>
 </html>
+
 
