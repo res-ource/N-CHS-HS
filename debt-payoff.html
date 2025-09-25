@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debt Payoff Simulator: Snowball vs. Avalanche</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .btn {
+            display: inline-block;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            text-align: center;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #4f46e5; /* indigo-600 */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca; /* indigo-700 */
+        }
+        .btn-secondary {
+            background-color: #e0e7ff; /* indigo-100 */
+            color: #4338ca; /* indigo-700 */
+        }
+        .btn-secondary:hover {
+            background-color: #c7d2fe; /* indigo-200 */
+        }
+        .btn-outline {
+            background-color: transparent;
+            color: #4f46e5;
+            border: 2px solid #4f46e5;
+        }
+        .btn-outline.selected {
+            background-color: #4f46e5;
+            color: white;
+        }
+
+        .input-field {
+            width: 100%;
+            border: 1px solid #d1d5db; /* gray-300 */
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #4f46e5; /* indigo-600 */
+            box-shadow: 0 0 0 2px #c7d2fe; /* indigo-200 */
+        }
+        .debt-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #e5e7eb; /* gray-200 */
+            border-radius: 0.5rem;
+        }
+        .winner-badge {
+            background-color: #10b981; /* emerald-500 */
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            display: inline-block;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .wizard-step {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-800">Debt Payoff Simulator</h1>
+            <p class="text-lg text-gray-600 mt-2">A Step-by-Step Guide</p>
+        </header>
+
+        <div class="max-w-4xl mx-auto">
+            <!-- Wizard Step 1: Strategy -->
+            <div id="step-1" class="wizard-step">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Which strategy sounds more like you?</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+                    <div class="card flex-1">
+                        <h3 class="font-semibold text-indigo-700 text-lg">Debt Avalanche 🏔️</h3>
+                        <p class="text-gray-600 text-sm mt-1">Focus on debts with the <strong>highest interest rates</strong> first. This is the most efficient strategy and saves you the most money in interest.</p>
+                    </div>
+                    <div class="card flex-1">
+                        <h3 class="font-semibold text-emerald-700 text-lg">Debt Snowball ☃️</h3>
+                        <p class="text-gray-600 text-sm mt-1">Focus on your <strong>smallest debts</strong> first. This provides powerful psychological wins, helping you stay motivated.</p>
+                    </div>
+                </div>
+                 <div class="mt-8 text-center card">
+                    <h3 class="font-semibold text-gray-700 mb-3">What's more important to you right now?</h3>
+                    <div class="flex justify-center gap-4" id="priority-choice">
+                        <button class="btn btn-outline" data-priority="money">Saving Money</button>
+                        <button class="btn btn-outline" data-priority="motivation">Quick Wins & Motivation</button>
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-end">
+                    <button class="btn btn-primary next-btn">Next: Add Your Debts &rarr;</button>
+                </div>
+            </div>
+
+            <!-- Wizard Step 2: Inputs -->
+            <div id="step-2" class="wizard-step hidden">
+                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <div class="card">
+                            <h2 class="text-xl font-semibold text-gray-700 mb-4">1. Add Your Debts</h2>
+                            <form id="add-debt-form" class="space-y-4">
+                                <div>
+                                    <label for="debt-name" class="block text-sm font-medium text-gray-700">Debt Name</label>
+                                    <input type="text" id="debt-name" placeholder="e.g., Visa Credit Card" class="mt-1 input-field" required>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="debt-balance" class="block text-sm font-medium text-gray-700">Balance ($)</label>
+                                        <input type="number" id="debt-balance" placeholder="5000" class="mt-1 input-field" min="1" required>
+                                    </div>
+                                    <div>
+                                        <label for="debt-apr" class="block text-sm font-medium text-gray-700">APR (%)</label>
+                                        <input type="number" id="debt-apr" placeholder="22.9" class="mt-1 input-field" min="0" step="0.1" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="w-full btn btn-primary">Add Debt</button>
+                            </form>
+                        </div>
+        
+                        <div class="card">
+                            <h2 class="text-xl font-semibold text-gray-700 mb-4">2. Set Your Budget</h2>
+                             <div>
+                                 <label for="monthly-payment" class="block text-sm font-medium text-gray-700">Total Monthly Payment ($)</label>
+                                 <p class="text-xs text-gray-500 mt-1">Enter the total amount you can pay towards all debts each month.</p>
+                                 <input type="number" id="monthly-payment" placeholder="e.g., 400" class="mt-1 input-field" min="1" required>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="card">
+                         <h2 class="text-xl font-semibold text-gray-700 mb-4">Current Debts</h2>
+                         <div id="debt-list" class="space-y-3">
+                             <p class="text-gray-500 text-center" id="no-debts-message">No debts added yet.</p>
+                         </div>
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-between">
+                    <button class="btn btn-secondary prev-btn">&larr; Previous</button>
+                    <button id="calculate-btn" class="btn btn-primary">Calculate Payoff Plan</button>
+                </div>
+            </div>
+
+            <!-- Wizard Step 3: Results -->
+            <div id="step-3" class="wizard-step hidden space-y-6">
+                 <div id="results-placeholder" class="card text-center py-16">
+                     <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                     </svg>
+                     <h3 class="mt-2 text-lg font-medium text-gray-900">Your results will appear here</h3>
+                     <p class="mt-1 text-sm text-gray-500">Add your debts, set a monthly payment, and click calculate.</p>
+                 </div>
+                 <div id="loader-container" class="hidden card text-center py-16 flex justify-center items-center">
+                     <div class="loader"></div>
+                 </div>
+                 <div id="results-container" class="hidden space-y-8">
+                    <div class="card">
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4 text-center">Your Personalized Results</h2>
+                        <div id="recommendation-text" class="text-center bg-gray-50 p-4 rounded-lg mb-6 text-gray-700"></div>
+                        <canvas id="payoffChart"></canvas>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div id="avalanche-card" class="card border-2 border-transparent">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h2 class="text-2xl font-bold text-gray-800">Avalanche</h2>
+                                    <p class="text-sm text-gray-500 -mt-1">Saves the most money.</p>
+                                </div>
+                                <span id="avalanche-badge"></span>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex justify-between text-lg">
+                                    <span class="text-gray-600">Payoff Time:</span>
+                                    <span id="avalanche-time" class="font-semibold text-gray-800"></span>
+                                </div>
+                                <div class="flex justify-between text-lg">
+                                    <span class="text-gray-600">Total Interest:</span>
+                                    <span id="avalanche-interest" class="font-semibold text-gray-800"></span>
+                                </div>
+                                <div class="flex justify-between text-lg">
+                                    <span class="text-gray-600">Total Paid:</span>
+                                    <span id="avalanche-total" class="font-semibold text-gray-800"></span>
+                                </div>
+                            </div>
+                             <details class="mt-4">
+                                 <summary class="font-semibold text-indigo-600 cursor-pointer">View Payoff Plan</summary>
+                                 <div id="avalanche-plan" class="mt-2 text-sm text-gray-600 max-h-60 overflow-y-auto pr-2"></div>
+                             </details>
+                        </div>
+                        <div id="snowball-card" class="card border-2 border-transparent">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h2 class="text-2xl font-bold text-gray-800">Snowball</h2>
+                                    <p class="text-sm text-gray-500 -mt-1">Great for motivation.</p>
+                                </div>
+                                <span id="snowball-badge"></span>
+                            </div>
+                             <div class="space-y-3">
+                                <div class="flex justify-between text-lg">
+                                    <span class="text-gray-600">Payoff Time:</span>
+                                    <span id="snowball-time" class="font-semibold text-gray-800"></span>
+                                </div>
+                                <div class="flex justify-between text-lg">
+                                    <span class="text-gray-600">Total Interest:</span>
+                                    <span id="snowball-interest" class="font-semibold text-gray-800"></span>
+                                </div>
+                                <div class="flex justify-between text-lg">
+                                    <span class="text-gray-600">Total Paid:</span>
+                                    <span id="snowball-total" class="font-semibold text-gray-800"></span>
+                                </div>
+                            </div>
+                             <details class="mt-4">
+                                 <summary class="font-semibold text-indigo-600 cursor-pointer">View Payoff Plan</summary>
+                                 <div id="snowball-plan" class="mt-2 text-sm text-gray-600 max-h-60 overflow-y-auto pr-2"></div>
+                             </details>
+                        </div>
+                    </div>
+                 </div>
+                 <div class="mt-8 flex justify-between">
+                    <button id="start-over-btn" class="btn btn-secondary">Start Over</button>
+                    <button class="btn btn-primary next-btn">Next: Get Credit &rarr;</button>
+                 </div>
+            </div>
+
+            <!-- Wizard Step 4: Quiz & Certificate -->
+            <div id="step-4" class="wizard-step hidden">
+                <div id="quiz-section">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2 text-center">Check Your Understanding</h2>
+                    <p class="text-center text-gray-600 mb-6">Answer the questions below to earn your certificate.</p>
+                    
+                    <div class="card space-y-6">
+                        <!-- Question 1 -->
+                        <div class="quiz-question" data-question="1">
+                            <p class="font-semibold text-gray-700">1. Based on your results, which method saves you the most money on interest?</p>
+                            <div class="mt-2 space-y-2" id="q1-options">
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="q1" value="avalanche" class="mr-3">Debt Avalanche</label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="q1" value="snowball" class="mr-3">Debt Snowball</label>
+                            </div>
+                            <p class="text-xs text-red-500 mt-1 hidden">Please select an answer.</p>
+                        </div>
+
+                        <!-- Question 2 -->
+                        <div class="quiz-question" data-question="2">
+                            <p class="font-semibold text-gray-700">2. If your main goal was motivation from clearing small debts quickly, which method would you choose?</p>
+                            <div class="mt-2 space-y-2" id="q2-options">
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="q2" value="avalanche" class="mr-3">Debt Avalanche</label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"><input type="radio" name="q2" value="snowball" class="mr-3">Debt Snowball</label>
+                            </div>
+                             <p class="text-xs text-red-500 mt-1 hidden">Please select an answer.</p>
+                        </div>
+                        
+                         <!-- Name Input -->
+                        <div>
+                            <label for="student-name" class="block text-sm font-medium text-gray-700">3. Enter your full name for the certificate:</label>
+                            <input type="text" id="student-name" placeholder="e.g., Jane Doe" class="mt-1 input-field" required>
+                            <p class="text-xs text-red-500 mt-1 hidden">Please enter your name.</p>
+                        </div>
+
+                    </div>
+                    <div class="mt-8 flex justify-between">
+                        <button class="btn btn-secondary prev-btn">&larr; Back to Results</button>
+                        <button id="check-answers-btn" class="btn btn-primary">Submit for Credit</button>
+                    </div>
+                </div>
+
+                <div id="certificate-section" class="hidden text-center">
+                    <div class="card border-2 border-emerald-500 p-8" id="certificate">
+                        <div class="flex justify-center items-center mb-4">
+                            <svg class="w-16 h-16 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-800">Certificate of Completion</h2>
+                        <p class="text-gray-600 mt-2">This certifies that</p>
+                        <p class="text-2xl font-semibold text-indigo-600 my-4" id="certificate-name"></p>
+                        <p class="text-gray-600">has successfully analyzed debt payoff strategies.</p>
+                        <p class="text-sm text-gray-500 mt-4" id="certificate-date"></p>
+                    </div>
+                    <div class="mt-8 flex justify-center gap-4">
+                        <button id="print-certificate-btn" class="btn btn-primary">Print Certificate</button>
+                        <button id="final-reset-btn" class="btn btn-secondary">Start Over</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-12 max-w-4xl mx-auto">
+            <h2 class="text-2xl font-semibold text-gray-800 text-center mb-6">Learn More About The Methods</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
+                <div class="card">
+                    <h3 class="font-semibold text-lg text-gray-700 mb-2">What is the Debt Avalanche method? 🏔️</h3>
+                    <p class="text-gray-600">With the Avalanche method, you make minimum payments on all your debts, then put any extra money toward the debt with the <strong class="text-indigo-600">highest interest rate (APR)</strong>. Once that debt is paid off, you "avalanche" that full payment amount (its minimum payment plus the extra) onto the debt with the next-highest APR. This method is the most mathematically sound way to save money on interest.</p>
+                </div>
+                <div class="card">
+                    <h3 class="font-semibold text-lg text-gray-700 mb-2">What is the Debt Snowball method? ☃️</h3>
+                    <p class="text-gray-600">With the Snowball method, you make minimum payments on all your debts, then put any extra money toward the debt with the <strong class="text-emerald-600">smallest balance</strong>. Once that debt is paid off, you "snowball" that full payment onto the next-smallest debt. This method provides quick, motivating wins that can help you stick to your plan.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="alert-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+            <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg leading-6 font-medium text-gray-900 mt-2" id="modal-title">Heads up!</h3>
+          <div class="mt-2 px-7 py-3">
+            <p class="text-sm text-gray-500" id="modal-message">
+              Your message here.
+            </p>
+          </div>
+          <div class="items-center px-4 py-3">
+            <button id="modal-close-btn" class="px-4 py-2 bg-indigo-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+              OK
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const addDebtForm = document.getElementById('add-debt-form');
+            const debtList = document.getElementById('debt-list');
+            const calculateBtn = document.getElementById('calculate-btn');
+            const startOverBtn = document.getElementById('start-over-btn');
+            const finalResetBtn = document.getElementById('final-reset-btn');
+            const noDebtsMessage = document.getElementById('no-debts-message');
+            
+            const resultsPlaceholder = document.getElementById('results-placeholder');
+            const loaderContainer = document.getElementById('loader-container');
+            const resultsContainer = document.getElementById('results-container');
+            const recommendationText = document.getElementById('recommendation-text');
+            const modal = document.getElementById('alert-modal');
+            const modalMessage = document.getElementById('modal-message');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+
+            const steps = document.querySelectorAll('.wizard-step');
+            const nextBtns = document.querySelectorAll('.next-btn');
+            const prevBtns = document.querySelectorAll('.prev-btn');
+            const priorityChoice = document.getElementById('priority-choice');
+
+            // Quiz elements
+            const quizSection = document.getElementById('quiz-section');
+            const certificateSection = document.getElementById('certificate-section');
+            const checkAnswersBtn = document.getElementById('check-answers-btn');
+            const printCertificateBtn = document.getElementById('print-certificate-btn');
+            const certificateNameEl = document.getElementById('certificate-name');
+            const certificateDateEl = document.getElementById('certificate-date');
+            const studentNameInput = document.getElementById('student-name');
+
+
+            let currentStep = 0;
+            let debts = [];
+            let debtChart = null;
+            let resultsCache = null;
+            
+            function showStep(stepIndex) {
+                steps.forEach((step, index) => {
+                    step.classList.toggle('hidden', index !== stepIndex);
+                });
+                currentStep = stepIndex;
+            }
+
+            nextBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (currentStep < steps.length - 1) {
+                        showStep(currentStep + 1);
+                    }
+                });
+            });
+
+            prevBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (currentStep > 0) {
+                        showStep(currentStep - 1);
+                    }
+                });
+            });
+            
+            priorityChoice.addEventListener('click', (e) => {
+                if(e.target.tagName === 'BUTTON') {
+                    const buttons = priorityChoice.querySelectorAll('button');
+                    buttons.forEach(btn => btn.classList.remove('selected'));
+                    e.target.classList.add('selected');
+
+                    const priority = e.target.getAttribute('data-priority');
+                    if (priority === 'money') {
+                        recommendationText.innerHTML = `Based on your goal of <strong>saving money</strong>, the <strong>Avalanche Method</strong> is likely the better choice for you as it minimizes total interest paid.`;
+                    } else {
+                        recommendationText.innerHTML = `Based on your goal of <strong>staying motivated</strong>, the <strong>Snowball Method</strong> is a great choice, as it provides quick wins to keep you going.`;
+                    }
+                }
+            });
+
+
+            function showAlert(message) {
+                modalMessage.textContent = message;
+                modal.classList.remove('hidden');
+            }
+
+            modalCloseBtn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+            });
+            window.addEventListener('click', (e) => {
+                if (e.target == modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+
+            // --- DEBT MANAGEMENT ---
+            addDebtForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('debt-name').value;
+                const balance = parseFloat(document.getElementById('debt-balance').value);
+                const apr = parseFloat(document.getElementById('debt-apr').value);
+
+                if (name && !isNaN(balance) && !isNaN(apr)) {
+                    debts.push({ id: Date.now(), name, balance, apr });
+                    renderDebts();
+                    addDebtForm.reset();
+                    document.getElementById('debt-name').focus();
+                }
+            });
+
+            function renderDebts() {
+                debtList.innerHTML = '';
+                if (debts.length === 0) {
+                    debtList.appendChild(noDebtsMessage);
+                    noDebtsMessage.style.display = 'block';
+                } else {
+                    noDebtsMessage.style.display = 'none';
+                    const debtFragment = document.createDocumentFragment();
+                    debts.forEach(debt => {
+                        const div = document.createElement('div');
+                        div.className = 'debt-item animate-fade-in';
+                        div.innerHTML = `
+                            <div class="flex-grow">
+                                <p class="font-semibold text-gray-800">${debt.name}</p>
+                                <p class="text-sm text-gray-500">$${debt.balance.toFixed(2)} at ${debt.apr}% APR</p>
+                            </div>
+                            <button data-id="${debt.id}" class="remove-debt-btn btn btn-secondary !px-3 !py-1 text-xs">Remove</button>
+                        `;
+                        debtFragment.appendChild(div);
+                    });
+                    debtList.appendChild(debtFragment);
+                }
+            }
+            
+            debtList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-debt-btn')) {
+                    const id = parseInt(e.target.getAttribute('data-id'));
+                    debts = debts.filter(debt => debt.id !== id);
+                    renderDebts();
+                }
+            });
+
+            // Set up default debts
+            function setupDefaultDebts() {
+                debts = [
+                    { id: 1, name: 'Credit Card', balance: 5000, apr: 22.9 },
+                    { id: 2, name: 'Medical Bill', balance: 800, apr: 12 },
+                    { id: 3, name: 'Student Loan', balance: 10000, apr: 6.8 }
+                ];
+                document.getElementById('monthly-payment').value = 400;
+                renderDebts();
+            }
+            setupDefaultDebts();
+            
+            // --- CALCULATION LOGIC ---
+            calculateBtn.addEventListener('click', () => {
+                if (debts.length === 0) {
+                    showAlert('Please add at least one debt before calculating.');
+                    return;
+                }
+                const totalMonthlyPayment = parseFloat(document.getElementById('monthly-payment').value);
+                if (isNaN(totalMonthlyPayment) || totalMonthlyPayment <= 0) {
+                    showAlert('Please enter a valid monthly payment.');
+                    return;
+                }
+                
+                const minPaymentSum = debts.reduce((sum, debt) => sum + calculateMinPayment(debt.balance, debt.apr), 0);
+                if (totalMonthlyPayment < minPaymentSum) {
+                    showAlert(`Your monthly payment must be at least $${minPaymentSum.toFixed(2)} to cover the minimum payments on all debts.`);
+                    return;
+                }
+
+                showStep(2); // Go to results step
+                resultsPlaceholder.style.display = 'none';
+                resultsContainer.style.display = 'none';
+                loaderContainer.style.display = 'flex';
+
+                setTimeout(() => {
+                    const avalancheResult = calculatePayoff('avalanche', debts, totalMonthlyPayment);
+                    const snowballResult = calculatePayoff('snowball', debts, totalMonthlyPayment);
+                    resultsCache = { avalanche: avalancheResult, snowball: snowballResult };
+                    
+                    loaderContainer.style.display = 'none';
+                    resultsContainer.style.display = 'block';
+                    
+                    displayResults('avalanche', avalancheResult);
+                    displayResults('snowball', snowballResult);
+                    highlightWinner(avalancheResult, snowballResult);
+                    createChart(avalancheResult, snowballResult);
+
+                }, 1000);
+            });
+            
+            function calculateMinPayment(balance, apr) {
+                const interest = (balance * (apr / 100)) / 12;
+                const onePercent = balance * 0.01;
+                return Math.max(25, onePercent + interest);
+            }
+
+            function calculatePayoff(strategy, initialDebts, totalMonthlyPayment) {
+                let currentDebts = JSON.parse(JSON.stringify(initialDebts));
+                let months = 0;
+                let totalInterestPaid = 0;
+                let planLog = [];
+                let monthlyBalanceHistory = [];
+                const originalTotal = currentDebts.reduce((sum, d) => sum + d.balance, 0);
+
+                while (currentDebts.some(d => d.balance > 0.01)) {
+                    months++;
+                    
+                    currentDebts.forEach(debt => {
+                        if (debt.balance > 0) {
+                           const interest = (debt.balance * (debt.apr / 100)) / 12;
+                           debt.balance += interest;
+                           totalInterestPaid += interest;
+                        }
+                    });
+
+                    let activeDebts = currentDebts.filter(d => d.balance > 0);
+                    if (strategy === 'avalanche') {
+                        activeDebts.sort((a, b) => b.apr - a.apr);
+                    } else { // snowball
+                        activeDebts.sort((a, b) => a.balance - b.balance);
+                    }
+                    
+                    let remainingForTarget = totalMonthlyPayment;
+                    let logEntry = `<strong>Month ${months}:</strong><ul>`;
+
+                    for (const debt of activeDebts) {
+                        if (debt.id !== activeDebts[0].id) {
+                            const minPayment = calculateMinPayment(debt.balance, debt.apr);
+                            const actualPayment = Math.min(debt.balance, minPayment);
+                            debt.balance -= actualPayment;
+                            remainingForTarget -= actualPayment;
+                            logEntry += `<li>Paid $${actualPayment.toFixed(2)} (min) to ${debt.name}.</li>`;
+                        }
+                    }
+
+                    const targetDebt = activeDebts[0];
+                    if (targetDebt) {
+                        const actualPayment = Math.min(targetDebt.balance, remainingForTarget);
+                        targetDebt.balance -= actualPayment;
+                        logEntry += `<li>Paid $${actualPayment.toFixed(2)} (target) to ${targetDebt.name}.</li>`;
+                    }
+
+                    logEntry += '</ul>';
+                    planLog.push(logEntry);
+
+                    const currentTotalBalance = currentDebts.reduce((sum, debt) => sum + Math.max(0, debt.balance), 0);
+                    monthlyBalanceHistory.push(currentTotalBalance);
+                    
+                    if(months > 1200) {
+                        console.error("Calculation exceeded 100 years. Aborting.");
+                        break;
+                    }
+                }
+                
+                const totalPaid = originalTotal + totalInterestPaid;
+
+                return {
+                    months,
+                    totalInterestPaid,
+                    totalPaid,
+                    plan: planLog.join(''),
+                    balanceHistory: monthlyBalanceHistory
+                };
+            }
+
+            // --- DISPLAY RESULTS ---
+            function displayResults(strategy, result) {
+                const timeEl = document.getElementById(`${strategy}-time`);
+                const interestEl = document.getElementById(`${strategy}-interest`);
+                const totalEl = document.getElementById(`${strategy}-total`);
+                const planEl = document.getElementById(`${strategy}-plan`);
+                
+                const years = Math.floor(result.months / 12);
+                const months = result.months % 12;
+                timeEl.textContent = `${years} years, ${months} months`;
+                interestEl.textContent = `$${result.totalInterestPaid.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                totalEl.textContent = `$${result.totalPaid.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                planEl.innerHTML = result.plan;
+            }
+
+            function highlightWinner(avalancheResult, snowballResult) {
+                const avalancheCard = document.getElementById('avalanche-card');
+                const snowballCard = document.getElementById('snowball-card');
+                const avalancheBadge = document.getElementById('avalanche-badge');
+                const snowballBadge = document.getElementById('snowball-badge');
+                
+                avalancheCard.className = 'card border-2 border-transparent';
+                snowballCard.className = 'card border-2 border-transparent';
+                avalancheBadge.innerHTML = '';
+                snowballBadge.innerHTML = '';
+
+
+                if (avalancheResult.totalInterestPaid < snowballResult.totalInterestPaid - 0.01) {
+                    avalancheBadge.innerHTML += `<span class="winner-badge">Saves More Money</span>`;
+                    avalancheCard.classList.add('border-emerald-500');
+                } else if (snowballResult.totalInterestPaid < avalancheResult.totalInterestPaid - 0.01) {
+                    snowballBadge.innerHTML += `<span class="winner-badge">Saves More Money</span>`;
+                    snowballCard.classList.add('border-emerald-500');
+                } 
+
+                if (snowballResult.months < avalancheResult.months) {
+                     snowballBadge.innerHTML += `<span class="winner-badge ml-2">Faster Payoff</span>`;
+                     if (!snowballCard.classList.contains('border-emerald-500')) snowballCard.classList.add('border-blue-500');
+                } else if (avalancheResult.months < snowballResult.months) {
+                    avalancheBadge.innerHTML += `<span class="winner-badge ml-2">Faster Payoff</span>`;
+                     if (!avalancheCard.classList.contains('border-emerald-500')) avalancheCard.classList.add('border-blue-500');
+                }
+                
+                if (avalancheBadge.innerHTML === '' && snowballBadge.innerHTML === '') {
+                     avalancheCard.classList.add('border-gray-300');
+                     snowballCard.classList.add('border-gray-300');
+                }
+            }
+
+            function createChart(avalanche, snowball) {
+                const ctx = document.getElementById('payoffChart').getContext('2d');
+                if (debtChart) {
+                    debtChart.destroy();
+                }
+
+                const maxMonths = Math.max(avalanche.balanceHistory.length, snowball.balanceHistory.length);
+                const labels = Array.from({ length: maxMonths + 1 }, (_, i) => `Month ${i}`);
+                
+                const initialTotalBalance = JSON.parse(JSON.stringify(debts)).reduce((sum, d) => sum + d.balance, 0);
+
+                const avalancheData = [initialTotalBalance, ...avalanche.balanceHistory];
+                const snowballData = [initialTotalBalance, ...snowball.balanceHistory];
+
+                debtChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Avalanche Balance',
+                                data: avalancheData,
+                                borderColor: '#4f46e5',
+                                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.1,
+                                fill: true,
+                            },
+                            {
+                                label: 'Snowball Balance',
+                                data: snowballData,
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.1,
+                                fill: true,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'top' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) { label += ': '; }
+                                        if (context.parsed.y !== null) {
+                                            label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                title: { display: true, text: 'Total Debt Balance ($)' },
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toLocaleString();
+                                    }
+                                }
+                            },
+                            x: {
+                                title: { display: true, text: 'Months' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // --- QUIZ & CERTIFICATE LOGIC ---
+            checkAnswersBtn.addEventListener('click', () => {
+                let allCorrect = true;
+                
+                // --- Reset quiz styles ---
+                document.querySelectorAll('.quiz-question label').forEach(label => {
+                    label.classList.remove('bg-red-100', 'border-red-300');
+                });
+                document.querySelectorAll('.quiz-question .text-xs').forEach(err => err.classList.add('hidden'));
+                
+                // --- Validate Q1 ---
+                const q1Answer = document.querySelector('input[name="q1"]:checked');
+                const q1QuestionEl = document.querySelector('.quiz-question[data-question="1"]');
+                if (!q1Answer) {
+                    q1QuestionEl.querySelector('.text-xs').classList.remove('hidden');
+                    allCorrect = false;
+                } else {
+                    const correctAnswer = (resultsCache.avalanche.totalInterestPaid < resultsCache.snowball.totalInterestPaid - 0.01) ? 'avalanche' : 'snowball';
+                    if (q1Answer.value !== correctAnswer) {
+                        allCorrect = false;
+                        q1Answer.parentElement.classList.add('bg-red-100', 'border-red-300');
+                        showAlert('Almost! Check your answer for question 1. Look at which method had the lowest "Total Interest" in your results.');
+                    }
+                }
+
+                // --- Validate Q2 ---
+                const q2Answer = document.querySelector('input[name="q2"]:checked');
+                const q2QuestionEl = document.querySelector('.quiz-question[data-question="2"]');
+                if (!q2Answer) {
+                    q2QuestionEl.querySelector('.text-xs').classList.remove('hidden');
+                    allCorrect = false;
+                } else {
+                    if (q2Answer.value !== 'snowball') {
+                         allCorrect = false;
+                         q2Answer.parentElement.classList.add('bg-red-100', 'border-red-300');
+                         showAlert('Not quite! Check your answer for question 2. Remember which method focuses on quick wins for motivation.');
+                    }
+                }
+
+                // --- Validate Name ---
+                const studentName = studentNameInput.value.trim();
+                const nameError = studentNameInput.nextElementSibling;
+                 if (studentName === '') {
+                    nameError.classList.remove('hidden');
+                    allCorrect = false;
+                } else {
+                    nameError.classList.add('hidden');
+                }
+
+                // --- Final Check ---
+                if (allCorrect) {
+                    certificateNameEl.textContent = studentName;
+                    certificateDateEl.textContent = `Completed on: ${new Date().toLocaleDateString()}`;
+                    quizSection.classList.add('hidden');
+                    certificateSection.classList.remove('hidden');
+                } else {
+                    // Show a general error if any fields are blank and no specific error was shown
+                    if (!allCorrect && (!q1Answer || !q2Answer || studentName === '')) {
+                       showAlert('Please answer all questions and provide your name.');
+                    }
+                }
+            });
+
+            printCertificateBtn.addEventListener('click', () => {
+                const certificateHTML = document.getElementById('certificate').innerHTML;
+                const newWin = window.open('', 'Print-Window');
+                newWin.document.open();
+                newWin.document.write(
+                    '<html>' +
+                        '<head>' +
+                            '<title>Print Certificate</title>' +
+                            '<script src="https://cdn.tailwindcss.com"><\/script>' +
+                             '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">' +
+                             '<style>body { font-family: \'Inter\', sans-serif; }</style>' +
+                        '</head>' +
+                        '<body onload="window.print();window.close()" class="p-8">' +
+                            '<div class="card border-2 border-emerald-500 p-8 rounded-lg">' + certificateHTML + '</div>' +
+                        '</body>' +
+                    '</html>'
+                );
+                newWin.document.close();
+            });
+
+
+            // --- RESET ---
+            function resetApp() {
+                 showStep(0);
+                setTimeout(() => {
+                    debts = [];
+                    addDebtForm.reset();
+                    document.getElementById('monthly-payment').value = '';
+                    resultsContainer.style.display = 'none';
+                    resultsPlaceholder.style.display = 'block';
+                    loaderContainer.style.display = 'none';
+                    quizSection.classList.remove('hidden');
+                    certificateSection.classList.add('hidden');
+                    studentNameInput.value = '';
+                     // Clear radio buttons
+                    document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+                    if (debtChart) {
+                        debtChart.destroy();
+                        debtChart = null;
+                    }
+                    setupDefaultDebts();
+                }, 100);
+            }
+
+            startOverBtn.addEventListener('click', resetApp);
+            finalResetBtn.addEventListener('click', resetApp);
+            
+            showStep(0); // Initialize on the first step
+        });
+    </script>
+</body>
+</html>
+
