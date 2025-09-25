@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What the Rich Buy That the Poor Don't</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .slide {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            left: 0;
+            top: 0;
+            display: none; /* Hidden by default */
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 2rem;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateY(0);
+            display: flex; /* Displayed when active */
+            position: relative; /* Take up space in the document flow */
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+            opacity: 0; /* Start invisible for animation */
+        }
+        
+        .fade-in-delay-1 { animation-delay: 0.2s; }
+        .fade-in-delay-2 { animation-delay: 0.4s; }
+        .fade-in-delay-3 { animation-delay: 0.6s; }
+        .fade-in-delay-4 { animation-delay: 0.8s; }
+        .fade-in-delay-5 { animation-delay: 1.0s; }
+        .fade-in-delay-6 { animation-delay: 1.2s; }
+
+        .btn-nav {
+            position: fixed;
+            bottom: 2rem;
+            z-index: 10;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-nav:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .btn-nav:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: translateY(0);
+        }
+
+        #prevBtn { left: 2rem; }
+        #nextBtn { right: 2rem; }
+        
+        /* Kiyosaki Ledger Styles */
+        .ledger-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 2rem;
+            font-family: monospace;
+            position: relative;
+        }
+        .ledger-box {
+            border: 2px solid #4B5563;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+        .ledger-box h3 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 2px solid #4B5563;
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .income-statement { grid-column: span 2; }
+        .balance-sheet { grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;}
+        .assets, .liabilities { border-top: none; }
+        .ledger-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+            font-size: 1rem;
+        }
+        .ledger-row.total {
+            border-top: 1px solid #4B5563;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+        
+        .cash-flow-arrow {
+            position: absolute;
+            opacity: 0;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .cash-flow-arrow path, .chart-line {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+        }
+
+        @keyframes balance-change {
+            from { transform: scale(1.1); text-shadow: 0 0 8px rgba(255, 255, 255, 0.7); }
+            to { transform: scale(1); text-shadow: none; }
+        }
+        .balance-change {
+            animation: balance-change 0.5s ease-out forwards;
+        }
+
+        /* Quiz Styles */
+        .quiz-option {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1.25rem;
+            background-color: #4B5563; /* bg-gray-600 */
+            border: 2px solid transparent;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+        }
+        .quiz-option:not(:disabled):hover {
+            background-color: #6B7280; /* bg-gray-500 */
+            border-color: #9CA3AF; /* border-gray-400 */
+        }
+        .quiz-option.correct {
+            background-color: #10B981; /* bg-green-500 */
+            color: white;
+            border-color: #059669; /* border-green-600 */
+        }
+        .quiz-option.incorrect {
+            background-color: #EF4444; /* bg-red-500 */
+            color: white;
+            border-color: #DC2626; /* border-red-600 */
+        }
+        .quiz-option:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .quiz-feedback.correct {
+            color: #34D399; /* text-green-400 */
+        }
+        .quiz-feedback.incorrect {
+            color: #F87171; /* text-red-400 */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white h-full flex items-center justify-center overflow-hidden">
+
+    <div id="presentation-container" class="w-full h-full max-w-4xl mx-auto">
+
+        <!-- Slide 1: Title -->
+        <div id="slide-1" class="slide">
+            <h1 class="text-4xl md:text-6xl font-bold text-center tracking-tight fade-in">Habits that keep you stuck in the Rat Race</h1>
+            <h2 class="mt-4 text-xl md:text-2xl text-gray-300 text-center fade-in fade-in-delay-1">A Breakdown of Financial Habits</h2>
+        </div>
+
+        <!-- Slide 2: The Rat Race Explained -->
+        <div id="slide-2" class="slide">
+            <h2 class="text-3xl md:text-4xl font-bold mb-8 text-center fade-in">What is the Rat Race?</h2>
+            <div class="max-w-3xl text-center space-y-6">
+                <p class="text-xl text-gray-300 fade-in fade-in-delay-1">
+                    It's the feeling of working harder and harder, maybe even earning more money, but never seeming to get ahead financially. 
+                </p>
+                <p class="text-6xl p-4 fade-in fade-in-delay-2">
+                    🐹 🏃‍➡️ 🎡
+                </p>
+                <p class="text-xl text-gray-300 fade-in fade-in-delay-3">
+                    You're trapped in a cycle of <span class="text-green-400 font-semibold">earning</span> and <span class="text-red-400 font-semibold">spending</span>, running on a wheel with no destination.
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 3: Understand Money Flow Graphic -->
+        <div id="slide-3" class="slide">
+            <h2 class="text-3xl md:text-4xl font-bold mb-8 text-center fade-in">Defining The Terms of <span class="border-b-4 border-green-500 pb-1">Money Flow</span></h2>
+            <div class="w-full max-w-lg space-y-8 font-mono">
+                <!-- Income/Expenses Table -->
+                <div class="fade-in fade-in-delay-1">
+                    <table class="w-full text-lg">
+                        <tbody>
+                            <tr>
+                                <td class="border-2 border-gray-600 p-4 w-1/3 font-bold text-green-400">Income</td>
+                                <td class="border-2 border-gray-600 p-4 text-gray-300">money you make</td>
+                            </tr>
+                            <tr>
+                                <td class="border-2 border-gray-600 p-4 w-1/3 font-bold text-red-400">Expenses</td>
+                                <td class="border-2 border-gray-600 p-4 text-gray-300">money you spend</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Assets/Liabilities Table -->
+                <div class="fade-in fade-in-delay-2">
+                    <table class="w-full text-lg text-center">
+                        <thead>
+                            <tr>
+                                <th class="border-2 border-gray-600 p-4 w-1/2 font-bold text-blue-400">Assets</th>
+                                <th class="border-2 border-gray-600 p-4 w-1/2 font-bold text-orange-400">Liabilities</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border-2 border-gray-600 p-4 text-gray-300">pays you</td>
+                                <td class="border-2 border-gray-600 p-4 text-gray-300">costs you</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 4: Ledger Intro -->
+        <div id="slide-4" class="slide">
+            <h2 class="text-3xl md:text-4xl font-bold mb-8 fade-in text-center">The Two Financial Reports</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-3xl">
+                <div class="bg-gray-800 p-6 rounded-lg fade-in fade-in-delay-1">
+                    <h3 class="text-2xl font-semibold text-center">Income Statement</h3>
+                    <p class="mt-2 text-gray-300 text-center">Measures money in (income) and money out (expenses) over a period of time.</p>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-lg fade-in fade-in-delay-2">
+                    <h3 class="text-2xl font-semibold text-center">Balance Sheet</h3>
+                    <p class="mt-2 text-gray-300 text-center">Shows what you own (assets) and what you owe (liabilities) at a single point in time.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 5: The Lower-Income -->
+        <div id="slide-5" class="slide">
+            <h2 class="text-3xl md:text-4xl font-bold mb-2 text-center fade-in">BUYING STUFF: The Money Trap That Keep People Stuck</h2>
+            <p class="text-lg text-gray-400 mb-4 fade-in fade-in-delay-1">(Things with little to no long-term value)</p>
+            <div class="ledger-container fade-in fade-in-delay-2" id="li-ledger">
+                 <div class="ledger-box income-statement">
+                    <h3>Income Statement</h3>
+                    <div class="ledger-row" id="li-income-row"><span>Income</span><span class="text-green-400" id="li-income">$0</span></div>
+                    <div class="ledger-row" id="li-expenses-row"><span>Expenses</span><span class="text-red-400" id="li-expenses">$0</span></div>
+                </div>
+                <div class="balance-sheet">
+                    <div class="ledger-box assets"><h3>Assets</h3><div class="h-16"></div></div>
+                    <div class="ledger-box liabilities"><h3>Liabilities</h3><div class="h-16"></div></div>
+                </div>
+            </div>
+             <p class="text-lg text-gray-400 max-w-2xl text-center mt-8 opacity-0" id="li-summary">Income is spent on "stuff," which flows directly to expenses, leaving nothing to build assets.</p>
+        </div>
+
+        <!-- Slide 6: The Middle Class -->
+        <div id="slide-6" class="slide">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4 text-center fade-in">What the Middle Class Buy on Payday</h2>
+            <div class="ledger-container fade-in fade-in-delay-1" id="mc-ledger">
+                 <div class="ledger-box income-statement">
+                    <h3>Income Statement</h3>
+                    <div class="ledger-row" id="mc-income-row"><span>Income</span><span class="text-green-400" id="mc-income">$0</span></div>
+                    <div class="ledger-row opacity-0" id="mc-expense-row"><span>Expenses</span><span class="text-red-400" id="mc-expense">$0</span></div>
+                </div>
+                <div class="balance-sheet">
+                    <div class="ledger-box assets"><h3>Assets</h3><div class="h-16"></div></div>
+                    <div class="ledger-box liabilities" id="mc-liabilities-box">
+                        <h3 id="mc-liabilities-title">Liabilities</h3>
+                        <div class="grid grid-cols-2 gap-2 text-4xl text-center" id="mc-liabilities-grid">
+                            <!-- Icons will be added here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-lg text-gray-400 max-w-2xl text-center mt-8 opacity-0" id="mc-summary">Income is used to buy a liability, which then creates a new monthly expense.</p>
+        </div>
+        
+        <!-- Slide 7: Habits that keep you stuck -->
+        <div id="slide-7" class="slide">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4 text-center fade-in">Habits That Keep You in the Rat Race</h2>
+            <p class="text-lg text-gray-300 max-w-2xl text-center mb-8 fade-in fade-in-delay-1">This pattern continues. As income grows, so does the spending on liabilities, causing expenses to rise at the same rate.</p>
+            <div class="w-full max-w-2xl bg-gray-800 p-4 rounded-lg fade-in fade-in-delay-2">
+                <div class="grid grid-cols-2 border-2 border-gray-600">
+                    <!-- Income Chart -->
+                    <div class="border-r-2 border-gray-600">
+                        <h3 class="text-center text-xl font-semibold py-2 border-b-2 border-gray-600 text-green-400">Income</h3>
+                        <div class="p-2">
+                            <svg id="income-chart" viewBox="0 0 250 300" class="w-full h-auto"></svg>
+                        </div>
+                    </div>
+                    <!-- Expense Chart -->
+                    <div>
+                        <h3 class="text-center text-xl font-semibold py-2 border-b-2 border-gray-600 text-red-400">Expenses</h3>
+                        <div class="p-2">
+                            <svg id="expense-chart" viewBox="0 0 250 300" class="w-full h-auto"></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-xl text-center mt-8 max-w-2xl opacity-0 fade-in" id="trap-summary">Eventually, <span class="text-red-400 font-semibold">expenses meet income</span>, and you get stuck.</p>
+        </div>
+
+        <!-- Slide 8: The Wealthy -->
+        <div id="slide-8" class="slide">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4 text-center fade-in">How the Wealthy Build Assets</h2>
+            <div class="relative w-full" style="max-width: 500px;">
+                <div id="w-income-plus" class="absolute -top-8 left-1/2 -translate-x-1/2 text-2xl font-bold text-green-400 opacity-0 transition-opacity duration-500"></div>
+                <div class="ledger-container fade-in fade-in-delay-1" id="w-ledger" style="grid-template-rows: auto auto; margin-top: 0;">
+                    <div class="ledger-box income-statement">
+                        <h3>Income Statement</h3>
+                        <div id="w-income-rows">
+                             <div class="ledger-row" id="w-income-row"><span>Income</span><span class="text-green-400" id="w-income">$0</span></div>
+                        </div>
+                    </div>
+                    <div class="balance-sheet" style="border-top: 4px double #4B5563;">
+                        <div class="ledger-box assets" id="w-assets-box">
+                            <h3 id="w-assets-title">Assets</h3>
+                            <div class="grid grid-cols-3 gap-2 text-4xl text-center" id="w-assets-grid">
+                                <!-- Asset icons will be added here -->
+                            </div>
+                        </div>
+                        <div class="ledger-box liabilities" style="border-top:none;"><h3>Liabilities</h3><div class="h-16"></div></div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-lg text-gray-400 max-w-2xl text-center mt-8 opacity-0" id="w-summary">They use their income to buy assets, which generates more income. They repeat this over and over.</p>
+        </div>
+
+        <!-- Slide 9: Financial Stability -->
+        <div id="slide-9" class="slide">
+            <h2 class="text-3xl md:text-4xl font-bold mb-8 text-center fade-in">An Option for More Ease & Control</h2>
+            <div class="max-w-3xl text-center space-y-6">
+                <p class="text-xl text-gray-300 fade-in fade-in-delay-1">
+                    For those seeking more control over their financial lives, this approach offers a path toward stability. The goal is to build your asset column until the <span class="text-blue-400 font-semibold">passive income</span> it generates is greater than your monthly <span class="text-red-400 font-semibold">expenses</span>.
+                </p>
+                <p class="text-2xl font-bold text-white fade-in fade-in-delay-2">
+                    Positive Cash Flow = More Options
+                </p>
+                <p class="text-xl text-gray-300 fade-in fade-in-delay-3">
+                    When your assets can consistently cover your lifestyle, you gain a powerful safety net. This allows you to make choices based on your values, not just financial necessity, and to enjoy life's luxuries without creating long-term strain.
+                </p>
+            </div>
+        </div>
+
+
+        <!-- Slide 10: Passive Income -->
+        <div id="slide-10" class="slide">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4 text-center fade-in">The Secret: Passive Income</h2>
+             <p class="text-lg text-gray-300 max-w-2xl text-center fade-in fade-in-delay-1">Money that continues to be generated long after the initial work has stopped.</p>
+             <div class="mt-8 flex space-x-8 fade-in fade-in-delay-2">
+                 <div class="text-center">
+                     <div class="text-6xl fade-in fade-in-delay-3">📈</div>
+                     <p class="mt-2 font-semibold">1. Buy an asset</p>
+                 </div>
+                 <div class="text-6xl self-center text-gray-500 fade-in fade-in-delay-4">&rarr;</div>
+                 <div class="text-center">
+                     <div class="text-6xl fade-in fade-in-delay-5">💰</div>
+                     <p class="mt-2 font-semibold">2. Reinvest profits</p>
+                 </div>
+                 <div class="text-6xl self-center text-gray-500 fade-in fade-in-delay-6">&rarr;</div>
+                 <div class="text-center">
+                    <div class="text-6xl fade-in" style="animation-delay: 1.4s;">📈📈</div>
+                     <p class="mt-2 font-semibold">3. Acquire more assets</p>
+                 </div>
+             </div>
+             <p class="text-lg text-gray-400 max-w-2xl text-center mt-12 fade-in" style="animation-delay: 1.6s;">This is how the wealthy accelerate their wealth creation.</p>
+        </div>
+        
+        <!-- Slide 11: Summary -->
+        <div id="slide-11" class="slide">
+             <h2 class="text-3xl md:text-4xl font-bold mb-8 fade-in">The Wealth Creation Formula</h2>
+             <div class="space-y-6 w-full max-w-md">
+                 <div class="bg-gray-800 p-4 rounded-lg flex items-center justify-between fade-in fade-in-delay-1">
+                     <span class="text-xl font-semibold">Lower Net Worth Individuals Buy:</span>
+                     <span class="text-xl font-bold text-gray-400">Stuff</span>
+                 </div>
+                 <div class="bg-gray-800 p-4 rounded-lg flex items-center justify-between fade-in fade-in-delay-2">
+                     <span class="text-xl font-semibold">Middle Net Worth Individuals Buy:</span>
+                     <span class="text-xl font-bold text-orange-400">Liabilities</span>
+                 </div>
+                 <div class="bg-gray-800 p-4 rounded-lg flex items-center justify-between fade-in fade-in-delay-3">
+                     <span class="text-xl font-semibold">High Net Worth Individuals Buy:</span>
+                     <span class="text-xl font-bold text-blue-400">Assets</span>
+                 </div>
+             </div>
+             <p class="text-xl text-center mt-12 max-w-2xl fade-in fade-in-delay-4">
+                 The path to financial freedom is to consistently <span class="text-green-400 font-semibold">use your income to buy assets that produce more income.</span>
+             </p>
+        </div>
+
+        <!-- Slide 12: Knowledge Check -->
+        <div id="slide-12" class="slide">
+            <h2 class="text-3xl md:text-4xl font-bold mb-8 fade-in">Check Your Understanding</h2>
+            <div id="quiz-container" class="w-full max-w-3xl space-y-6 overflow-y-auto" style="max-height: 70vh;">
+                <!-- Question 1 -->
+                <div class="quiz-question bg-gray-800 p-6 rounded-lg fade-in fade-in-delay-1">
+                    <p class="text-lg font-semibold mb-4">1. According to the presentation, what is the best definition of an "asset"?</p>
+                    <div class="space-y-2">
+                        <button class="quiz-option w-full">Something that costs you money every month.</button>
+                        <button class="quiz-option w-full">Anything you own that is expensive.</button>
+                        <button class="quiz-option w-full" data-correct="true">Something that puts money in your pocket.</button>
+                        <button class="quiz-option w-full">The money you earn from your job.</button>
+                    </div>
+                    <p class="quiz-feedback mt-3 text-lg font-bold h-6"></p>
+                </div>
+                <!-- Question 2 -->
+                <div class="quiz-question bg-gray-800 p-6 rounded-lg fade-in fade-in-delay-2">
+                    <p class="text-lg font-semibold mb-4">2. The "Rat Race" is a cycle where your expenses rise along with your income. What is the primary purchase that causes this?</p>
+                    <div class="space-y-2">
+                        <button class="quiz-option w-full">Stuff</button>
+                        <button class="quiz-option w-full">Assets</button>
+                        <button class="quiz-option w-full" data-correct="true">Liabilities</button>
+                        <button class="quiz-option w-full">Investments</button>
+                    </div>
+                    <p class="quiz-feedback mt-3 text-lg font-bold h-6"></p>
+                </div>
+                <!-- Question 3 -->
+                <div class="quiz-question bg-gray-800 p-6 rounded-lg fade-in fade-in-delay-3">
+                    <p class="text-lg font-semibold mb-4">3. What is the first and most important step to escaping the Rat Race?</p>
+                    <div class="space-y-2">
+                        <button class="quiz-option w-full">Asking for a raise at work.</button>
+                        <button class="quiz-option w-full" data-correct="true">Using your income to buy assets.</button>
+                        <button class="quiz-option w-full">Paying off your smallest debt first.</button>
+                        <button class="quiz-option w-full">Creating a detailed budget.</button>
+                    </div>
+                    <p class="quiz-feedback mt-3 text-lg font-bold h-6"></p>
+                </div>
+                <!-- Question 4 -->
+                <div class="quiz-question bg-gray-800 p-6 rounded-lg fade-in fade-in-delay-4">
+                    <p class="text-lg font-semibold mb-4">4. Financial stability is achieved when which of the following is true?</p>
+                    <div class="space-y-2">
+                        <button class="quiz-option w-full">You have zero debt.</button>
+                        <button class="quiz-option w-full">Your income is higher than your expenses.</button>
+                        <button class="quiz-option w-full">You have a high-paying job.</button>
+                        <button class="quiz-option w-full" data-correct="true">Your passive income from assets is greater than your expenses.</button>
+                    </div>
+                    <p class="quiz-feedback mt-3 text-lg font-bold h-6"></p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <button id="prevBtn" class="btn-nav">&larr; Previous</button>
+    <button id="nextBtn" class="btn-nav">Next &rarr;</button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slides = document.querySelectorAll('.slide');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            let currentSlide = 0;
+            
+            // Keep track of the original slide content
+            const originalSlides = new Map();
+            slides.forEach((slide, index) => {
+                originalSlides.set(index, slide.cloneNode(true));
+            });
+
+            // Animation state
+            let animationIntervals = [];
+
+            function animateValue(element, start, end, duration, isMoney = true) {
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    const currentValue = Math.floor(progress * (end - start) + start);
+                    if (isMoney) {
+                        element.textContent = '$' + currentValue.toLocaleString();
+                    } else {
+                        element.textContent = currentValue.toLocaleString();
+                    }
+                    if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                    }
+                };
+                window.requestAnimationFrame(step);
+            }
+            
+            function createCurvedArrow(color = 'currentColor', hasDollarSign = false) {
+                const id = `arrowhead-${color.replace('#','')}`;
+                const dollarSign = hasDollarSign ? `<text x="95" y="40" font-size="20" fill="#EF4444" font-weight="bold">$</text>` : '';
+                const arrowEl = document.createElement('div');
+                arrowEl.className = 'cash-flow-arrow';
+                arrowEl.style.color = color;
+                arrowEl.innerHTML = `<svg width="200" height="200" viewBox="0 0 200 200" style="overflow: visible;">
+                    <defs>
+                        <marker id="${id}" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="currentColor"/>
+                        </marker>
+                    </defs>
+                    <path d="M0 0" stroke="currentColor" stroke-width="4" fill="none" marker-end="url(#${id})" />
+                    ${dollarSign}
+                </svg>`;
+                return arrowEl;
+            }
+
+            function runLowerIncomeAnimation() {
+                const ledger = document.getElementById('li-ledger');
+                if (!ledger) return;
+
+                const incomeEl = document.getElementById('li-income');
+                const expensesEl = document.getElementById('li-expenses');
+                const summaryEl = document.getElementById('li-summary');
+                
+                function cycle() {
+                    // Reset
+                    summaryEl.style.opacity = '0';
+                    incomeEl.textContent = '$0';
+                    expensesEl.textContent = '$0';
+                    
+                    const t1 = setTimeout(() => {
+                        animateValue(incomeEl, 0, 2000, 500);
+                        incomeEl.classList.add('balance-change');
+                        setTimeout(() => incomeEl.classList.remove('balance-change'), 500);
+                    }, 500);
+                    
+                    const t2 = setTimeout(() => {
+                        animateValue(incomeEl, 2000, 0, 800);
+                        animateValue(expensesEl, 0, 2000, 800);
+                        incomeEl.classList.add('balance-change');
+                        expensesEl.classList.add('balance-change');
+                         setTimeout(() => {
+                            incomeEl.classList.remove('balance-change');
+                            expensesEl.classList.remove('balance-change');
+                        }, 800);
+
+                        const arrowEl = createCurvedArrow('#F87171');
+                        const incomeRow = document.getElementById('li-income-row');
+                        const expenseRow = document.getElementById('li-expenses-row');
+                        ledger.appendChild(arrowEl);
+
+                        const startRect = incomeRow.getBoundingClientRect();
+                        const endRect = expenseRow.getBoundingClientRect();
+                        const ledgerRect = ledger.getBoundingClientRect();
+
+                        const startX = startRect.left - ledgerRect.left + startRect.width * 0.7;
+                        const startY = startRect.top - ledgerRect.top + startRect.height / 2;
+                        const endX = startRect.left - ledgerRect.left + startRect.width + 50;
+                        const endY = endRect.top - ledgerRect.top + endRect.height / 2;
+
+                        const path = arrowEl.querySelector('path');
+                        path.setAttribute('d', `M ${startX} ${startY} Q ${startX + 40} ${startY + 10}, ${endX - 10} ${endY}`);
+                        const length = path.getTotalLength();
+                        path.style.strokeDasharray = length;
+                        path.style.strokeDashoffset = length;
+
+                        arrowEl.style.opacity = '1';
+                        path.animate([ { strokeDashoffset: length }, { strokeDashoffset: 0 } ], { duration: 1000, easing: 'ease-out' })
+                            .onfinish = () => {
+                                setTimeout(() => {
+                                    if(arrowEl) arrowEl.remove();
+                                }, 500);
+                            };
+
+                        const t3 = setTimeout(() => {
+                            summaryEl.style.opacity = '1';
+                            summaryEl.classList.add('fade-in');
+                        }, 1000);
+                        animationIntervals.push(t3);
+
+                    }, 2000);
+
+                    animationIntervals.push(t1, t2);
+                }
+                cycle();
+                const interval = setInterval(cycle, 6000);
+                animationIntervals.push(interval);
+            }
+            
+            function runMiddleClassAnimation() {
+                const ledger = document.getElementById('mc-ledger');
+                if (!ledger) return;
+
+                const incomeEl = document.getElementById('mc-income');
+                const incomeRow = document.getElementById('mc-income-row');
+                const expenseRow = document.getElementById('mc-expense-row');
+                const expenseEl = document.getElementById('mc-expense');
+                const liabilitiesGrid = document.getElementById('mc-liabilities-grid');
+                const summaryEl = document.getElementById('mc-summary');
+                
+                function cycle() {
+                    // Reset
+                    incomeEl.textContent = '$0';
+                    expenseRow.style.opacity = '0';
+                    expenseEl.textContent = '$0';
+                    expenseRow.classList.remove('fade-in');
+                    liabilitiesGrid.innerHTML = '';
+                    summaryEl.style.opacity = '0';
+                    summaryEl.classList.remove('fade-in');
+
+                    const liabilities = [
+                        { icon: '🚗', cost: 5000 },
+                        { icon: '⛵️', cost: 4000 },
+                        { icon: '🏡', cost: 3000 },
+                        { icon: '💳', cost: 3000 }
+                    ];
+                    
+                    // 1. Animate Initial Income
+                    const t1 = setTimeout(() => {
+                        animateValue(incomeEl, 0, 15000, 500);
+                        incomeEl.classList.add('balance-change');
+                        setTimeout(() => incomeEl.classList.remove('balance-change'), 500);
+                        
+                        // 2. Start purchasing liabilities sequentially
+                        setTimeout(() => purchaseLiability(0, 15000, 0), 1000);
+
+                    }, 500);
+                    
+                    function purchaseLiability(index, currentIncome, currentExpense) {
+                        if (index >= liabilities.length) {
+                            // All liabilities purchased, show final summary
+                            const t4 = setTimeout(() => {
+                                 summaryEl.style.opacity = '1';
+                                 summaryEl.classList.add('fade-in');
+                            }, 1000);
+                            animationIntervals.push(t4);
+                            return;
+                        }
+
+                        const liability = liabilities[index];
+                        
+                        const iconDiv = document.createElement('div');
+                        iconDiv.textContent = liability.icon;
+                        iconDiv.className = 'fade-in';
+                        liabilitiesGrid.appendChild(iconDiv);
+                        
+                        setTimeout(() => {
+                            const incomeArrow = createCurvedArrow('#F87171');
+                            ledger.appendChild(incomeArrow);
+
+                            const startRect = incomeRow.getBoundingClientRect();
+                            const endRect = iconDiv.getBoundingClientRect();
+                            const ledgerRect = ledger.getBoundingClientRect();
+
+                            const startX = startRect.right - ledgerRect.left - 20;
+                            const startY = startRect.top - ledgerRect.top + startRect.height / 2;
+                            const endX = endRect.left - ledgerRect.left + endRect.width / 2;
+                            const endY = endRect.top - ledgerRect.top;
+
+                            const path = incomeArrow.querySelector('path');
+                            path.setAttribute('d', `M ${startX} ${startY} C ${startX + 60}, ${startY + 20}, ${endX + 80}, ${endY + 20}, ${endX} ${endY}`);
+                            const length = path.getTotalLength();
+                            path.style.strokeDasharray = length;
+                            path.style.strokeDashoffset = length;
+
+                            incomeArrow.style.opacity = '1';
+                            path.animate([{strokeDashoffset: length}, {strokeDashoffset: 0}], {duration: 800, easing: 'ease-out'}).onfinish = () => {
+                                setTimeout(() => incomeArrow.remove(), 200);
+                                const newIncome = currentIncome - liability.cost;
+                                animateValue(incomeEl, currentIncome, newIncome, 500);
+                                
+                                createExpenseFromLiability(iconDiv, currentExpense, liability.cost, () => {
+                                    purchaseLiability(index + 1, newIncome, currentExpense + liability.cost);
+                                });
+                            };
+                        }, 50);
+                    }
+
+                    function createExpenseFromLiability(iconDiv, currentExpense, expenseAmount, onFinishCallback) {
+                         if(expenseRow.style.opacity === '0') {
+                            expenseRow.style.opacity = '1';
+                            expenseRow.classList.add('fade-in');
+                         }
+
+                        const expenseArrow = createCurvedArrow('#F87171', true);
+                        ledger.appendChild(expenseArrow);
+                        
+                        const startRect = iconDiv.getBoundingClientRect();
+                        const endRect = expenseRow.getBoundingClientRect();
+                        const ledgerRect = ledger.getBoundingClientRect();
+
+                        const startX = startRect.left - ledgerRect.left + startRect.width / 2;
+                        const startY = startRect.top - ledgerRect.top;
+                        const endX = endRect.right - ledgerRect.left - 40;
+                        const endY = endRect.top - ledgerRect.top + endRect.height / 2;
+
+                        const path = expenseArrow.querySelector('path');
+                        path.setAttribute('d', `M ${startX} ${startY} Q ${startX - 60} ${startY - 60}, ${endX} ${endY}`);
+                        const length = path.getTotalLength();
+                        path.style.strokeDasharray = length;
+                        path.style.strokeDashoffset = length;
+                        
+                        expenseArrow.style.opacity = '1';
+                        path.animate([{strokeDashoffset: length}, {strokeDashoffset: 0}], { duration: 800, easing: 'ease-out' }).onfinish = () => {
+                            setTimeout(() => expenseArrow.remove(), 200);
+                            const newTotalExpense = currentExpense + expenseAmount;
+                            animateValue(expenseEl, currentExpense, newTotalExpense, 500);
+                            setTimeout(onFinishCallback, 500);
+                        };
+                    }
+
+                    animationIntervals.push(t1);
+                }
+                cycle();
+                const interval = setInterval(cycle, 14000);
+                animationIntervals.push(interval);
+            }
+
+            function runMiddleClassTrapAnimation() {
+                const incomeChart = document.getElementById('income-chart');
+                const expenseChart = document.getElementById('expense-chart');
+                const summary = document.getElementById('trap-summary');
+                if (!incomeChart || !expenseChart) return;
+
+                function cycle() {
+                    incomeChart.innerHTML = '';
+                    expenseChart.innerHTML = '';
+                    summary.style.opacity = '0';
+                    summary.classList.remove('fade-in');
+
+                    const t1 = setTimeout(() => {
+                        const padding = 20;
+                        const width = 250;
+                        const height = 300;
+
+                        const drawAxes = (chartEl) => {
+                            const axes = `
+                                <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#4B5563" stroke-width="2"/>
+                                <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#4B5563" stroke-width="2"/>
+                            `;
+                            chartEl.innerHTML = axes;
+                        };
+
+                        drawAxes(incomeChart);
+                        drawAxes(expenseChart);
+
+                        // Income line
+                        const incomePathData = `M ${padding},${height - 40} C ${width/2},${height-100} ${width/2},${height-130} ${width-padding},${height-180}`;
+                        const incomeLine = `<path d="${incomePathData}" stroke="#10B981" stroke-width="4" fill="none" class="chart-line" id="income-line"/>`;
+                        incomeChart.innerHTML += incomeLine;
+                        
+                        // Expense line
+                        const expensePathData = `M ${padding},${height-30} C ${width/3},${height-60} ${width/2},${height-160} ${width-padding},${height-190}`;
+                        const expenseLine = `<path d="${expensePathData}" stroke="#F87171" stroke-width="4" fill="none" class="chart-line" id="expense-line"/>`;
+                        expenseChart.innerHTML += expenseLine;
+
+                        const incomeLineEl = document.getElementById('income-line');
+                        const expenseLineEl = document.getElementById('expense-line');
+                        
+                        const incomeLength = incomeLineEl.getTotalLength();
+                        incomeLineEl.style.strokeDasharray = incomeLength;
+                        incomeLineEl.style.strokeDashoffset = incomeLength;
+                        
+                        incomeLineEl.animate([{strokeDashoffset: incomeLength}, {strokeDashoffset: 0}], {duration: 1500, easing: 'ease-out', fill: 'forwards'}).onfinish = () => {
+                            const expenseLength = expenseLineEl.getTotalLength();
+                            expenseLineEl.style.strokeDasharray = expenseLength;
+                            expenseLineEl.style.strokeDashoffset = expenseLength;
+                            expenseLineEl.animate([{strokeDashoffset: expenseLength}, {strokeDashoffset: 0}], {duration: 1500, easing: 'ease-out', fill: 'forwards'}).onfinish = () => {
+                                summary.style.opacity = '1';
+                                summary.classList.add('fade-in');
+                            };
+                        };
+                    }, 500);
+                    animationIntervals.push(t1);
+                }
+                cycle();
+                const interval = setInterval(cycle, 7000);
+                animationIntervals.push(interval);
+            }
+
+            function runWealthyAnimation() {
+                const ledger = document.getElementById('w-ledger');
+                if(!ledger) return;
+
+                const incomeEl = document.getElementById('w-income');
+                const incomeRow = document.getElementById('w-income-row');
+                const assetsGrid = document.getElementById('w-assets-grid');
+                const assetsBox = document.getElementById('w-assets-box');
+                const summaryEl = document.getElementById('w-summary');
+                const incomePlusEl = document.getElementById('w-income-plus');
+                
+                function cycle() {
+                    let currentIncome = 0;
+                    let assetCount = 0;
+                    incomeEl.textContent = '$0';
+                    assetsGrid.innerHTML = '';
+                    summaryEl.style.opacity = '0';
+
+                    function buildAsset(startIncome, incomeIncrease) {
+                        if (startIncome >= 3000) {
+                            summaryEl.style.opacity = '1';
+                            summaryEl.classList.add('fade-in');
+                            return;
+                        }
+
+                        const t1 = setTimeout(() => {
+                           if (startIncome === 0) { // First time only
+                                animateValue(incomeEl, 0, 1000, 500);
+                                currentIncome = 1000;
+                           } else {
+                                currentIncome = startIncome;
+                           }
+                           
+                            // Buy Asset (Arrow 1: Income -> Assets)
+                            const t2 = setTimeout(() => {
+                                const arrow1 = createCurvedArrow('#34D399');
+                                ledger.appendChild(arrow1);
+                                const startRect = incomeRow.getBoundingClientRect();
+                                const endRect = assetsBox.getBoundingClientRect();
+                                const ledgerRect = ledger.getBoundingClientRect();
+                                
+                                const startX = startRect.left - ledgerRect.left + startRect.width / 2;
+                                const startY = startRect.top - ledgerRect.top + startRect.height / 2;
+                                const endX = endRect.left - ledgerRect.left + endRect.width / 2;
+                                const endY = endRect.top - ledgerRect.top;
+                                
+                                const path1 = arrow1.querySelector('path');
+                                path1.setAttribute('d', `M ${startX} ${startY} Q ${startX} ${startY + 60}, ${endX} ${endY}`);
+                                const length1 = path1.getTotalLength();
+                                path1.style.strokeDasharray = length1;
+                                path1.style.strokeDashoffset = length1;
+
+                                arrow1.style.opacity = '1';
+                                path1.animate([{strokeDashoffset: length1}, {strokeDashoffset: 0}], {duration: 800, easing: 'ease-out'}).onfinish = () => {
+                                     setTimeout(() => arrow1.remove(), 200);
+                                     
+                                     const assetIcon = document.createElement('span');
+                                     assetIcon.textContent = '📈';
+                                     assetIcon.className = 'fade-in';
+                                     assetsGrid.appendChild(assetIcon);
+                                     assetCount++;
+
+                                     // Asset pays you (Arrow 2: Assets -> Income)
+                                     const t3 = setTimeout(() => {
+                                        const arrow2 = createCurvedArrow('#34D399');
+                                        ledger.appendChild(arrow2);
+                                        const assetRect = assetIcon.getBoundingClientRect();
+                                        const incomeRect = incomeRow.getBoundingClientRect();
+
+                                        const startX2 = assetRect.left - ledgerRect.left + assetRect.width / 2;
+                                        const startY2 = assetRect.top - ledgerRect.top;
+                                        const endX2 = incomeRect.left - ledgerRect.left + incomeRect.width / 2;
+                                        const endY2 = incomeRect.bottom - ledgerRect.top;
+
+                                        const path2 = arrow2.querySelector('path');
+                                        path2.setAttribute('d', `M ${startX2} ${startY2} Q ${startX2 - 120} ${startY2 - 50}, ${endX2} ${endY2}`);
+                                        const length2 = path2.getTotalLength();
+                                        path2.style.strokeDasharray = length2;
+                                        path2.style.strokeDashoffset = length2;
+
+                                        arrow2.style.opacity = '1';
+                                        path2.animate([{strokeDashoffset: length2}, {strokeDashoffset: 0}], {duration: 800, easing: 'ease-out'}).onfinish = () => {
+                                             setTimeout(() => arrow2.remove(), 200);
+
+                                             const newTotalIncome = currentIncome + incomeIncrease;
+                                             if (incomePlusEl) {
+                                                 incomePlusEl.textContent = `+$${incomeIncrease}`;
+                                                 incomePlusEl.style.opacity = '1';
+                                             }
+                                             animateValue(incomeEl, currentIncome, newTotalIncome, 500);
+                                             incomeEl.classList.add('balance-change');
+                                             setTimeout(() => {
+                                                  if (incomePlusEl) incomePlusEl.style.opacity = '0';
+                                                  incomeEl.classList.remove('balance-change');
+                                                  // Start next cycle
+                                                  buildAsset(newTotalIncome, incomeIncrease + 250);
+                                             }, 1000);
+                                        };
+                                     }, 250);
+                                     animationIntervals.push(t3);
+                                };
+                            }, 500);
+                             animationIntervals.push(t2);
+                        }, startIncome === 0 ? 1000 : 250);
+                        animationIntervals.push(t1);
+                    }
+
+                    buildAsset(0, 500);
+                }
+                cycle();
+                // This animation is self-looping until it hits the target, so no need for setInterval
+            }
+
+            function runQuiz() {
+                const quizQuestions = document.querySelectorAll('.quiz-question');
+                quizQuestions.forEach(question => {
+                    const options = question.querySelectorAll('.quiz-option');
+                    const feedbackEl = question.querySelector('.quiz-feedback');
+                    let answered = false;
+
+                    options.forEach(option => {
+                        option.addEventListener('click', () => {
+                            if (answered) return;
+                            answered = true;
+
+                            // Disable all buttons in this question
+                            options.forEach(btn => btn.disabled = true);
+
+                            const isCorrect = option.getAttribute('data-correct') === 'true';
+
+                            if (isCorrect) {
+                                option.classList.add('correct');
+                                feedbackEl.textContent = 'Correct!';
+                                feedbackEl.classList.add('correct');
+                            } else {
+                                option.classList.add('incorrect');
+                                feedbackEl.textContent = 'Incorrect.';
+                                feedbackEl.classList.add('incorrect');
+                                // Highlight the correct answer
+                                const correctOption = question.querySelector('.quiz-option[data-correct="true"]');
+                                if (correctOption) {
+                                    correctOption.classList.add('correct');
+                                }
+                            }
+                        });
+                    });
+                });
+            }
+
+            function clearAnimations() {
+                animationIntervals.forEach(id => {
+                    clearInterval(id);
+                    clearTimeout(id);
+                });
+                animationIntervals = [];
+                // Remove any stray arrow elements
+                document.querySelectorAll('.cash-flow-arrow, .ff-temp-element').forEach(el => el.remove());
+            }
+
+            function showSlide(index) {
+                clearAnimations();
+
+                // Iterate through all possible slide indices
+                for (let i = 0; i < originalSlides.size; i++) {
+                    const currentSlideInDom = document.getElementById(`slide-${i + 1}`);
+                    const originalSlideNode = originalSlides.get(i);
+
+                    // Replace the current slide in the DOM with a fresh clone to reset it
+                    if (currentSlideInDom && currentSlideInDom.parentNode && originalSlideNode) {
+                        currentSlideInDom.parentNode.replaceChild(originalSlideNode.cloneNode(true), currentSlideInDom);
+                    }
+                }
+                
+                // Now that all slides are reset, get the new slide and activate it
+                const slideToShow = document.getElementById(`slide-${index + 1}`);
+                if (slideToShow) {
+                    slideToShow.classList.add('active');
+
+                    // Run animations for the now-active slide
+                    if (slideToShow.id === 'slide-5') runLowerIncomeAnimation();
+                    if (slideToShow.id === 'slide-6') runMiddleClassAnimation();
+                    if (slideToShow.id === 'slide-7') runMiddleClassTrapAnimation();
+                    if (slideToShow.id === 'slide-8') runWealthyAnimation();
+                    if (slideToShow.id === 'slide-12') runQuiz();
+                }
+                
+                // Update navigation buttons
+                prevBtn.disabled = index === 0;
+                nextBtn.disabled = index === originalSlides.size - 1;
+
+                if (index === originalSlides.size - 1) {
+                    nextBtn.textContent = 'Finish';
+                } else {
+                    nextBtn.textContent = 'Next →';
+                }
+            }
+            
+            function nextSlide() {
+                if (currentSlide < slides.length - 1) {
+                    currentSlide++;
+                    showSlide(currentSlide);
+                }
+            }
+
+            function prevSlide() {
+                if (currentSlide > 0) {
+                    currentSlide--;
+                    showSlide(currentSlide);
+                }
+            }
+            
+            nextBtn.addEventListener('click', nextSlide);
+            prevBtn.addEventListener('click', prevSlide);
+            
+            document.addEventListener('keydown', (e) => {
+                if(e.key === 'ArrowRight') {
+                    nextSlide();
+                } else if (e.key === 'ArrowLeft') {
+                    prevSlide();
+                }
+            });
+
+            // Initial load
+            showSlide(currentSlide);
+        });
+    </script>
+</body>
+</html>
+
