@@ -24,8 +24,8 @@
             border: 2px solid #22c55e;
         }
         .table-highlight-marginal {
-            background-color: #e0e7ff;
-            border: 2px solid #4f46e5;
+             background-color: #e0e7ff;
+             border: 2px solid #4f46e5;
         }
         .question-part {
             cursor: pointer;
@@ -50,10 +50,38 @@
         </header>
 
         <main class="space-y-8">
-            <!-- Step 1: The Basics (visible by default) -->
+            <!-- Step 1: The Basics -->
             <section id="step-1-card" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                <!-- ... (all your Step 1 HTML exactly as before) ... -->
-                <!-- Leave this section as-is. -->
+                <h2 class="text-2xl font-bold mb-4 text-indigo-700">Step 1: The Basics (One-Way Tables)</h2>
+                <p class="mb-4">Relative frequency is a way to show what portion of a whole dataset a certain "part" makes up. The formula is always <strong class="text-indigo-600">Part / Whole</strong>. Let's start with a simple frequency table.</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 border rounded-lg" id="class-table">
+                        <caption class="text-lg font-medium text-gray-700 mb-2">Leo's Survey: Favorite Class</caption>
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Class</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Frequency</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr><td class="px-6 py-4 whitespace-nowrap">Science</td><td class="px-6 py-4 whitespace-nowrap" data-row="0" data-col="0">45</td></tr>
+                            <tr><td class="px-6 py-4 whitespace-nowrap">Math</td><td class="px-6 py-4 whitespace-nowrap" data-row="1" data-col="0">32</td></tr>
+                            <tr><td class="px-6 py-4 whitespace-nowrap">History</td><td class="px-6 py-4 whitespace-nowrap" data-row="2" data-col="0">23</td></tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-gray-200 font-bold"><td class="px-6 py-4">Total</td><td class="px-6 py-4" data-row="3" data-col="0">100</td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="mt-6 bg-indigo-50 p-4 rounded-lg">
+                    <p class="font-semibold mb-2">Question 1.1: What is the relative frequency of students who prefer <span class="question-part text-green-600" onclick="highlight('class', 0, 0, 3, 0)">Science</span>?</p>
+                    <div id="formula-class" class="my-2 text-xl font-mono text-center bg-white p-3 rounded-md shadow-inner">-- / --</div>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="answer-class" placeholder="Enter as a decimal (e.g., 0.45)" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button onclick="checkAnswer('class', 0.45)" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">Check</button>
+                    </div>
+                    <p id="feedback-class" class="mt-2 text-sm font-medium feedback opacity-0"></p>
+                </div>
                  <div class="mt-6 flex justify-end">
                     <button onclick="goToStep(2)" class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition font-semibold">Next: Two-Way Tables &rarr;</button>
                 </div>
@@ -61,7 +89,84 @@
 
             <!-- Step 2: Two-Way Tables -->
             <section id="step-2-card" class="hidden bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                <!-- ... (your Step 2 HTML exactly as before) ... -->
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-teal-700">Step 2: Choosing the Right "Whole"</h2>
+                        <p class="mt-2 text-gray-600">Two-way tables have more data, which means more possible "wholes"! The question tells you which total to use. Let's practice.</p>
+                    </div>
+                     <button onclick="goToStep(1)" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition whitespace-nowrap font-semibold">&larr; Back to Step 1</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 border rounded-lg" id="icecream-table">
+                        <caption class="text-lg font-medium text-gray-700 mb-2">Cafe Survey: Ice Cream & Grade Level</caption>
+                        <thead class="bg-gray-100">
+                             <tr>
+                                 <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"></th>
+                                 <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Chocolate</th>
+                                 <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Vanilla</th>
+                                 <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Strawberry</th>
+                                 <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider font-bold bg-gray-200">Total</th>
+                             </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-4 py-4 whitespace-nowrap font-bold">7th Grade</td>
+                                <td class="px-4 py-4" data-row="0" data-col="0">25</td>
+                                <td class="px-4 py-4" data-row="0" data-col="1">14</td>
+                                <td class="px-4 py-4" data-row="0" data-col="2">11</td>
+                                <td class="px-4 py-4 font-bold bg-gray-200" data-row="0" data-col="3">50</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-4 whitespace-nowrap font-bold">8th Grade</td>
+                                <td class="px-4 py-4" data-row="1" data-col="0">15</td>
+                                <td class="px-4 py-4" data-row="1" data-col="1">20</td>
+                                <td class="px-4 py-4" data-row="1" data-col="2">15</td>
+                                <td class="px-4 py-4 font-bold bg-gray-200" data-row="1" data-col="3">50</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                             <tr class="bg-gray-200 font-bold">
+                                 <td class="px-4 py-4">Total</td>
+                                 <td class="px-4 py-4" data-row="2" data-col="0">40</td>
+                                 <td class="px-4 py-4" data-row="2" data-col="1">34</td>
+                                 <td class="px-4 py-4" data-row="2" data-col="2">26</td>
+                                 <td class="px-4 py-4 bg-gray-300" data-row="2" data-col="3">100</td>
+                             </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="mt-6 space-y-6">
+                    <div id="q2-1" class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <h3 class="font-semibold text-yellow-800">Practice: The "Grand Total"</h3>
+                        <p class="mt-2">Question 2.1: What is the relative frequency of <span class="question-part text-green-600" onclick="highlightFruit('grand', 'icecream', 1, 1)">8th graders who chose vanilla</span> among all students?</p>
+                        <div id="formula-icecream-grand" class="my-2 text-xl font-mono text-center bg-white p-3 rounded-md shadow-inner">-- / --</div>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="answer-icecream-grand" placeholder="Decimal (e.g., 0.20)" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                            <button onclick="checkAnswer('icecream-grand', 0.20)" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition">Check</button>
+                        </div>
+                        <p id="feedback-icecream-grand" class="mt-2 text-sm font-medium feedback opacity-0"></p>
+                    </div>
+                    <div id="q2-2" class="bg-pink-50 p-4 rounded-lg border border-pink-200">
+                        <h3 class="font-semibold text-pink-800">Practice: The "Row Total"</h3>
+                        <p class="mt-2">Question 2.2: What percentage of <span class="question-part text-pink-900" onclick="highlightFruit('row', 'icecream', 0, 2)">the 7th graders</span> preferred <span class="question-part text-green-600" onclick="highlightFruit('row', 'icecream', 0, 2)">strawberry</span>?</p>
+                        <div id="formula-icecream-row" class="my-2 text-xl font-mono text-center bg-white p-3 rounded-md shadow-inner">-- / --</div>
+                        <div class="flex items-center gap-2">
+                             <input type="text" id="answer-icecream-row" placeholder="Decimal (e.g., 0.22)" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500">
+                            <button onclick="checkAnswer('icecream-row', 0.22)" class="bg-pink-500 text-white px-4 py-2 rounded-md hover:bg-pink-600 transition">Check</button>
+                        </div>
+                        <p id="feedback-icecream-row" class="mt-2 text-sm font-medium feedback opacity-0"></p>
+                    </div>
+                    <div id="q2-3" class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <h3 class="font-semibold text-blue-800">Practice: The "Column Total"</h3>
+                        <p class="mt-2">Question 2.3: Of the students <span class="question-part text-blue-900" onclick="highlightFruit('col', 'icecream', 0, 0)">who chose chocolate</span>, what percentage were <span class="question-part text-green-600" onclick="highlightFruit('col', 'icecream', 0, 0)">7th graders</span>?</p>
+                        <div id="formula-icecream-col" class="my-2 text-xl font-mono text-center bg-white p-3 rounded-md shadow-inner">-- / --</div>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="answer-icecream-col" placeholder="Decimal (e.g., 0.63)" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button onclick="checkAnswer('icecream-col', 0.625)" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">Check</button>
+                        </div>
+                        <p id="feedback-icecream-col" class="mt-2 text-sm font-medium feedback opacity-0"></p>
+                    </div>
+                </div>
                 <div class="mt-8 flex justify-end">
                     <button onclick="goToStep(3)" class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition font-semibold">Next: Advanced Topics &rarr;</button>
                 </div>
@@ -69,7 +174,95 @@
 
             <!-- Step 3: Advanced Topics -->
             <section id="step-3-card" class="hidden bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                <!-- ... (your Step 3 HTML exactly as before) ... -->
+                <div class="flex justify-between items-start mb-4">
+                     <div>
+                        <h2 class="text-2xl font-bold text-purple-700">Step 3: Joint, Marginal & Conditional Frequency</h2>
+                        <p class="mt-2 text-gray-600">Let's learn some key terms for two-way tables.</p>
+                    </div>
+                    <button onclick="goToStep(2)" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition whitespace-nowrap font-semibold">&larr; Back to Step 2</button>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="prose max-w-none">
+                            <h3 class="text-lg font-semibold">Key Terms</h3>
+                            <ul>
+                                <li><strong class="text-green-600">Joint Frequency:</strong> An entry in the body of the table. It's where a row and column <span class="italic">join</span>.</li>
+                                <li><strong class="text-indigo-600">Marginal Frequency:</strong> An entry in the "Total" row or "Total" column. They are in the <span class="italic">margins</span> of the table.</li>
+                            </ul>
+                            <h3 class="text-lg font-semibold mt-4">Conditional Frequency</h3>
+                            <p>This is the most common type. It finds a relative frequency for a <span class="italic">specific subgroup or condition</span>. You've already done this!</p>
+                            <p>The "whole" is NOT the grand total. It's a marginal frequency (a row or column total) that matches the condition in the question.</p>
+                            <p><strong>Example:</strong> "Of the students who drive, what percent are seniors?" The condition is "students who drive," so the "whole" is the total number of drivers.</p>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 border rounded-lg" id="transport-table">
+                            <caption class="text-lg font-medium text-gray-700 mb-2">High School: Transport Method</caption>
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-4 py-3"></th>
+                                    <th class="px-4 py-3 font-bold text-gray-600 uppercase">Bus</th>
+                                    <th class="px-4 py-3 font-bold text-gray-600 uppercase">Car</th>
+                                    <th class="px-4 py-3 font-bold text-gray-600 uppercase bg-gray-200">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td class="px-4 py-4 font-bold">Juniors</td>
+                                    <td class="px-4 py-4" data-row="0" data-col="0">60</td>
+                                    <td class="px-4 py-4" data-row="0" data-col="1">90</td>
+                                    <td class="px-4 py-4 font-bold bg-gray-200" data-row="0" data-col="2">150</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-4 font-bold">Seniors</td>
+                                    <td class="px-4 py-4" data-row="1" data-col="0">40</td>
+                                    <td class="px-4 py-4" data-row="1" data-col="1">110</td>
+                                    <td class="px-4 py-4 font-bold bg-gray-200" data-row="1" data-col="2">150</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-gray-200 font-bold">
+                                    <td class="px-4 py-4">Total</td>
+                                    <td class="px-4 py-4" data-row="2" data-col="0">100</td>
+                                    <td class="px-4 py-4" data-row="2" data-col="1">200</td>
+                                    <td class="px-4 py-4 bg-gray-300" data-row="2" data-col="2">300</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mt-6 space-y-6">
+                     <div class="bg-gray-50 p-4 rounded-lg border">
+                        <h3 class="font-semibold text-gray-800">Practice: Identifying Frequencies</h3>
+                        <p class="mt-2">The number of <span class="question-part text-green-600" onclick="highlightSpecial('joint', 'transport', 0, 1)">Juniors who travel by car</span> is a joint frequency.</p>
+                         <p class="mt-2">The total number of <span class="question-part text-indigo-600" onclick="highlightSpecial('marginal', 'transport', 2, 1)">students who travel by car</span> is a marginal frequency.</p>
+                    </div>
+
+                    <div class="bg-rose-50 p-4 rounded-lg border border-rose-200">
+                        <h3 class="font-semibold text-rose-800">Practice: Conditional Frequency</h3>
+                        <p class="mt-2">Question 3.1: <span class="question-part text-rose-900" onclick="highlightFruit('row', 'transport', 1, 1)">Given that a student is a Senior</span>, what is the relative frequency they travel by car?</p>
+                        <div id="formula-transport-cond1" class="my-2 text-xl font-mono text-center bg-white p-3 rounded-md shadow-inner">-- / --</div>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="answer-transport-cond1" placeholder="Decimal (e.g., 0.73)" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <button onclick="checkAnswer('transport-cond1', 110/150)" class="bg-rose-500 text-white px-4 py-2 rounded-md hover:bg-rose-600 transition">Check</button>
+                        </div>
+                        <p id="feedback-transport-cond1" class="mt-2 text-sm font-medium feedback opacity-0"></p>
+                    </div>
+
+                     <div class="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
+                        <h3 class="font-semibold text-cyan-800">Practice: Conditional Frequency (Column)</h3>
+                        <p class="mt-2">Question 3.2: <span class="question-part text-cyan-900" onclick="highlightFruit('col', 'transport', 0, 0)">Of the students who take the bus</span>, what is the relative frequency they are a Junior?</p>
+                        <div id="formula-transport-cond2" class="my-2 text-xl font-mono text-center bg-white p-3 rounded-md shadow-inner">-- / --</div>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="answer-transport-cond2" placeholder="Decimal (e.g., 0.60)" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                            <button onclick="checkAnswer('transport-cond2', 60/100)" class="bg-cyan-500 text-white px-4 py-2 rounded-md hover:bg-cyan-600 transition">Check</button>
+                        </div>
+                        <p id="feedback-transport-cond2" class="mt-2 text-sm font-medium feedback opacity-0"></p>
+                    </div>
+                </div>
+
                 <div class="mt-8 flex justify-end">
                     <button onclick="restartTutorial()" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition font-semibold">All Done! Start Over</button>
                 </div>
@@ -93,7 +286,6 @@
         };
 
         function goToStep(stepNumber) {
-            // Hide ALL sections first
             document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
             // Try to show -card or -extra section for this step
             let section = document.getElementById(`step-${stepNumber}-card`);
