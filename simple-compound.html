@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Learning Toolkit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .wizard-card {
+            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+            /* Ensure cards fill the container height to allow for vertical centering */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .card-hidden {
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+        }
+        .progress-bar-inner {
+            transition: width 0.4s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 flex items-center justify-center min-h-screen">
+    <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-3xl w-full">
+        <header class="text-center mb-4">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Financial Learning Journey</h1>
+            <p class="mt-2 text-lg text-gray-600">A step-by-step guide to key financial concepts.</p>
+        </header>
+
+        <!-- Progress Bar -->
+        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-6">
+            <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full progress-bar-inner" style="width: 0%"></div>
+        </div>
+
+        <div class="relative min-h-[550px]">
+            <!-- Card 1: Introduction -->
+            <div id="card-0" class="wizard-card bg-white p-8 rounded-2xl shadow-lg flex flex-col text-center">
+                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 1 / 7</div>
+                <div class="flex-grow flex flex-col justify-center">
+                    <h2 class="text-2xl font-semibold text-indigo-600">Welcome!</h2>
+                    <p class="mt-4 text-gray-700 max-w-lg mx-auto">Ready to build your financial knowledge? This toolkit will walk you through lessons, quizzes, and interactive calculators one step at a time.</p>
+                </div>
+                <div class="mt-8">
+                    <button onclick="navigate(1)" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-transform transform hover:scale-105">Start Learning</button>
+                </div>
+            </div>
+            <!-- Card 2: Simple Interest Lesson -->
+            <div id="card-1" class="wizard-card card-hidden bg-white p-8 rounded-2xl shadow-lg flex flex-col text-center">
+                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 2 / 7</div>
+                <div class="flex-grow flex flex-col justify-center">
+                    <h2 class="text-2xl font-semibold text-indigo-600">Lesson 1: Simple Interest</h2>
+                    <p class="mt-4 text-gray-700 max-w-lg mx-auto">Simple interest is a fixed percentage calculated only on the original principal amount. It's a straight line of growth.</p>
+                    <div class="bg-gray-100 p-3 rounded-lg mt-6 text-center font-mono text-lg">Interest = Principal × Rate × Time</div>
+                    <p class="mt-6 max-w-lg mx-auto">For example, if you invest $1,000 at a 5% simple interest rate for 3 years, you earn $50 each year, for a total of $150 in interest.</p>
+                </div>
+                <div class="mt-8 flex justify-between">
+                    <button onclick="navigate(-1)" class="bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">Back</button>
+                    <button onclick="navigate(1)" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition">Next</button>
+                </div>
+            </div>
+
+            <!-- Card 3: Compound Interest Lesson -->
+            <div id="card-2" class="wizard-card card-hidden bg-white p-8 rounded-2xl shadow-lg flex flex-col text-center">
+                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 3 / 7</div>
+                <div class="flex-grow flex flex-col justify-center">
+                    <h2 class="text-2xl font-semibold text-indigo-600">Lesson 2: Compound Interest</h2>
+                    <p class="mt-4 text-gray-700 max-w-lg mx-auto">Compound interest is "interest on interest." It's calculated on the principal plus all the accumulated interest, leading to exponential growth.</p>
+                    <div class="bg-gray-100 p-3 rounded-lg mt-6 text-center font-mono text-lg">Future Value = P(1 + r)<sup>t</sup></div>
+                    <p class="mt-6 max-w-lg mx-auto">This means your investment grows faster over time because you earn interest on your past earnings, creating a snowball effect.</p>
+                </div>
+                <div class="mt-8 flex justify-between">
+                    <button onclick="navigate(-1)" class="bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">Back</button>
+                    <button onclick="navigate(1)" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition">Next: Rule of 72</button>
+                </div>
+            </div>
+
+            <!-- Card 4: Rule of 72 Lesson -->
+            <div id="card-3" class="wizard-card card-hidden bg-white p-8 rounded-2xl shadow-lg flex flex-col">
+                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 4 / 7</div>
+                <div class="flex-grow flex flex-col justify-center">
+                    <div class="text-center">
+                        <h2 class="text-2xl font-semibold text-indigo-600">Lesson 3: The Rule of 72</h2>
+                        <p class="mt-4 text-gray-700 max-w-lg mx-auto">The Rule of 72 is a quick mental shortcut to estimate how long it will take for an investment to double at a fixed annual interest rate.</p>
+                        <div class="bg-gray-100 p-3 rounded-lg mt-6 text-center font-mono text-lg">Years to Double ≈ 72 / Interest Rate</div>
+                        <p class="mt-4 text-sm text-gray-500 max-w-lg mx-auto">(Note: Use the whole number for the interest rate, not the decimal. e.g., use 8 for 8%).</p>
+                    </div>
+                    <div class="mt-8 border-t pt-6 text-left max-w-lg mx-auto w-full">
+                        <h3 class="font-semibold text-lg">Try It Out:</h3>
+                        <div class="flex items-center gap-4 mt-2">
+                            <label for="rule72-rate" class="font-medium">If the interest rate is</label>
+                            <input type="number" id="rule72-rate" value="6" class="w-24 p-2 border border-gray-300 rounded-lg">
+                            <label for="rule72-rate" class="font-medium">%</label>
+                        </div>
+                        <p class="mt-4">Your investment would double in approximately <strong id="rule72-result" class="text-indigo-600 text-xl">12.0</strong> years.</p>
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-between">
+                    <button onclick="navigate(-1)" class="bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">Back</button>
+                    <button onclick="navigate(1)" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition">Next: Knowledge Check</button>
+                </div>
+            </div>
+
+            <!-- Card 5: Knowledge Check -->
+            <div id="card-4" class="wizard-card card-hidden bg-white p-8 rounded-2xl shadow-lg flex flex-col">
+                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 5 / 7</div>
+                <div class="flex-grow flex flex-col justify-center">
+                    <div class="text-center">
+                        <h2 class="text-2xl font-semibold text-indigo-600">Knowledge Check</h2>
+                        <p id="quiz-question" class="mt-4 text-gray-700 min-h-[48px] max-w-lg mx-auto">Test your understanding!</p>
+                    </div>
+                    <div class="max-w-lg mx-auto w-full">
+                        <!-- Formula/Calculator Section for Practice -->
+                        <div id="quiz-calculator" class="hidden mt-6 p-4 bg-gray-100 rounded-lg text-left">
+                            <p id="quiz-formula" class="text-center font-mono text-lg"></p>
+                            <div id="quiz-inputs-wrapper">
+                                <div id="quiz-inputs" class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-3">
+                                    <!-- JS will generate inputs here -->
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <button id="partial-calc-btn" class="bg-indigo-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-600 transition text-sm">Calculate Step</button>
+                                    <p class="font-semibold text-indigo-700" id="partial-result"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex items-center gap-4">
+                            <input id="quiz-answer" type="number" placeholder="Enter your answer" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 transition">
+                            <button id="check-answer-btn" onclick="checkQuiz()" class="bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition">Check</button>
+                        </div>
+                        <p id="quiz-feedback" class="mt-3 font-semibold h-6 text-center"></p>
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-between">
+                    <button onclick="navigate(-1)" class="bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">Back</button>
+                    <button id="next-question-btn" onclick="nextQuestion()" class="bg-gray-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition opacity-50" disabled>Next Question</button>
+                </div>
+            </div>
+
+            <!-- Card 6: Interest Calculator -->
+            <div id="card-5" class="wizard-card card-hidden bg-white p-8 rounded-2xl shadow-lg flex flex-col">
+                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 6 / 7</div>
+                <div class="flex-grow flex flex-col justify-center">
+                    <div>
+                        <div class="text-center">
+                            <h2 class="text-2xl font-semibold text-indigo-600 mb-4">Explore with the Calculator</h2>
+                            <p class="text-gray-600 mb-8">Use the calculator to visualize the powerful difference between simple and compound interest.</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                            <div>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label for="principal" class="block text-sm font-medium text-gray-700 mb-1">Principal ($)</label>
+                                        <input type="number" id="principal" value="1000" class="w-full p-2 border border-gray-300 rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label for="rate" class="block text-sm font-medium text-gray-700 mb-1">Rate (%)</label>
+                                        <input type="number" id="rate" value="5" class="w-full p-2 border border-gray-300 rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label for="years" class="block text-sm font-medium text-gray-700 mb-1">Years</label>
+                                        <input type="number" id="years" value="10" class="w-full p-2 border border-gray-300 rounded-lg">
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <canvas id="interestChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-between">
+                    <button onclick="navigate(-1)" class="bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">Back</button>
+                    <button onclick="navigate(1)" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition">Finish Journey</button>
+                </div>
+            </div>
+
+            <!-- Card 7: Outro -->
+             <div id="card-6" class="wizard-card card-hidden bg-white p-8 rounded-2xl shadow-lg flex flex-col text-center">
+                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 7 / 7</div>
+                <div class="flex-grow flex flex-col justify-center">
+                    <h2 class="text-2xl font-semibold text-green-600">Congratulations!</h2>
+                    <p class="mt-4 text-gray-700 max-w-lg mx-auto">You've completed the Financial Learning Journey. Keep exploring and applying these concepts to achieve your financial goals.</p>
+                    <p id="final-score" class="mt-6 text-lg font-semibold text-indigo-700"></p>
+                </div>
+                <div class="mt-8">
+                    <button onclick="navigate(-100)" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-transform transform hover:scale-105">Start Over</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let currentCardIndex = 0;
+            const cards = document.querySelectorAll('.wizard-card');
+            const progressBar = document.getElementById('progress-bar');
+            let score = 0; // To track the user's score
+            
+            function showCard(index) {
+                cards.forEach((card, i) => {
+                    const isCurrent = i === index;
+                    card.classList.toggle('card-hidden', !isCurrent);
+                });
+                // Updated progress calculation to reflect current step, not just completed ones.
+                const progress = ((index + 1) / cards.length) * 100;
+                progressBar.style.width = `${progress}%`;
+            }
+
+            window.navigate = function(direction) {
+                const newIndex = (direction === -100) ? 0 : currentCardIndex + direction;
+                
+                // When navigating TO the final card from the calculator card
+                if (currentCardIndex === (cards.length - 2) && direction === 1) {
+                    const scoreEl = document.getElementById('final-score');
+                    const totalQuestions = quizQuestions.filter(q => q.type !== 'concept').length;
+                    scoreEl.textContent = `Your Score: ${score} out of ${totalQuestions} calculation questions correct.`;
+                }
+
+                if (newIndex >= 0 && newIndex < cards.length) {
+                    currentCardIndex = newIndex;
+                    // Reset logic when starting over (newIndex will be 0)
+                    if (direction === -100) {
+                        score = 0;
+                        currentQuestionIndex = 0;
+                        displayQuestion(); // Reset to the first question UI
+                    }
+                    showCard(currentCardIndex);
+                }
+            }
+            
+            // --- Knowledge Check Logic ---
+            const quizQuestions = [
+                { question: "Which type of interest typically earns you more money over a long period?", answer: "compound", type: 'concept', hint: 'Hint: Which type of interest builds on itself, creating a snowball effect?' },
+                { question: "If you invest $500 at 4% simple interest for 5 years, how much interest will you earn?", answer: 100, type: 'simple_interest', hint: 'Hint: Simple Interest = Principal × Rate (as a decimal) × Time.' },
+                { question: "You borrow $3,000 at a 5% simple interest rate for 2 years. What is the total interest you will pay?", answer: 300, type: 'simple_interest', hint: 'Hint: Simple Interest = Principal × Rate (as a decimal) × Time.' },
+                { question: "A savings account of $1,500 earns 2% simple interest per year. How much interest is earned after 6 years?", answer: 180, type: 'simple_interest', hint: 'Hint: Simple Interest = Principal × Rate (as a decimal) × Time.' },
+                { question: "If you lend $800 to a friend at 10% simple interest for 3 years, how much interest should they pay you back?", answer: 240, type: 'simple_interest', hint: 'Hint: Simple Interest = Principal × Rate (as a decimal) × Time.' },
+                { question: "What is the total amount if you invest $2,000 at a 7% compound interest rate for 3 years?", answer: 2450.09, type: 'compound_interest', hint: 'Hint: The formula is A = P(1 + r)^t. Remember to use the rate as a decimal (e.g., 0.07).'},
+                { question: "You invest $1,000 at an annual compound interest rate of 6% for 5 years. What is the total amount in the account?", answer: 1338.23, type: 'compound_interest', hint: 'Hint: The formula is A = P(1 + r)^t. Remember to use the rate as a decimal (e.g., 0.06).'},
+                { question: "What is the future value of $2,500 invested for 4 years at 4% compounded annually?", answer: 2924.65, type: 'compound_interest', hint: 'Hint: The formula is A = P(1 + r)^t. Remember to use the rate as a decimal (e.g., 0.04).'},
+                { question: "If you deposit $500 into an account with a 3% annual compound interest rate, what will the balance be after 10 years?", answer: 671.96, type: 'compound_interest', hint: 'Hint: The formula is A = P(1 + r)^t. Remember to use the rate as a decimal (e.g., 0.03).'},
+                { question: "Using the Rule of 72, approximately how many years would it take for your money to double with an 8% interest rate?", answer: 9, type: 'rule_of_72', hint: 'Hint: The formula is 72 divided by the interest rate (as a whole number).'}
+            ];
+            let currentQuestionIndex = 0;
+            const quizQuestionEl = document.getElementById('quiz-question');
+            const quizAnswerEl = document.getElementById('quiz-answer');
+            const quizFeedbackEl = document.getElementById('quiz-feedback');
+            const nextQuestionBtn = document.getElementById('next-question-btn');
+            const checkAnswerBtn = document.getElementById('check-answer-btn');
+            const quizCalculatorEl = document.getElementById('quiz-calculator');
+            const quizFormulaEl = document.getElementById('quiz-formula');
+            const quizInputsEl = document.getElementById('quiz-inputs');
+            const quizInputsWrapper = document.getElementById('quiz-inputs-wrapper');
+            const partialCalcBtn = document.getElementById('partial-calc-btn');
+            const partialResultEl = document.getElementById('partial-result');
+
+            function displayQuestion() {
+                const q = quizQuestions[currentQuestionIndex];
+                quizQuestionEl.textContent = q.question;
+                quizAnswerEl.value = '';
+                quizFeedbackEl.textContent = '';
+                quizFeedbackEl.className = "mt-3 font-semibold h-6 text-center";
+                quizAnswerEl.type = (typeof q.answer === 'string') ? 'text' : 'number';
+                quizAnswerEl.placeholder = (typeof q.answer === 'string') ? 'Type simple or compound' : 'Enter a number';
+                nextQuestionBtn.disabled = true;
+                nextQuestionBtn.classList.add('opacity-50');
+                checkAnswerBtn.disabled = false;
+                checkAnswerBtn.classList.remove('opacity-50');
+                quizInputsEl.innerHTML = '';
+                partialResultEl.textContent = '';
+                quizCalculatorEl.classList.add('hidden');
+                quizInputsWrapper.style.display = 'block';
+
+                let inputsToCreate = [];
+                if (q.type === 'simple_interest') {
+                    quizCalculatorEl.classList.remove('hidden');
+                    quizFormulaEl.innerHTML = 'I = P × r × t';
+                    inputsToCreate = [
+                        { name: 'P', placeholder: 'Principal ($)' },
+                        { name: 'r', placeholder: 'Rate (as decimal)' },
+                        { name: 't', placeholder: 'Time (years)' }
+                    ];
+                } else if (q.type === 'compound_interest') {
+                    quizCalculatorEl.classList.remove('hidden');
+                    quizFormulaEl.innerHTML = 'A = P(1 + r)<sup>t</sup>';
+                     inputsToCreate = [
+                        { name: 'P', placeholder: 'Principal ($)' },
+                        { name: 'r', placeholder: 'Rate (as decimal)' },
+                        { name: 't', placeholder: 'Time (years)' }
+                    ];
+                } else if (q.type === 'rule_of_72') {
+                    quizCalculatorEl.classList.remove('hidden');
+                    quizFormulaEl.innerHTML = 'Years to Double ≈ 72 / Interest Rate';
+                    quizInputsWrapper.style.display = 'none';
+                }
+
+                inputsToCreate.forEach(input => {
+                    const inputEl = document.createElement('input');
+                    inputEl.type = 'number';
+                    inputEl.id = `quiz-input-${input.name}`;
+                    inputEl.placeholder = input.placeholder;
+                    inputEl.className = 'w-full p-2 border border-gray-300 rounded-lg text-sm';
+                    quizInputsEl.appendChild(inputEl);
+                });
+
+                if (currentQuestionIndex === quizQuestions.length - 1) {
+                    nextQuestionBtn.textContent = "Finish Practice";
+                } else {
+                    nextQuestionBtn.textContent = "Next Question";
+                }
+            }
+
+            partialCalcBtn.onclick = () => {
+                const q = quizQuestions[currentQuestionIndex];
+                const P = parseFloat(document.getElementById('quiz-input-P')?.value);
+                const r = parseFloat(document.getElementById('quiz-input-r')?.value);
+                const t = parseFloat(document.getElementById('quiz-input-t')?.value);
+                
+                if (q.type === 'simple_interest') {
+                    if (isNaN(P) || isNaN(r) || isNaN(t)) { partialResultEl.textContent = 'Invalid inputs'; return; }
+                    const result = P * r * t;
+                    partialResultEl.textContent = `Result: ${result.toFixed(2)}`;
+                } else if (q.type === 'compound_interest') {
+                    if (isNaN(P) || isNaN(r) || isNaN(t)) { partialResultEl.textContent = 'Invalid inputs'; return; }
+                    const result = P * Math.pow(1 + r, t);
+                    partialResultEl.textContent = `Result: ${result.toFixed(2)}`;
+                }
+            };
+
+            window.checkQuiz = function() {
+                const q = quizQuestions[currentQuestionIndex];
+                let isCorrect = false;
+                if (typeof q.answer === 'number') {
+                    const userAnswer = parseFloat(quizAnswerEl.value);
+                    isCorrect = !isNaN(userAnswer) && Math.abs(userAnswer - q.answer) < 0.015;
+                } else {
+                    const userAnswer = quizAnswerEl.value.trim().toLowerCase();
+                    isCorrect = userAnswer === q.answer;
+                }
+
+                if (isCorrect) {
+                    quizFeedbackEl.textContent = "✅ Correct!";
+                    quizFeedbackEl.className = "mt-3 font-semibold h-6 text-center text-green-600";
+                    // Only increment score for non-conceptual questions
+                    if (quizQuestions[currentQuestionIndex].type !== 'concept') {
+                        score++;
+                    }
+                    nextQuestionBtn.disabled = false;
+                    nextQuestionBtn.classList.remove('opacity-50');
+                    checkAnswerBtn.disabled = true;
+                    checkAnswerBtn.classList.add('opacity-50');
+                } else {
+                    quizFeedbackEl.textContent = `❌ Not quite. ${q.hint}`;
+                    quizFeedbackEl.className = "mt-3 font-semibold h-6 text-center text-red-600";
+                }
+            }
+
+            window.nextQuestion = function() {
+                if (currentQuestionIndex < quizQuestions.length - 1) {
+                    currentQuestionIndex++;
+                    displayQuestion();
+                } else {
+                    navigate(1); 
+                }
+            }
+
+             // --- Calculator Logic ---
+            const principalInput = document.getElementById('principal');
+            const rateInput = document.getElementById('rate');
+            const yearsInput = document.getElementById('years');
+            const ctx = document.getElementById('interestChart').getContext('2d');
+            let interestChart;
+
+            function calculateAndDisplayChart() {
+                const P = parseFloat(principalInput.value) || 0;
+                const r = (parseFloat(rateInput.value) || 0) / 100;
+                const t = parseInt(yearsInput.value) || 0;
+
+                let simpleData = [], compoundData = [], labels = [];
+                for (let i = 0; i <= t; i++) {
+                    labels.push(`Y${i}`);
+                    simpleData.push(P * (1 + r * i));
+                    compoundData.push(P * Math.pow((1 + r), i));
+                }
+
+                if (interestChart) { interestChart.destroy(); }
+                interestChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [
+                            { label: 'Simple', data: simpleData, borderColor: '#10B981', backgroundColor: 'transparent', borderWidth: 2 },
+                            { label: 'Compound', data: compoundData, borderColor: '#6366F1', backgroundColor: 'transparent', borderWidth: 2 }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { y: { beginAtZero: false, ticks: { callback: (value) => `$${(value/1000)}k` } }, x: { grid: { display: false } } },
+                        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 20 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: $${c.raw.toFixed(2)}` } } }
+                    }
+                });
+            }
+            [principalInput, rateInput, yearsInput].forEach(el => el.addEventListener('input', calculateAndDisplayChart));
+
+            // --- Rule of 72 Logic ---
+            const rule72RateInput = document.getElementById('rule72-rate');
+            const rule72ResultEl = document.getElementById('rule72-result');
+
+            function calculateRuleOf72() {
+                const rate = parseFloat(rule72RateInput.value) || 0;
+                if (rate > 0) {
+                    const years = 72 / rate;
+                    rule72ResultEl.textContent = `${years.toFixed(1)}`;
+                } else {
+                    rule72ResultEl.textContent = `...`;
+                }
+            }
+            rule72RateInput.addEventListener('input', calculateRuleOf72);
+           
+            // --- Initial Load ---
+            showCard(0);
+            displayQuestion();
+            calculateAndDisplayChart();
+            calculateRuleOf72();
+        });
+    </script>
+</body>
+</html>
+
+
+
