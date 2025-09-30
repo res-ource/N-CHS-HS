@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mean, Median, Mode & Range Practice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- SortableJS for drag-and-drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .correct {
+            border-color: #22c55e; /* green-500 */
+        }
+        .incorrect {
+            border-color: #ef4444; /* red-500 */
+        }
+        .input-feedback {
+            font-size: 0.875rem;
+            height: 1.25rem;
+        }
+        .number-item {
+            cursor: grab;
+            user-select: none;
+        }
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #a5b4fc; /* indigo-300 */
+        }
+        .sort-container.incorrect-sort, .step-input.incorrect {
+            animation: shake 0.5s;
+        }
+        .step-card {
+            display: none;
+        }
+        .step-card.active {
+            display: block;
+        }
+        .operation-btn {
+            transition: all 0.2s;
+        }
+        .operation-btn.incorrect {
+            background-color: #ef4444; /* red-500 */
+            color: white;
+            transform: scale(0.95);
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
+
+    <div id="quiz-container" class="w-full max-w-2xl">
+        <header class="text-center mb-6">
+            <h1 class="text-4xl font-bold text-gray-900">Math Practice 📊</h1>
+            <p id="progress" class="text-lg text-gray-600 mt-2"></p>
+        </header>
+
+        <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
+             <p id="sub-progress" class="text-center text-gray-500 mb-4 font-semibold hidden"></p>
+            
+            <!-- Step 1: Sorting -->
+            <div id="sorting-step" class="step-card active">
+                <p class="text-lg font-medium text-gray-700 mb-4">First, drag the numbers into ascending order (smallest to largest).</p>
+                <div id="sort-container" class="sort-container flex flex-wrap justify-center gap-3 bg-indigo-50 p-4 rounded-lg border-2 border-dashed border-gray-300"></div>
+                <p id="sort-feedback" class="text-center mt-3 font-medium h-6"></p>
+                <div class="flex justify-center mt-6">
+                    <button id="checkOrderBtn" class="bg-indigo-600 text-white font-semibold py-2 px-8 rounded-lg hover:bg-indigo-700 shadow-sm">Check Order</button>
+                </div>
+            </div>
+            
+            <!-- Step 2: Mean -->
+            <div id="mean-step" class="step-card">
+                <h2 class="text-2xl font-bold text-center mb-4">Finding the Mean (Average)</h2>
+                <div id="sorted-numbers-display-mean" class="text-xl text-indigo-700 font-mono bg-indigo-50 p-3 rounded-lg text-center mb-6"></div>
+                <div id="mean-sub-steps"></div>
+            </div>
+
+            <!-- Step 3: Median -->
+            <div id="median-step" class="step-card">
+                 <h2 class="text-2xl font-bold text-center mb-4">Finding the Median (Middle)</h2>
+                 <div id="sorted-numbers-display-median" class="text-xl text-indigo-700 font-mono bg-indigo-50 p-3 rounded-lg text-center mb-6"></div>
+                 <div id="median-sub-steps"></div>
+            </div>
+
+             <!-- Step 4: Mode -->
+            <div id="mode-step" class="step-card">
+                 <h2 class="text-2xl font-bold text-center mb-4">Finding the Mode (Most Often)</h2>
+                 <div id="sorted-numbers-display-mode" class="text-xl text-indigo-700 font-mono bg-indigo-50 p-3 rounded-lg text-center mb-6"></div>
+                 <div id="mode-sub-steps"></div>
+            </div>
+
+             <!-- Step 5: Range -->
+            <div id="range-step" class="step-card">
+                 <h2 class="text-2xl font-bold text-center mb-4">Finding the Range (Difference)</h2>
+                 <div id="sorted-numbers-display-range" class="text-xl text-indigo-700 font-mono bg-indigo-50 p-3 rounded-lg text-center mb-6"></div>
+                 <div id="range-sub-steps"></div>
+            </div>
+
+             <!-- Navigation -->
+            <div id="card-navigation" class="flex justify-between mt-6 hidden">
+                <button id="prevCardBtn" class="bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-gray-700 shadow-sm">Back</button>
+                <button id="nextCardBtn" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700 shadow-sm" disabled>Next</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { numbers: [24, 31, 12, 38, 12, 15] },
+            { numbers: [5, 28, 16, 32, 5, 16, 48, 29, 5, 35] },
+            { numbers: [53, 13, 34, 41, 26, 61, 34, 13, 69] },
+            { numbers: [85, 58, 72, 85, 46, 93] },
+            { numbers: [92, 63, 22, 80, 63, 71, 44, 35] }
+        ];
+
+        let currentQuestionIndex = 0;
+        let currentCardIndex = 0;
+        let sortableInstance = null;
+        let orderIsCorrectForCurrentQuestion = false;
+        
+        const stepCards = document.querySelectorAll('.step-card');
+        const cardNavigation = document.getElementById('card-navigation');
+        const nextCardBtn = document.getElementById('nextCardBtn');
+        const prevCardBtn = document.getElementById('prevCardBtn');
+        const subProgressEl = document.getElementById('sub-progress');
+
+        // --- CALCULATION HELPERS ---
+        const calculate = {
+            mean: (numbers) => numbers.reduce((a, b) => a + b, 0) / numbers.length,
+            median: (sorted) => {
+                const mid = Math.floor(sorted.length / 2);
+                return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+            },
+            mode: (numbers) => {
+                const freq = {};
+                numbers.forEach(n => freq[n] = (freq[n] || 0) + 1);
+                let max = 0;
+                for (const k in freq) { if (freq[k] > max) max = freq[k]; }
+                if (max === 1) return 'None';
+                const modes = [];
+                for (const k in freq) { if (freq[k] === max) modes.push(Number(k)); }
+                return modes.sort((a,b) => a-b);
+            },
+            range: (sorted) => sorted[sorted.length - 1] - sorted[0]
+        };
+
+
+        function showCard(index) {
+            stepCards.forEach((card, i) => card.classList.toggle('active', i === index));
+            currentCardIndex = index;
+            
+            const stepTitles = ["Sorting", "Mean", "Median", "Mode", "Range"];
+            if (index > 0) {
+                subProgressEl.textContent = `Step ${index} of 4: ${stepTitles[index]}`;
+                subProgressEl.classList.remove('hidden');
+            } else {
+                subProgressEl.classList.add('hidden');
+            }
+
+            cardNavigation.classList.toggle('hidden', index === 0);
+            prevCardBtn.disabled = index <= 1;
+            nextCardBtn.disabled = true;
+
+            // Call the render function for the current card
+            if (index === 1) renderMeanStep1();
+            if (index === 2) renderMedianStep1_OddOrEven();
+            if (index === 3) renderModeStep();
+            if (index === 4) {
+                 renderRangeStep();
+                 nextCardBtn.textContent = 'Next Question';
+            } else {
+                 nextCardBtn.textContent = 'Next';
+            }
+        }
+        
+        function loadQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                showCompletionScreen();
+                return;
+            }
+            showCard(0);
+            
+            orderIsCorrectForCurrentQuestion = false;
+            const checkOrderBtn = document.getElementById('checkOrderBtn');
+            checkOrderBtn.textContent = 'Check Order';
+
+            document.getElementById('progress').textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+            
+            // Clear all sub-steps and displays
+            document.getElementById('mean-sub-steps').innerHTML = '';
+            document.getElementById('median-sub-steps').innerHTML = '';
+            document.getElementById('mode-sub-steps').innerHTML = '';
+            document.getElementById('range-sub-steps').innerHTML = '';
+            document.querySelectorAll('[id^="sorted-numbers-display"]').forEach(el => el.innerHTML = '');
+
+            const question = questions[currentQuestionIndex];
+            const sortContainer = document.getElementById('sort-container');
+            sortContainer.innerHTML = '';
+            document.getElementById('sort-feedback').textContent = '';
+            
+            question.numbers.forEach(num => {
+                const numberEl = document.createElement('div');
+                numberEl.className = 'number-item text-xl font-bold text-indigo-800 bg-white p-2 px-4 rounded-md shadow border';
+                numberEl.textContent = num;
+                sortContainer.appendChild(numberEl);
+            });
+
+            if (sortableInstance) sortableInstance.destroy();
+            sortableInstance = new Sortable(sortContainer, { animation: 150, ghostClass: 'sortable-ghost' });
+        }
+        
+        function showCompletionScreen() {
+             document.getElementById('quiz-container').innerHTML = `
+                <div class="text-center bg-white p-8 rounded-2xl shadow-lg">
+                    <h1 class="text-4xl font-bold text-gray-900">Practice Complete!</h1>
+                    <p class="text-lg text-gray-600 mt-4">You've completed all the questions. Great job!</p>
+                    <button id="restartBtn" class="mt-8 bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg hover:bg-indigo-700">Restart Practice</button>
+                </div>
+            `;
+            document.getElementById('restartBtn').addEventListener('click', () => { location.reload(); });
+        }
+
+        // --- EVENT LISTENERS ---
+        nextCardBtn.addEventListener('click', () => {
+            if (currentCardIndex === stepCards.length - 1) { // Last card
+                currentQuestionIndex++;
+                loadQuestion();
+            } else if (currentCardIndex < stepCards.length - 1) {
+                showCard(currentCardIndex + 1);
+            }
+        });
+        prevCardBtn.addEventListener('click', () => {
+            if (currentCardIndex > 1) showCard(currentCardIndex - 1);
+        });
+        document.getElementById('checkOrderBtn').addEventListener('click', (e) => {
+            if (orderIsCorrectForCurrentQuestion) {
+                showCard(1);
+                return;
+            }
+
+            const sortedCorrectly = [...questions[currentQuestionIndex].numbers].sort((a, b) => a - b);
+            const userSorted = Array.from(document.getElementById('sort-container').children).map(child => parseFloat(child.textContent));
+            const sortFeedback = document.getElementById('sort-feedback');
+            let isCorrect = userSorted.length === sortedCorrectly.length && userSorted.every((value, index) => value === sortedCorrectly[index]);
+
+            if (isCorrect) {
+                orderIsCorrectForCurrentQuestion = true;
+                sortFeedback.textContent = 'Perfect!';
+                sortFeedback.classList.remove('text-red-500');
+                sortFeedback.classList.add('text-green-600');
+                sortableInstance.option('disabled', true);
+                
+                const sortedStr = userSorted.join(', ');
+                document.querySelectorAll('[id^="sorted-numbers-display"]').forEach(el => el.textContent = sortedStr);
+                
+                e.target.textContent = 'Start Calculations';
+            } else {
+                sortFeedback.textContent = 'Not quite! Try again.';
+                sortFeedback.classList.remove('text-green-600');
+                sortFeedback.classList.add('text-red-500');
+                const sortContainer = document.getElementById('sort-container');
+                sortContainer.classList.add('incorrect-sort');
+                setTimeout(() => sortContainer.classList.remove('incorrect-sort'), 500);
+            }
+        });
+
+        // --- RENDER FUNCTIONS FOR CARDS ---
+        const meanSubStepsContainer = document.getElementById('mean-sub-steps');
+        function renderMeanStep1() {
+            meanSubStepsContainer.innerHTML = `
+                <p class="text-center text-lg mb-4">To find the mean, what's the <strong>first</strong> step?</p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <button class="operation-btn bg-gray-200 py-2 px-5 rounded-lg hover:bg-gray-300" data-correct="true">Add the numbers</button>
+                    <button class="operation-btn bg-gray-200 py-2 px-5 rounded-lg hover:bg-gray-300">Subtract the numbers</button>
+                </div>`;
+            meanSubStepsContainer.querySelectorAll('.operation-btn').forEach(btn => btn.addEventListener('click', (e) => {
+                if (e.target.dataset.correct) renderMeanStep2();
+                else { e.target.classList.add('incorrect'); setTimeout(() => e.target.classList.remove('incorrect'), 500); }
+            }));
+        }
+        function renderMeanStep2() {
+            const correctSum = questions[currentQuestionIndex].numbers.reduce((a, b) => a + b, 0);
+            meanSubStepsContainer.innerHTML = `
+                <p class="text-center text-lg mb-4">Correct! What is the <strong>sum</strong> of all the numbers?</p>
+                <div class="flex justify-center items-center gap-3">
+                    <input type="number" id="sum-input" class="step-input w-40 text-center p-2 border-2 rounded-lg">
+                    <button id="check-sum-btn" class="bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg">Check</button>
+                </div>
+                <p id="sum-feedback" class="text-center mt-2 h-5 text-red-500 font-medium"></p>`;
+            document.getElementById('check-sum-btn').addEventListener('click', () => {
+                const sumInput = document.getElementById('sum-input');
+                if (parseInt(sumInput.value) === correctSum) {
+                    sumInput.classList.add('correct'); sumInput.disabled = true; renderMeanStep3();
+                } else {
+                    sumInput.classList.add('incorrect'); document.getElementById('sum-feedback').textContent = 'That\'s not the right sum.';
+                    setTimeout(() => { sumInput.classList.remove('incorrect'); document.getElementById('sum-feedback').textContent = ''; }, 2000);
+                }
+            });
+        }
+        function renderMeanStep3() {
+            meanSubStepsContainer.innerHTML = `
+                <p class="text-center text-lg mb-4">Perfect! The sum is ${questions[currentQuestionIndex].numbers.reduce((a, b) => a + b, 0)}. What's the <strong>second</strong> step?</p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <button class="operation-btn bg-gray-200 py-2 px-5 rounded-lg hover:bg-gray-300" data-correct="true">Divide the sum</button>
+                    <button class="operation-btn bg-gray-200 py-2 px-5 rounded-lg hover:bg-gray-300">Find the middle number</button>
+                </div>`;
+            meanSubStepsContainer.querySelectorAll('.operation-btn').forEach(btn => btn.addEventListener('click', (e) => {
+                if (e.target.dataset.correct) renderMeanStep4();
+                else { e.target.classList.add('incorrect'); setTimeout(() => e.target.classList.remove('incorrect'), 500); }
+            }));
+        }
+        function renderMeanStep4() {
+            const correctCount = questions[currentQuestionIndex].numbers.length;
+            meanSubStepsContainer.innerHTML = `
+                <p class="text-center text-lg mb-4">You got it! Now, divide the sum by the total count of numbers. <strong>How many numbers</strong> are in the set?</p>
+                <div class="flex justify-center items-center gap-3">
+                    <input type="number" id="count-input" class="step-input w-40 text-center p-2 border-2 rounded-lg">
+                    <button id="check-count-btn" class="bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg">Check</button>
+                </div>
+                <p id="count-feedback" class="text-center mt-2 h-5 text-red-500 font-medium"></p>`;
+            document.getElementById('check-count-btn').addEventListener('click', () => {
+                const countInput = document.getElementById('count-input');
+                if (parseInt(countInput.value) === correctCount) {
+                    countInput.classList.add('correct'); countInput.disabled = true; renderMeanStep5();
+                } else {
+                    countInput.classList.add('incorrect'); document.getElementById('count-feedback').textContent = 'That\'s not the right count.';
+                    setTimeout(() => { countInput.classList.remove('incorrect'); document.getElementById('count-feedback').textContent = ''; }, 2000);
+                }
+            });
+        }
+        function renderMeanStep5() {
+            const correctMean = calculate.mean(questions[currentQuestionIndex].numbers);
+            meanSubStepsContainer.innerHTML = `
+                <p class="text-center text-lg mb-4">Excellent! What is the final answer for the <strong>mean</strong>?</p>
+                 <div class="flex justify-center items-center gap-3">
+                    <input type="number" id="mean-input" class="step-input w-40 text-center p-2 border-2 rounded-lg">
+                    <button id="check-mean-btn" class="bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg">Check</button>
+                </div><p id="mean-feedback" class="text-center mt-2 h-5 font-medium"></p>`;
+            document.getElementById('check-mean-btn').addEventListener('click', () => {
+                const meanInput = document.getElementById('mean-input');
+                const feedback = document.getElementById('mean-feedback');
+                if (Math.abs(parseFloat(meanInput.value) - correctMean) < 0.01) {
+                    meanInput.classList.add('correct'); meanInput.disabled = true;
+                    feedback.textContent = 'You nailed it! 🎉'; feedback.classList.add('text-green-600');
+                    nextCardBtn.disabled = false;
+                } else {
+                    meanInput.classList.add('incorrect');
+                    feedback.textContent = `Correct: ${correctMean.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+                    feedback.classList.add('text-red-500');
+                }
+            });
+        }
+
+        const medianSubStepsContainer = document.getElementById('median-sub-steps');
+        function renderMedianStep1_OddOrEven() {
+            const sorted = [...questions[currentQuestionIndex].numbers].sort((a,b)=> a-b);
+            const isEven = sorted.length % 2 === 0;
+            medianSubStepsContainer.innerHTML = `
+                <p class="text-center text-lg mb-4">First, is the number of items in the set <strong>odd</strong> or <strong>even</strong>?</p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <button class="operation-btn bg-gray-200 py-2 px-5 rounded-lg hover:bg-gray-300" data-correct="${!isEven}">Odd</button>
+                    <button class="operation-btn bg-gray-200 py-2 px-5 rounded-lg hover:bg-gray-300" data-correct="${isEven}">Even</button>
+                </div>`;
+            medianSubStepsContainer.querySelectorAll('.operation-btn').forEach(btn => btn.addEventListener('click', (e) => {
+                if (e.target.dataset.correct === 'true') {
+                    if (isEven) renderMedianStep2_Even();
+                    else renderMedianStep2_Odd();
+                } else {
+                    e.target.classList.add('incorrect');
+                    setTimeout(() => e.target.classList.remove('incorrect'), 500);
+                }
+            }));
+        }
+
+        function renderMedianStep2_Odd() {
+            const sorted = [...questions[currentQuestionIndex].numbers].sort((a,b)=> a-b);
+            const correctMedian = calculate.median(sorted);
+            medianSubStepsContainer.innerHTML = `
+                <p class="text-center text-lg mb-4">Correct! Since it's an odd set, what is the single <strong>middle number</strong>?</p>
+                <div class="flex justify-center items-center gap-3">
+                    <input type="number" id="median-input" class="step-input w-40 text-center p-2 border-2 rounded-lg">
+                    <button id="check-median-btn" class="bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg">Check</button>
+                </div><p id="median-feedback" class="text-center mt-2 h-5 font-medium"></p>`;
+            document.getElementById('check-median-btn').addEventListener('click', () => {
+                const input = document.getElementById('median-input');
+                const feedback = document.getElementById('median-feedback');
+                if (parseFloat(input.value) === correctMedian) {
+                    input.classList.add('correct'); input.disabled = true;
+                    feedback.textContent = 'Exactly! 🎉'; feedback.classList.add('text-green-600');
+                    nextCardBtn.disabled = false;
+                } else {
+                    input.classList.add('incorrect');
+                    feedback.textContent = `Correct: ${correctMedian}`; feedback.classList.add('text-red-500');
+                }
+            });
+        }
+
+        function renderMedianStep2_Even() {
+            const sorted = [...questions[currentQuestionIndex].numbers].sort((a,b)=> a-b);
+            const mid = Math.floor(sorted.length / 2);
+            const mid1 = sorted[mid - 1];
+            const mid2 = sorted[mid];
+            medianSubStepsContainer.innerHTML = `
+                <p class="text-center text-lg mb-4">Correct! Since it's an even set, what are the <strong>two middle numbers</strong>?</p>
+                <div class="flex justify-center items-center gap-3">
+                    <input type="number" id="median-input1" class="step-input w-24 text-center p-2 border-2 rounded-lg" placeholder="1st">
+                    <input type="number" id="median-input2" class="step-input w-24 text-center p-2 border-2 rounded-lg" placeholder="2nd">
+                    <button id="check-median-btn" class="bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg">Check</button>
+                </div><p id="median-feedback" class="text-center mt-2 h-5 font-medium"></p>`;
+            document.getElementById('check-median-btn').addEventListener('click', (e) => {
+                const input1 = document.getElementById('median-input1');
+                const input2 = document.getElementById('median-input2');
+                const feedback = document.getElementById('median-feedback');
+                const userMidNums = [parseFloat(input1.value), parseFloat(input2.value)].sort((a,b)=>a-b);
+                
+                if (userMidNums[0] === mid1 && userMidNums[1] === mid2) {
+                    input1.disabled = true;
+                    input2.disabled = true;
+                    e.target.disabled = true;
+                    feedback.textContent = 'Great!';
+                    feedback.classList.add('text-green-600');
+                    renderMedianStep3_Even_Append(mid1, mid2);
+                } else {
+                    input1.classList.add('incorrect'); input2.classList.add('incorrect');
+                    feedback.textContent = 'Not quite the middle two.'; feedback.classList.add('text-red-500');
+                }
+            });
+        }
+
+        function renderMedianStep3_Even_Append(mid1, mid2) {
+            const correctSum = mid1 + mid2;
+            const step3Div = document.createElement('div');
+            step3Div.className = 'mt-6 text-center space-y-4';
+            step3Div.innerHTML = `
+                <p class="text-lg">Now, what is the <strong>sum</strong> of those two numbers (${mid1} + ${mid2})?</p>
+                <div class="flex justify-center items-center gap-3">
+                    <input type="number" id="median-sum-input" class="step-input w-40 text-center p-2 border-2 rounded-lg">
+                    <button id="check-median-sum-btn" class="bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg">Check</button>
+                </div>
+                <p id="median-sum-feedback" class="h-5 font-medium"></p>
+            `;
+            medianSubStepsContainer.appendChild(step3Div);
+            document.getElementById('median-sum-input').focus();
+            
+            document.getElementById('check-median-sum-btn').addEventListener('click', (e) => {
+                const input = document.getElementById('median-sum-input');
+                const feedback = document.getElementById('median-sum-feedback');
+                if (parseFloat(input.value) === correctSum) {
+                    input.disabled = true;
+                    e.target.disabled = true;
+                    feedback.textContent = 'Correct!';
+                    feedback.classList.add('text-green-600');
+                    renderMedianStep4_Even_Append(correctSum);
+                } else {
+                    input.classList.add('incorrect');
+                    feedback.textContent = `Correct sum: ${correctSum}`; 
+                    feedback.classList.add('text-red-500');
+                }
+            });
+        }
+        
+        function renderMedianStep4_Even_Append(sum) {
+            const correctMedian = sum / 2;
+            const step4Div = document.createElement('div');
+            step4Div.className = 'mt-6 text-center space-y-4';
+            step4Div.innerHTML = `
+                <p class="text-lg">Almost there! Now divide the sum (${sum}) by 2. What is the final <strong>median</strong>?</p>
+                <div class="flex justify-center items-center gap-3">
+                    <input type="number" id="median-final-input" class="step-input w-40 text-center p-2 border-2 rounded-lg">
+                    <button id="check-median-final-btn" class="bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg">Check</button>
+                </div>
+                <p id="median-final-feedback" class="h-5 font-medium"></p>
+            `;
+            medianSubStepsContainer.appendChild(step4Div);
+            document.getElementById('median-final-input').focus();
+
+            document.getElementById('check-median-final-btn').addEventListener('click', (e) => {
+                const input = document.getElementById('median-final-input');
+                const feedback = document.getElementById('median-final-feedback');
+                if (parseFloat(input.value) === correctMedian) {
+                    input.disabled = true;
+                    e.target.disabled = true;
+                    feedback.textContent = 'Perfect! 🎉'; 
+                    feedback.classList.add('text-green-600');
+                    nextCardBtn.disabled = false;
+                } else {
+                    input.classList.add('incorrect');
+                    feedback.textContent = `Correct: ${correctMedian}`; 
+                    feedback.classList.add('text-red-500');
+                }
+            });
+        }
+
+        function renderModeStep() {
+            const correctMode = calculate.mode(questions[currentQuestionIndex].numbers);
+            document.getElementById('mode-sub-steps').innerHTML = `
+                <p class="text-center text-lg mb-4">Which number appears most often? (e.g., 5 or 5, 7 or None)</p>
+                <div class="flex justify-center items-center gap-3">
+                    <input type="text" id="mode-input" class="step-input w-40 text-center p-2 border-2 rounded-lg">
+                    <button id="check-mode-btn" class="bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg">Check</button>
+                </div><p id="mode-feedback" class="text-center mt-2 h-5 font-medium"></p>`;
+             document.getElementById('check-mode-btn').addEventListener('click', () => {
+                const input = document.getElementById('mode-input');
+                const feedback = document.getElementById('mode-feedback');
+                const userModes = input.value.toLowerCase().split(',').map(s => s.trim()).sort().join(',');
+                const correctModeStr = Array.isArray(correctMode) ? correctMode.join(',') : String(correctMode).toLowerCase();
+
+                if (userModes === correctModeStr) {
+                    input.classList.add('correct'); input.disabled = true;
+                    feedback.textContent = 'That\'s it! 🎉'; feedback.classList.add('text-green-600');
+                    nextCardBtn.disabled = false;
+                } else {
+                    input.classList.add('incorrect');
+                    feedback.textContent = `Correct: ${Array.isArray(correctMode) ? correctMode.join(', ') : correctMode}`;
+                    feedback.classList.add('text-red-500');
+                }
+            });
+        }
+        
+        function renderRangeStep() {
+            const sorted = [...questions[currentQuestionIndex].numbers].sort((a,b)=> a-b);
+            const correctRange = calculate.range(sorted);
+            document.getElementById('range-sub-steps').innerHTML = `
+                <p class="text-center text-lg mb-4">What is the difference between the largest and smallest number?</p>
+                <div class="flex justify-center items-center gap-3">
+                    <input type="number" id="range-input" class="step-input w-40 text-center p-2 border-2 rounded-lg">
+                    <button id="check-range-btn" class="bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg">Check</button>
+                </div><p id="range-feedback" class="text-center mt-2 h-5 font-medium"></p>`;
+             document.getElementById('check-range-btn').addEventListener('click', () => {
+                const input = document.getElementById('range-input');
+                const feedback = document.getElementById('range-feedback');
+                if (parseInt(input.value) === correctRange) {
+                    input.classList.add('correct'); input.disabled = true;
+                    feedback.textContent = 'Great job! 🎉'; feedback.classList.add('text-green-600');
+                    nextCardBtn.disabled = false;
+                } else {
+                    input.classList.add('incorrect');
+                    feedback.textContent = `Correct: ${correctRange}`; feedback.classList.add('text-red-500');
+                }
+            });
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
+
