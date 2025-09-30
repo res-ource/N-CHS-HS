@@ -43,7 +43,7 @@
         <div class="relative min-h-[550px]">
             <!-- Card 1: Introduction -->
             <div id="card-0" class="wizard-card bg-white p-8 rounded-2xl shadow-lg flex flex-col text-center">
-                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 1 / 7</div>
+                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 1 / 9</div>
                 <div class="flex-grow flex flex-col justify-center">
                     <h2 class="text-2xl font-semibold text-indigo-600">Welcome!</h2>
                     <p class="mt-4 text-gray-700 max-w-lg mx-auto">Ready to build your financial knowledge? This toolkit will walk you through lessons, quizzes, and interactive calculators one step at a time.</p>
@@ -54,7 +54,7 @@
             </div>
             <!-- Card 2: Simple Interest Lesson -->
             <div id="card-1" class="wizard-card card-hidden bg-white p-8 rounded-2xl shadow-lg flex flex-col text-center">
-                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 2 / 7</div>
+                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 2 / 9</div>
                 <div class="flex-grow flex flex-col justify-center">
                     <h2 class="text-2xl font-semibold text-indigo-600">Lesson 1: Simple Interest</h2>
                     <p class="mt-4 text-gray-700 max-w-lg mx-auto">Simple interest is a fixed percentage calculated only on the original principal amount. It's a straight line of growth.</p>
@@ -69,7 +69,7 @@
 
             <!-- Card 3: Compound Interest Lesson -->
             <div id="card-2" class="wizard-card card-hidden bg-white p-8 rounded-2xl shadow-lg flex flex-col text-center">
-                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 3 / 7</div>
+                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 3 / 9</div>
                 <div class="flex-grow flex flex-col justify-center">
                     <h2 class="text-2xl font-semibold text-indigo-600">Lesson 2: Compound Interest</h2>
                     <p class="mt-4 text-gray-700 max-w-lg mx-auto">Compound interest is "interest on interest." It's calculated on the principal plus all the accumulated interest, leading to exponential growth.</p>
@@ -84,7 +84,7 @@
 
             <!-- Card 4: Rule of 72 Lesson -->
             <div id="card-3" class="wizard-card card-hidden bg-white p-8 rounded-2xl shadow-lg flex flex-col">
-                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 4 / 7</div>
+                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 4 / 9</div>
                 <div class="flex-grow flex flex-col justify-center">
                     <div class="text-center">
                         <h2 class="text-2xl font-semibold text-indigo-600">Lesson 3: The Rule of 72</h2>
@@ -104,13 +104,31 @@
                 </div>
                 <div class="mt-8 flex justify-between">
                     <button onclick="navigate(-1)" class="bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">Back</button>
+                    <button onclick="navigate(1)" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition">Next: High-Interest Debt</button>
+                </div>
+            </div>
+
+            <!-- Card 5: High-Interest Debt Lesson -->
+            <div id="card-4" class="wizard-card card-hidden bg-white p-8 rounded-2xl shadow-lg flex flex-col text-center">
+                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 5 / 9</div>
+                <div class="flex-grow flex flex-col justify-center">
+                    <h2 class="text-2xl font-semibold text-red-600">Lesson 4: High-Interest Debt</h2>
+                    <p class="mt-4 text-gray-700 max-w-lg mx-auto">Compound interest isn't just for savings; it's also how debt, like credit card balances, can grow incredibly fast.</p>
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg mt-6 text-left">
+                        <p class="font-semibold text-red-800">Real-World Example:</p>
+                        <p class="text-gray-700 mt-2">Imagine a <strong>$1,000</strong> credit card balance with a <strong>22%</strong> Annual Percentage Rate (APR). If you make no payments for a year, compounding interest could make your debt grow to over <strong>$1,220</strong>.</p>
+                    </div>
+                    <p class="mt-6 max-w-lg mx-auto">This is why it's crucial to pay off high-interest debt as quickly as possible. The same "snowball effect" that helps your savings grow can make your debt spiral.</p>
+                </div>
+                <div class="mt-8 flex justify-between">
+                    <button onclick="navigate(-1)" class="bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">Back</button>
                     <button onclick="navigate(1)" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition">Next: Knowledge Check</button>
                 </div>
             </div>
 
-            <!-- Card 5: Knowledge Check -->
-            <div id="card-4" class="wizard-card card-hidden bg-white p-8 rounded-2xl shadow-lg flex flex-col">
-                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 5 / 7</div>
+            <!-- Card 6: Knowledge Check -->
+            <div id="card-5" class="wizard-card card-hidden bg-white p-8 rounded-2xl shadow-lg flex flex-col">
+                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 6 / 9</div>
                 <div class="flex-grow flex flex-col justify-center">
                     <div class="text-center">
                         <h2 class="text-2xl font-semibold text-indigo-600">Knowledge Check</h2>
@@ -143,9 +161,9 @@
                 </div>
             </div>
 
-            <!-- Card 6: Interest Calculator -->
-            <div id="card-5" class="wizard-card card-hidden bg-white p-8 rounded-2xl shadow-lg flex flex-col">
-                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 6 / 7</div>
+            <!-- Card 7: Interest Calculator -->
+            <div id="card-6" class="wizard-card card-hidden bg-white p-8 rounded-2xl shadow-lg flex flex-col">
+                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 7 / 9</div>
                 <div class="flex-grow flex flex-col justify-center">
                     <div>
                         <div class="text-center">
@@ -177,13 +195,59 @@
                 </div>
                 <div class="mt-8 flex justify-between">
                     <button onclick="navigate(-1)" class="bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">Back</button>
+                    <button onclick="navigate(1)" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition">Next: Comparison</button>
+                </div>
+            </div>
+            
+            <!-- Card 8: Comparison -->
+            <div id="card-7" class="wizard-card card-hidden bg-white p-8 rounded-2xl shadow-lg flex flex-col">
+                 <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 8 / 9</div>
+                 <div class="flex-grow flex flex-col justify-center">
+                    <h2 class="text-2xl font-semibold text-indigo-600 mb-6 text-center">Putting It All Together: A Comparison</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                        <!-- Savings Example -->
+                        <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                            <h3 class="font-bold text-lg text-green-800 mb-2 text-center">✅ Savings Scenario</h3>
+                            <p class="text-center text-gray-700 mb-4">You invest <strong>$5,000</strong> at <strong>6%</strong> for <strong>10 years</strong>.</p>
+                            <div class="mb-3">
+                                <p class="font-semibold">Simple Interest:</p>
+                                <p class="font-mono text-gray-600">$5,000 * 0.06 * 10 = $3,000</p>
+                                <p>Total: <strong class="text-green-700">$8,000</strong></p>
+                            </div>
+                            <div>
+                                <p class="font-semibold">Compound Interest:</p>
+                                <p class="font-mono text-gray-600">$5,000 * (1 + 0.06)<sup>10</sup></p>
+                                <p>Total: <strong class="text-green-700">$8,954.24</strong></p>
+                            </div>
+                            <p class="mt-4 text-center bg-green-100 p-2 rounded font-semibold text-green-800">You earn an extra $954.24!</p>
+                        </div>
+                        <!-- Loan Example -->
+                        <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                            <h3 class="font-bold text-lg text-red-800 mb-2 text-center">❌ Loan Scenario</h3>
+                            <p class="text-center text-gray-700 mb-4">You borrow <strong>$10,000</strong> at <strong>8%</strong> for <strong>5 years</strong>.</p>
+                            <div class="mb-3">
+                                <p class="font-semibold">Simple Interest:</p>
+                                <p class="font-mono text-gray-600">$10,000 * 0.08 * 5 = $4,000</p>
+                                <p>Total Cost: <strong class="text-red-700">$14,000</strong></p>
+                            </div>
+                            <div>
+                                <p class="font-semibold">Compound Interest:</p>
+                                <p class="font-mono text-gray-600">$10,000 * (1 + 0.08)<sup>5</sup></p>
+                                <p>Total Cost: <strong class="text-red-700">$14,693.28</strong></p>
+                            </div>
+                            <p class="mt-4 text-center bg-red-100 p-2 rounded font-semibold text-red-800">You pay an extra $693.28!</p>
+                        </div>
+                    </div>
+                 </div>
+                 <div class="mt-8 flex justify-between">
+                    <button onclick="navigate(-1)" class="bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">Back</button>
                     <button onclick="navigate(1)" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition">Finish Journey</button>
                 </div>
             </div>
 
-            <!-- Card 7: Outro -->
-             <div id="card-6" class="wizard-card card-hidden bg-white p-8 rounded-2xl shadow-lg flex flex-col text-center">
-                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 7 / 7</div>
+            <!-- Card 9: Outro -->
+             <div id="card-8" class="wizard-card card-hidden bg-white p-8 rounded-2xl shadow-lg flex flex-col text-center">
+                <div class="absolute top-4 right-4 text-xs font-semibold text-gray-400">STEP 9 / 9</div>
                 <div class="flex-grow flex flex-col justify-center">
                     <h2 class="text-2xl font-semibold text-green-600">Congratulations!</h2>
                     <p class="mt-4 text-gray-700 max-w-lg mx-auto">You've completed the Financial Learning Journey. Keep exploring and applying these concepts to achieve your financial goals.</p>
@@ -246,7 +310,8 @@
                 { question: "You invest $1,000 at an annual compound interest rate of 6% for 5 years. What is the total amount in the account?", answer: 1338.23, type: 'compound_interest', hint: 'Hint: The formula is A = P(1 + r)^t. Remember to use the rate as a decimal (e.g., 0.06).'},
                 { question: "What is the future value of $2,500 invested for 4 years at 4% compounded annually?", answer: 2924.65, type: 'compound_interest', hint: 'Hint: The formula is A = P(1 + r)^t. Remember to use the rate as a decimal (e.g., 0.04).'},
                 { question: "If you deposit $500 into an account with a 3% annual compound interest rate, what will the balance be after 10 years?", answer: 671.96, type: 'compound_interest', hint: 'Hint: The formula is A = P(1 + r)^t. Remember to use the rate as a decimal (e.g., 0.03).'},
-                { question: "Using the Rule of 72, approximately how many years would it take for your money to double with an 8% interest rate?", answer: 9, type: 'rule_of_72', hint: 'Hint: The formula is 72 divided by the interest rate (as a whole number).'}
+                { question: "Using the Rule of 72, approximately how many years would it take for your money to double with an 8% interest rate?", answer: 9, type: 'rule_of_72', hint: 'Hint: The formula is 72 divided by the interest rate (as a whole number).'},
+                { question: "You have a $1,000 credit card balance with a 20% annual interest rate. If you make no payments, how much will you owe after one year?", answer: 1200, type: 'compound_interest', hint: 'Hint: Future Value = Principal × (1 + Rate). The interest compounds on the balance.'}
             ];
             let currentQuestionIndex = 0;
             const quizQuestionEl = document.getElementById('quiz-question');
@@ -433,6 +498,4 @@
     </script>
 </body>
 </html>
-
-
 
