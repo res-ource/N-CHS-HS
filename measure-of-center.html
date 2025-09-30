@@ -125,6 +125,7 @@
         let currentCardIndex = 0;
         let sortableInstance = null;
         let orderIsCorrectForCurrentQuestion = false;
+        let userResults = [];
         
         const stepCards = document.querySelectorAll('.step-card');
         const cardNavigation = document.getElementById('card-navigation');
@@ -152,6 +153,14 @@
             range: (sorted) => sorted[sorted.length - 1] - sorted[0]
         };
 
+        function initializeResults() {
+            userResults = questions.map(() => ({
+                mean: { correct: false },
+                median: { correct: false },
+                mode: { correct: false },
+                range: { correct: false }
+            }));
+        }
 
         function showCard(index) {
             stepCards.forEach((card, i) => card.classList.toggle('active', i === index));
@@ -191,6 +200,9 @@
             orderIsCorrectForCurrentQuestion = false;
             const checkOrderBtn = document.getElementById('checkOrderBtn');
             checkOrderBtn.textContent = 'Check Order';
+            checkOrderBtn.disabled = false;
+            document.getElementById('sort-feedback').textContent = '';
+
 
             document.getElementById('progress').textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
             
@@ -204,7 +216,6 @@
             const question = questions[currentQuestionIndex];
             const sortContainer = document.getElementById('sort-container');
             sortContainer.innerHTML = '';
-            document.getElementById('sort-feedback').textContent = '';
             
             question.numbers.forEach(num => {
                 const numberEl = document.createElement('div');
@@ -218,15 +229,50 @@
         }
         
         function showCompletionScreen() {
-             document.getElementById('quiz-container').innerHTML = `
-                <div class="text-center bg-white p-8 rounded-2xl shadow-lg">
-                    <h1 class="text-4xl font-bold text-gray-900">Practice Complete!</h1>
-                    <p class="text-lg text-gray-600 mt-4">You've completed all the questions. Great job!</p>
-                    <button id="restartBtn" class="mt-8 bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg hover:bg-indigo-700">Restart Practice</button>
+            let totalCorrect = 0;
+            userResults.forEach(res => {
+                if (res.mean.correct) totalCorrect++;
+                if (res.median.correct) totalCorrect++;
+                if (res.mode.correct) totalCorrect++;
+                if (res.range.correct) totalCorrect++;
+            });
+            const totalPossible = questions.length * 4;
+
+            const resultsHtml = userResults.map((result, index) => {
+                const questionNumbers = questions[index].numbers.join(', ');
+                const getIcon = (isCorrect) => isCorrect 
+                    ? `<span class="text-green-500 text-2xl">✓</span>` 
+                    : `<span class="text-red-500 text-2xl">✗</span>`;
+
+                return `
+                    <div class="p-4 border-b last:border-b-0">
+                        <p class="font-semibold text-gray-700">Q${index + 1}: <span class="font-normal text-gray-600">${questionNumbers}</span></p>
+                        <div class="grid grid-cols-4 text-center mt-2">
+                            <div><p class="text-sm text-gray-500">Mean</p>${getIcon(result.mean.correct)}</div>
+                            <div><p class="text-sm text-gray-500">Median</p>${getIcon(result.median.correct)}</div>
+                            <div><p class="text-sm text-gray-500">Mode</p>${getIcon(result.mode.correct)}</div>
+                            <div><p class="text-sm text-gray-500">Range</p>${getIcon(result.range.correct)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('quiz-container').innerHTML = `
+                <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
+                    <h1 class="text-4xl font-bold text-gray-900 text-center">Practice Complete!</h1>
+                    <div class="text-center my-6">
+                        <p class="text-2xl font-semibold">Your Final Tally</p>
+                        <p class="text-5xl font-bold text-indigo-600">${totalCorrect} <span class="text-3xl text-gray-500">/ ${totalPossible}</span></p>
+                    </div>
+                    <div class="border rounded-lg overflow-hidden bg-gray-50">${resultsHtml}</div>
+                    <div class="text-center">
+                        <button id="restartBtn" class="mt-8 bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg hover:bg-indigo-700">Restart Practice</button>
+                    </div>
                 </div>
             `;
             document.getElementById('restartBtn').addEventListener('click', () => { location.reload(); });
         }
+
 
         // --- EVENT LISTENERS ---
         nextCardBtn.addEventListener('click', () => {
@@ -348,6 +394,7 @@
                 const meanInput = document.getElementById('mean-input');
                 const feedback = document.getElementById('mean-feedback');
                 if (Math.abs(parseFloat(meanInput.value) - correctMean) < 0.01) {
+                    userResults[currentQuestionIndex].mean.correct = true;
                     meanInput.classList.add('correct'); meanInput.disabled = true;
                     feedback.textContent = 'You nailed it! 🎉'; feedback.classList.add('text-green-600');
                     nextCardBtn.disabled = false;
@@ -393,6 +440,7 @@
                 const input = document.getElementById('median-input');
                 const feedback = document.getElementById('median-feedback');
                 if (parseFloat(input.value) === correctMedian) {
+                    userResults[currentQuestionIndex].median.correct = true;
                     input.classList.add('correct'); input.disabled = true;
                     feedback.textContent = 'Exactly! 🎉'; feedback.classList.add('text-green-600');
                     nextCardBtn.disabled = false;
@@ -486,6 +534,7 @@
                 const input = document.getElementById('median-final-input');
                 const feedback = document.getElementById('median-final-feedback');
                 if (parseFloat(input.value) === correctMedian) {
+                    userResults[currentQuestionIndex].median.correct = true;
                     input.disabled = true;
                     e.target.disabled = true;
                     feedback.textContent = 'Perfect! 🎉'; 
@@ -514,6 +563,7 @@
                 const correctModeStr = Array.isArray(correctMode) ? correctMode.join(',') : String(correctMode).toLowerCase();
 
                 if (userModes === correctModeStr) {
+                    userResults[currentQuestionIndex].mode.correct = true;
                     input.classList.add('correct'); input.disabled = true;
                     feedback.textContent = 'That\'s it! 🎉'; feedback.classList.add('text-green-600');
                     nextCardBtn.disabled = false;
@@ -538,6 +588,7 @@
                 const input = document.getElementById('range-input');
                 const feedback = document.getElementById('range-feedback');
                 if (parseInt(input.value) === correctRange) {
+                    userResults[currentQuestionIndex].range.correct = true;
                     input.classList.add('correct'); input.disabled = true;
                     feedback.textContent = 'Great job! 🎉'; feedback.classList.add('text-green-600');
                     nextCardBtn.disabled = false;
@@ -548,6 +599,7 @@
             });
         }
 
+        initializeResults();
         loadQuestion();
     </script>
 </body>
