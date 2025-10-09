@@ -23,27 +23,45 @@
     <script>
         let currentPage = 0;
         const maxPages = 4; // Pages 0 (Intro), 1 (Builder), 2 (Analysis), 3 (Report)
-        let currentBuilderData = []; // Stores the raw data set for the builder page's self-check
-        let plotState = {}; // Stores { stem: [{value: 43, leaf: 3}, ...], ... }
+        let currentBuilderData = []; 
+        let plotState = {}; 
 
         // SCORING TRACKERS
-        let builderDataCompletion = [false, false, false, false]; // Tracks completion status for the 4 data sets
-        let analysisScore = 0; // Tracks correct answers for Step 3 (Max 6)
+        let builderDataCompletion = [false, false, false, false]; // Tracks completion status for the 4 data sets (Max 4 points)
+        let challengeScores = [0, 0, 0, 0]; // Tracks correct stats per challenge [C1_Score, C2_Score, C3_Score, C4_Score] (Max 6 points per challenge)
+        let currentChallengeIndex = 0; // Index for the Interpretation Challenges
+
+        // --- DATA SETS ---
         
-        // Data sets for the D&D builder - UPDATED to ensure modes exist
+        // Data sets for the D&D builder (Step 2)
         const dataSets = [
-            { name: "1. Standard 2-Digit Scores (Mode: 27)", raw: [7, 8, 13, 15, 17, 22, 24, 25, 27, 27, 28, 32, 43] },
-            { name: "2. 3-Digit Numbers (Mode: 102)", raw: [102, 108, 115, 72, 76, 85, 88, 89, 93, 97, 113, 102] },
-            { name: "3. Decimals (Mode: 4.2)", raw: [3.1, 4.5, 5.7, 4.2, 3.4, 4.0, 5.1, 3.6, 4.2] },
-            { name: "4. Mixed Small & Large (Mode: 25)", raw: [1, 2, 4, 11, 13, 14, 20, 21, 22, 23, 24, 25, 25] },
+            { name: "1. Standard 2-Digit Scores (Mode: 27)", raw: [7, 8, 13, 15, 17, 22, 24, 25, 27, 27, 27, 28, 32, 43] },
+            { name: "2. 3-Digit Numbers (Modes: 88, 102)", raw: [102, 108, 115, 72, 76, 85, 88, 88, 89, 93, 97, 113, 102] },
+            { name: "3. Decimals (Modes: 4.2, 5.1)", raw: [3.1, 4.5, 5.7, 4.2, 3.4, 4.0, 5.1, 3.6, 4.2, 5.1] },
+            { name: "4. Mixed Small & Large (Modes: 23, 25)", raw: [1, 2, 4, 11, 13, 14, 20, 21, 22, 23, 23, 24, 25, 25] },
         ];
         
-        // Correct answers for the final analysis challenge (Page 2 data)
-        const analysisPlotData = [59, 62, 62, 65, 70, 75, 75, 78, 79, 81, 83, 88, 91, 95];
-        const analysisAnswers = { min: 59, max: 95, range: 36, mode: "62, 75", median: 76.5, mean: 76.64 }; 
-        
-        // Pre-calculate analysis plot HTML once
-        let analysisPlotHtml;
+        // Data sets and answers for the Interpretation Challenges (Step 3)
+        const challengeSets = [
+            // Challenge 1: Math Test Scores (Original Data)
+            { id: 0, title: "Math Test Scores (Out of 100)", raw: [59, 62, 62, 65, 70, 75, 75, 78, 79, 81, 83, 88, 91, 95], keyText: "5 | 9 = 59", 
+              answers: { min: 59, max: 95, range: 36, mode: "62, 75", median: 76.5, mean: 76.64 } },
+            
+            // Challenge 2: Daily Rainfall (Decimals)
+            { id: 1, title: "Daily Rainfall (Inches)", raw: [0.3, 0.5, 0.7, 1.1, 1.1, 1.3, 1.6, 2.0, 2.4, 2.5], keyText: "0 | 3 = 0.3", 
+              answers: { min: 0.3, max: 2.5, range: 2.2, mode: "1.1", median: 1.2, mean: 1.35 } },
+
+            // Challenge 3: Marathon Times (3-Digit)
+            { id: 2, title: "Marathon Times (Minutes)", raw: [153, 155, 161, 161, 161, 168, 170, 172, 174, 185], keyText: "15 | 3 = 153", 
+              answers: { min: 153, max: 185, range: 32, mode: "161", median: 164.5, mean: 165.00 } },
+
+            // Challenge 4: Customer Ages
+            { id: 3, title: "Customer Ages (Years)", raw: [18, 18, 19, 21, 21, 22, 25, 30, 31, 31, 31, 32, 40, 40], keyText: "1 | 8 = 18", 
+              answers: { min: 18, max: 40, range: 22, mode: "31", median: 27.5, mean: 27.14 } }
+        ];
+
+        // Pre-calculate challenge plot HTML once
+        let challengePlotHtmls = {};
 
 
         function navigate(direction) {
@@ -174,7 +192,7 @@
             const mean = (sum / count).toFixed(2);
             const min = sortedData[0];
             const max = sortedData[count - 1];
-            const range = max - min;
+            const range = (max - min).toFixed(2);
 
             let median;
             const middle = Math.floor(count / 2);
@@ -196,14 +214,53 @@
                     modes.push(Number(key));
                 }
             }
-            const mode = modes.length > 0 ? modes.sort((a, b) => a - b).join(', ') : 'None';
+            // Ensure single mode is formatted correctly, handle large numbers/decimals in mode array
+            const mode = modes.length > 0 ? modes.sort((a, b) => a - b).map(m => {
+                // Formatting decimals for modes to match input expectation
+                return Math.abs(m % 1) !== 0 ? m.toFixed(1) : m.toString();
+            }).join(', ') : 'None';
 
-            return { min, max, range, mean, median, mode };
+
+            return { min: min, max: max, range: parseFloat(range), mean: mean, median: median, mode: mode };
         }
         
         // --- PLOT STRUCTURE GENERATOR ---
+        function createPlot(rawData) {
+             const data = [...rawData].sort((a, b) => a - b);
+            if (data.length === 0) return { html: "<p class='text-center text-red-500'>No data provided.</p>", key: "" };
+
+            let minStem = getStemLeaf(data[0]).stem;
+            let maxStem = getStemLeaf(data[data.length - 1]).stem;
+            
+            const plotMap = {};
+
+            for (let value of data) {
+                const { stem, leaf } = getStemLeaf(value);
+                if (!plotMap[stem]) {
+                    plotMap[stem] = [];
+                }
+                plotMap[stem].push(leaf);
+            }
+
+            let html = "";
+            for (let stem = minStem; stem <= maxStem; stem++) {
+                const leaves = plotMap[stem] || [];
+                const leavesStr = leaves.map(l => l.toString()).join('');
+
+                html += `
+                    <div class="plot-row">
+                        <div class="stem-column">${stem}</div>
+                        <div class="leaf-column">${leavesStr}</div>
+                    </div>
+                `;
+            }
+            return { html: html, key: null };
+        }
+
+
         function generatePlot() {
-            const selectedIndex = document.getElementById('data-set-select').value;
+            const select = document.getElementById('data-set-select');
+            const selectedIndex = Number(select.value);
             const dataSet = dataSets[selectedIndex];
             currentBuilderData = [...dataSet.raw];
             
@@ -264,13 +321,11 @@
                 row.appendChild(stemCol);
                 row.appendChild(leafCol);
                 plotContainer.appendChild(row);
-                
-                if (keyText === "") {
-                     const firstValue = dataSet.raw.sort((a,b)=>a-b)[0];
-                     const { stem: fs, leaf: fl } = getStemLeaf(firstValue);
-                     keyText = `<span class="font-bold">${fs}</span> | <span class="font-bold">${fl}</span> = ${firstValue}`;
-                }
             }
+            
+            const firstValue = dataSet.raw.sort((a,b)=>a-b)[0];
+            const { stem: fs, leaf: fl } = getStemLeaf(firstValue);
+            keyText = `<span class="font-bold">${fs}</span> | <span class="font-bold">${fl}</span> = ${firstValue}`;
             
             keyDiv.innerHTML = `Key: ${keyText}`;
             document.getElementById('builder-check-message').innerHTML = '<p class="text-blue-600 mt-2">Plot structure ready! Drag all numbers to their correct Stem row.</p>';
@@ -292,12 +347,13 @@
         
         function checkAnswers(prefix) {
             const isBuilder = prefix === 'builder';
-            const dataToUse = isBuilder ? currentBuilderData : analysisPlotData; 
+            const currentChallenge = isBuilder ? null : challengeSets[currentChallengeIndex];
+            const dataToUse = isBuilder ? currentBuilderData : currentChallenge.raw; 
             
             const dataReady = dataToUse && dataToUse.length >= 2;
             const currentDataSetIndex = isBuilder ? Number(document.getElementById('data-set-select').value) : -1;
             
-            // Check if all plot pieces are placed in the builder
+            // 1. Plot Completion Check (Builder Only)
             let allNumbersPlotted = false;
             if (isBuilder) {
                 const totalPlotted = Object.values(plotState).reduce((sum, arr) => sum + arr.length, 0);
@@ -314,12 +370,15 @@
                  return;
             }
             
-            const correctAnswers = isBuilder ? calculateStatistics(dataToUse) : analysisAnswers;
+            // 2. Statistic Calculation Check
+            const correctAnswers = isBuilder ? calculateStatistics(dataToUse) : currentChallenge.answers;
             const messageId = `${prefix}-check-message`;
             let allStatsCorrect = true;
             let correctStatCount = 0;
 
-            ['min', 'max', 'range', 'median', 'mode', 'mean'].forEach(stat => {
+            const statsList = ['min', 'max', 'range', 'median', 'mode', 'mean'];
+
+            statsList.forEach(stat => {
                 const inputId = `${stat}-${prefix}-input`;
                 const inputElement = document.getElementById(inputId); 
                 if (!inputElement) return;
@@ -331,13 +390,14 @@
 
                 if (stat === 'mode') {
                     const userModes = value.split(/,\s*|\s+/).map(s => s.trim()).filter(s => s !== '').map(Number).sort().join(',');
-                    const expectedModes = expectedAnswer.split(/,\s*/).map(Number).sort().join(',');
+                    const expectedModes = expectedAnswer.split(/,\s*/).map(s => s.trim()).filter(s => s !== '').map(Number).sort().join(',');
                     isCorrect = userModes === expectedModes;
                 } else if (stat === 'median' || stat === 'mean') {
                      isCorrect = value === expectedAnswer; 
                 } else {
                     const numValue = Number(value);
                     const expectedNum = Number(expectedAnswer);
+                    // Use a small epsilon for number comparison to handle floating point issues
                     isCorrect = !isNaN(numValue) && Math.abs(numValue - expectedNum) < 0.01;
                 }
 
@@ -351,19 +411,23 @@
                 }
             });
 
-            // --- SCORING UPDATES ---
-            if (isBuilder && allStatsCorrect) {
-                 // Mark the specific dataset as complete
-                 builderDataCompletion[currentDataSetIndex] = true;
-            } else if (!isBuilder) {
-                 // Update the score for the final analysis challenge
-                 analysisScore = correctStatCount;
-            }
-
+            // 3. SCORING AND FEEDBACK UPDATES
             const resultMessage = document.getElementById(messageId);
-            if (allStatsCorrect) {
-                resultMessage.innerHTML = `<p class="text-green-700 font-bold mt-4">✅ All Correct! Data Set ${currentDataSetIndex + 1} Mastered.</p>`;
-            } else {
+
+            if (isBuilder && allStatsCorrect) {
+                 builderDataCompletion[currentDataSetIndex] = true;
+                 resultMessage.innerHTML = `<p class="text-green-700 font-bold mt-4">✅ All Correct! Data Set ${currentDataSetIndex + 1} Mastered. Try the other sets!</p>`;
+            } else if (!isBuilder) {
+                 // Store score for the current challenge (Max 6 points)
+                 challengeScores[currentChallengeIndex] = correctStatCount;
+                 
+                 if (allStatsCorrect) {
+                    resultMessage.innerHTML = `<p class="text-green-700 font-bold mt-4">✅ All Correct! Challenge ${currentChallengeIndex + 1} Mastered. Press "Next Challenge".</p>`;
+                    document.getElementById('analysis-next-btn').disabled = false;
+                 } else {
+                    resultMessage.innerHTML = `<p class="text-red-700 mt-4">❌ Keep trying! You got ${correctStatCount}/6 correct. Review your calculations and try again.</p>`;
+                 }
+            } else if (isBuilder && !allStatsCorrect) {
                 resultMessage.innerHTML = `<p class="text-red-700 mt-4">❌ Keep trying! Review your calculations and try again.</p>`;
             }
         }
@@ -376,14 +440,19 @@
             return array;
         }
 
+        // --- FINAL REPORT LOGIC ---
         function calculateFinalScore() {
             const builderPoints = builderDataCompletion.filter(c => c).length;
-            const analysisPoints = analysisScore;
-            const totalPoints = builderPoints + (analysisPoints / 6) * 6; // max 6 points
+            const totalChallengeStatsCorrect = challengeScores.reduce((sum, score) => sum + score, 0);
+            const totalChallengeStatsPossible = challengeSets.length * 6; // 4 challenges * 6 stats = 24
+
+            // Normalize analysis score: max 6 points out of 24 possible stats
+            const analysisPoints = Math.round((totalChallengeStatsCorrect / totalChallengeStatsPossible) * 6); 
+            const totalPoints = builderPoints + analysisPoints; // Max 4 + 6 = 10
 
             document.getElementById('builder-score-out').textContent = `${builderPoints} / ${dataSets.length}`;
-            document.getElementById('analysis-score-out').textContent = `${analysisScore} / 6`;
-            document.getElementById('total-score-out').textContent = `${Math.round(totalPoints)} / 10`;
+            document.getElementById('analysis-score-out').textContent = `${totalChallengeStatsCorrect} / ${totalChallengeStatsPossible} (${analysisPoints} pts)`;
+            document.getElementById('total-score-out').textContent = `${totalPoints} / 10`;
 
             const message = document.getElementById('final-message');
             if (totalPoints === 10) {
@@ -394,6 +463,40 @@
                  message.innerHTML = '<span class="text-yellow-700 font-extrabold">Keep Practicing. Review the definitions of Median, Mode, and Mean, and try the challenges again.</span>';
             }
         }
+        
+        // --- CHALLENGE NAVIGATION AND RENDERING ---
+        function generateChallengePlot(challengeIndex) {
+            const challenge = challengeSets[challengeIndex];
+            
+            // If the plot hasn't been cached, generate it now
+            if (!challengePlotHtmls[challenge.id]) {
+                challengePlotHtmls[challenge.id] = createPlot(challenge.raw);
+            }
+            const plotHtml = challengePlotHtmls[challenge.id];
+
+            document.getElementById('analysis-title').textContent = `Challenge ${challengeIndex + 1} of ${challengeSets.length}: ${challenge.title}`;
+            document.getElementById('analysis-plot-output').innerHTML = `<div class="plot-container rounded-xl">${plotHtml.html}</div>`;
+            document.getElementById('analysis-key').innerHTML = `Key: ${challenge.keyText}`;
+
+            // Reset inputs and messages for the new challenge
+            resetInputs('analysis');
+            document.getElementById('analysis-next-btn').disabled = true;
+
+            // Pre-fill Min/Max if desired (Min and Max are visually obvious and speed up the rest of the calculation)
+            document.getElementById('min-analysis-input').value = challenge.answers.min;
+            document.getElementById('max-analysis-input').value = challenge.answers.max;
+        }
+
+        function nextChallenge() {
+            if (currentChallengeIndex < challengeSets.length - 1) {
+                currentChallengeIndex++;
+                generateChallengePlot(currentChallengeIndex);
+            } else {
+                // All challenges complete, move to the final report
+                navigate(1);
+            }
+        }
+
 
         // --- PAGE NAVIGATION ---
         
@@ -405,7 +508,6 @@
             const prevBtn = pageEl.querySelector('.page-prev-btn'); const nextBtn = pageEl.querySelector('.page-next-btn');
             
             if (index === 1) {
-                // Initialize dropdown options on builder page load
                 const select = document.getElementById('data-set-select');
                 if (select.children.length === 0) {
                      dataSets.forEach((set, i) => {
@@ -420,20 +522,23 @@
                 rawDataContainer.ondragover = (e) => e.preventDefault();
                 rawDataContainer.ondrop = handleDropBack;
             } else if (index === 2) {
-                 // Set analysis plot data on analysis page load
-                if (!analysisPlotHtml) analysisPlotHtml = createPlot(analysisPlotData);
-                document.getElementById('analysis-plot-output').innerHTML = `<div class="plot-container rounded-xl">${analysisPlotHtml.html}</div>`;
-                document.getElementById('analysis-key').innerHTML = `Key: ${analysisPlotHtml.key}`;
-                resetInputs('analysis');
+                 // Start or resume the interpretation challenge
+                 currentChallengeIndex = 0; // Always start at the first challenge when entering the page
+                 generateChallengePlot(currentChallengeIndex); 
             } else if (index === 3) {
-                 // Calculate and display final scores
                  calculateFinalScore();
             }
 
             if (prevBtn) { prevBtn.onclick = () => navigate(-1); prevBtn.classList.toggle('invisible', index === 0); }
             if (nextBtn) {
-                nextBtn.disabled = false; nextBtn.onclick = () => navigate(1); 
-                nextBtn.textContent = (index === maxPages - 1) ? 'Start Over' : 'Next Step →';
+                if (index === 2) {
+                    // For challenge page, the 'Next Step' button is hidden and 'Next Challenge' is used
+                    nextBtn.classList.add('hidden');
+                } else {
+                    nextBtn.classList.remove('hidden');
+                    nextBtn.disabled = false; nextBtn.onclick = () => navigate(1); 
+                    nextBtn.textContent = (index === maxPages - 1) ? 'Start Over' : 'Next Step →';
+                }
             }
         }
 
@@ -441,6 +546,7 @@
             document.getElementById('generate-plot-btn').addEventListener('click', generatePlot);
             document.getElementById('check-builder-btn').addEventListener('click', () => checkAnswers('builder'));
             document.getElementById('check-analysis-btn').addEventListener('click', () => checkAnswers('analysis'));
+            document.getElementById('analysis-next-btn').addEventListener('click', nextChallenge);
             document.getElementById('data-set-select').addEventListener('change', generatePlot);
             showPage(currentPage);
         };
@@ -538,18 +644,18 @@
         </div>
 
 
-        <!-- PAGE 2: INTERPRETATION PRACTICE (OLD PAGE 7) -->
+        <!-- PAGE 2: INTERPRETATION PRACTICE (CHALLENGE CAROUSEL) -->
         <div id="page-2" class="page-content hidden">
             <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg border-t-4 border-blue-500">
-                <h2 class="text-3xl font-bold mb-4 text-blue-700">Step 3: Interpretation Challenge</h2>
-                <p class="mb-4 text-gray-600">Analyze the plot of Math Test Scores (out of 100) below. Calculate the key data landmarks and enter your answers. Min and Max are provided to save time.</p>
+                <h2 class="text-3xl font-bold mb-4 text-blue-700" id="analysis-title">Step 3: Interpretation Challenge 1 of 4: Math Test Scores</h2>
+                <p class="mb-4 text-gray-600">Analyze the plot below to calculate the key data landmarks. You must correctly answer all six stats to master the challenge and unlock the next one.</p>
                 
                 <div class="flex flex-col sm:flex-row gap-6 mb-6">
                     <!-- Analysis Plot -->
                     <div class="sm:w-1/2">
-                        <h3 class="text-xl font-semibold mb-3 text-center text-gray-900">Math Test Scores Plot</h3>
+                        <h3 class="text-xl font-semibold mb-3 text-center text-gray-900">Data Plot</h3>
                         <div id="analysis-plot-output">
-                            <!-- Plot generated dynamically on showPage -->
+                            <!-- Plot generated dynamically by generateChallengePlot -->
                         </div>
                         <p id="analysis-key" class="key-line text-center"></p>
                     </div>
@@ -557,14 +663,18 @@
                     <!-- Input Fields -->
                     <div class="sm:w-1/2 space-y-3">
                         <h3 class="text-xl font-semibold mb-3 text-center text-gray-900">Enter Landmarks</h3>
-                        <div class="flex items-center space-x-3 border-2 border-gray-300 rounded-lg p-2 bg-white transition duration-150"><label for="min-analysis-input" class="w-24 font-medium">Minimum:</label><input type="number" id="min-analysis-input" placeholder="Min" class="flex-1 p-1 border-gray-200 rounded text-right" value="59" readonly></div>
-                        <div class="flex items-center space-x-3 border-2 border-gray-300 rounded-lg p-2 bg-white transition duration-150"><label for="max-analysis-input" class="w-24 font-medium">Maximum:</label><input type="number" id="max-analysis-input" placeholder="Max" class="flex-1 p-1 border-gray-200 rounded text-right" value="95" readonly></div>
+                        <div class="flex items-center space-x-3 border-2 border-gray-300 rounded-lg p-2 bg-white transition duration-150"><label for="min-analysis-input" class="w-24 font-medium">Minimum:</label><input type="number" id="min-analysis-input" placeholder="Min" class="flex-1 p-1 border-gray-200 rounded text-right" readonly></div>
+                        <div class="flex items-center space-x-3 border-2 border-gray-300 rounded-lg p-2 bg-white transition duration-150"><label for="max-analysis-input" class="w-24 font-medium">Maximum:</label><input type="number" id="max-analysis-input" placeholder="Max" class="flex-1 p-1 border-gray-200 rounded text-right" readonly></div>
                         <div class="flex items-center space-x-3 border-2 border-gray-300 rounded-lg p-2 bg-white transition duration-150"><label for="range-analysis-input" class="w-24 font-medium">Range:</label><input type="number" id="range-analysis-input" placeholder="Range" class="flex-1 p-1 border-gray-200 rounded text-right"></div>
                         <div class="flex items-center space-x-3 border-2 border-gray-300 rounded-lg p-2 bg-white transition duration-150"><label for="mode-analysis-input" class="w-24 font-medium">Mode(s):</label><input type="text" id="mode-analysis-input" placeholder="e.g., 62, 75" class="flex-1 p-1 border-gray-200 rounded text-right"></div>
                         <div class="flex items-center space-x-3 border-2 border-gray-300 rounded-lg p-2 bg-white transition duration-150"><label for="median-analysis-input" class="w-24 font-medium">Median:</label><input type="number" step="0.5" id="median-analysis-input" placeholder="Median" class="flex-1 p-1 border-gray-200 rounded text-right"></div>
                         <div class="flex items-center space-x-3 border-2 border-gray-300 rounded-lg p-2 bg-white transition duration-150"><label for="mean-analysis-input" class="w-24 font-medium">Mean:</label><input type="number" step="0.01" id="mean-analysis-input" placeholder="Mean" class="flex-1 p-1 border-gray-200 rounded text-right"></div>
+                        
                         <button id="check-analysis-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-150 shadow-md">
                             Check My Answers
+                        </button>
+                        <button id="analysis-next-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-150 shadow-md" disabled>
+                            Next Challenge →
                         </button>
                         <div id="analysis-check-message" class="text-center font-medium"></div>
                     </div>
@@ -572,7 +682,8 @@
                 
                 <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
                     <button class="page-prev-btn flex items-center text-gray-700 hover:text-indigo-600 transition duration-150"><svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>← Previous Step</button>
-                    <button class="page-next-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 shadow-md">Next Step →</button>
+                    <!-- Next Step is hidden, managed by Next Challenge button -->
+                    <button class="page-next-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 shadow-md hidden">Next Step →</button>
                 </div>
             </section>
         </div>
@@ -591,8 +702,8 @@
                     </div>
                      <div class="bg-green-50 p-4 rounded-lg border border-green-200">
                         <p class="text-sm text-green-700 font-medium">Interpretation Score (Step 3)</p>
-                        <h3 class="text-4xl font-extrabold text-green-900 mt-2" id="analysis-score-out">-- / 6</h3>
-                        <p class="text-sm text-gray-600 mt-1">Statistics Correct</p>
+                        <h3 class="text-4xl font-extrabold text-green-900 mt-2" id="analysis-score-out">-- / 24 (Max 6 pts)</h3>
+                        <p class="text-sm text-gray-600 mt-1">Total Correct Statistics</p>
                     </div>
                     <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
                         <p class="text-sm text-yellow-700 font-medium">Total Overall Score</p>
