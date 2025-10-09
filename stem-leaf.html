@@ -96,7 +96,8 @@
         // --- DRAG AND DROP HANDLERS ---
         function handleDragStart(e) {
             const value = e.target.getAttribute('data-value');
-            e.dataTransfer.setData('text/plain', value);
+            const id = e.target.getAttribute('data-id'); // Get unique ID
+            e.dataTransfer.setData('text/plain', JSON.stringify({ value, id })); // Pass both
             e.dataTransfer.effectAllowed = 'move';
             e.target.classList.add('opacity-50', 'ring-4', 'ring-blue-400');
         }
@@ -107,7 +108,11 @@
 
         function handleDragOver(e) {
             e.preventDefault();
-            const draggedValue = e.dataTransfer.getData('text/plain');
+            
+            let draggedData;
+            try { draggedData = JSON.parse(e.dataTransfer.getData('text/plain')); } catch (error) { return; }
+            const draggedValue = draggedData.value;
+            
             if (!draggedValue) return;
 
             const { stem: expectedStem } = getStemLeaf(draggedValue);
@@ -130,7 +135,11 @@
             e.preventDefault();
             e.currentTarget.classList.remove('bg-blue-100', 'bg-red-100');
 
-            const draggedValue = e.dataTransfer.getData('text/plain');
+            let draggedData;
+            try { draggedData = JSON.parse(e.dataTransfer.getData('text/plain')); } catch (error) { return; }
+            const draggedValue = draggedData.value;
+            const draggedId = draggedData.id;
+
             if (!draggedValue) return;
 
             const { stem, leaf } = getStemLeaf(draggedValue);
@@ -138,15 +147,16 @@
 
             if (stem !== targetStem) { return; } 
             
-            const draggable = document.querySelector(`.draggable-raw[data-value="${draggedValue}"]`);
+            // Find the specific draggable element using data-id
+            const draggable = document.querySelector(`.draggable-raw[data-id="${draggedId}"]`);
             if (draggable) {
                 draggable.classList.add('hidden');
                 
                 if (!plotState[stem]) plotState[stem] = [];
                 
-                if (plotState[stem].some(l => l.value === Number(draggedValue))) return;
-
-                plotState[stem].push({ value: Number(draggedValue), leaf: leaf });
+                // Store the value and unique ID in plotState
+                plotState[stem].push({ value: Number(draggedValue), leaf: leaf, id: draggedId });
+                
                 plotState[stem].sort((a, b) => a.leaf - b.leaf); 
                 
                 renderPlotRow(stem);
@@ -155,17 +165,25 @@
 
         function handleDropBack(e) {
             e.preventDefault();
-            const draggedValue = e.dataTransfer.getData('text/plain');
+            
+            let draggedData;
+            try { draggedData = JSON.parse(e.dataTransfer.getData('text/plain')); } catch (error) { return; }
+            const draggedValue = draggedData.value;
+            const draggedId = draggedData.id;
+
             if (!draggedValue) return;
 
-            const { stem } = getStemLeaf(draggedValue);
-            const draggable = document.querySelector(`.draggable-raw[data-value="${draggedValue}"]`);
+            // Find the specific draggable element using data-id
+            const draggable = document.querySelector(`.draggable-raw[data-id="${draggedId}"]`);
 
             if (draggable) {
+                const { stem } = getStemLeaf(draggedValue);
                 if (plotState[stem]) {
-                    plotState[stem] = plotState[stem].filter(l => l.value !== Number(draggedValue));
+                    // Remove from state based on unique ID
+                    plotState[stem] = plotState[stem].filter(l => l.id !== draggedId);
                     renderPlotRow(stem);
                 }
+                // Restore the specific draggable element
                 draggable.classList.remove('hidden');
             }
         }
@@ -272,12 +290,15 @@
             
             // 1. Render raw data numbers as draggables (shuffled)
             const shuffledData = shuffleArray([...dataSet.raw]);
-            shuffledData.forEach(value => {
+            shuffledData.forEach((value, index) => { // Added index for unique ID generation
                 const div = document.createElement('div');
+                const uniqueId = `${value}-${index}`; // Unique ID per element
+                
                 div.textContent = value;
                 div.className = 'draggable-raw p-2 border border-gray-400 bg-white rounded-lg shadow-sm cursor-grab text-center font-bold text-gray-800 transition hover:bg-yellow-50';
                 div.setAttribute('draggable', 'true');
                 div.setAttribute('data-value', value);
+                div.setAttribute('data-id', uniqueId); // Set unique ID
                 div.addEventListener('dragstart', handleDragStart);
                 div.addEventListener('dragend', handleDragEnd);
                 rawDataContainer.appendChild(div);
@@ -725,3 +746,4 @@
     </div>
 </body>
 </html>
+
