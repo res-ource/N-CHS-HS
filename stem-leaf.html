@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Stem-and-Leaf Plot Lesson</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the stem-and-leaf plot visual */
+        .plot-container {
+            font-family: 'Inter', monospace;
+            display: flex;
+            flex-direction: column;
+            border-radius: 0.75rem; /* rounded-xl */
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+        }
+        .plot-row {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb; /* gray-200 */
+        }
+        .plot-row:last-child {
+            border-bottom: none;
+        }
+        .stem-column {
+            width: 40px;
+            padding: 4px 8px;
+            text-align: right;
+            font-weight: 700;
+            color: #1f2937; /* gray-800 */
+            background-color: #f3f4f6; /* gray-100 */
+            position: relative;
+            transition: background-color 0.4s;
+        }
+        .leaf-column {
+            flex-grow: 1;
+            padding: 4px 8px;
+            word-wrap: break-word;
+            word-break: break-all;
+            letter-spacing: 0.5em; /* Increase spacing to separate leaves visually */
+            color: #374151; /* gray-700 */
+            transition: background-color 0.4s;
+        }
+        /* Custom styling for the vertical line divider */
+        .stem-column::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 2px;
+            height: 100%;
+            background-color: #4b5563; /* gray-600 */
+        }
+        .key-line {
+            font-size: 0.875rem;
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 0.5rem;
+            background-color: #fef3c7; /* yellow-100 */
+            border: 1px dashed #fbbf24; /* yellow-400 */
+        }
+        .correct-answer {
+            background-color: #d1fae5; /* green-100 */
+            border-color: #10b981; /* green-500 */
+        }
+        .incorrect-answer {
+            background-color: #fee2e2; /* red-100 */
+            border-color: #ef4444; /* red-500 */
+        }
+        
+        /* Drag and Drop Styles */
+        .draggable-step {
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+            user-select: none;
+        }
+        .draggable-step:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .dragging {
+            opacity: 0.5;
+            transform: scale(1.01);
+        }
+        .drag-indicator {
+            height: 4px;
+            background-color: #3b82f6; /* blue-500 */
+            margin: 8px 0;
+            border-radius: 2px;
+            transition: background-color 0.1s;
+        }
+
+        /* Highlight classes for the new walkthrough */
+        .highlight-data {
+            background-color: #fca5a5; /* red-300 */
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background-color 0.5s;
+        }
+        .highlight-stem {
+            background-color: #fcd34d; /* yellow-400 */
+        }
+        .highlight-leaf {
+            background-color: #a7f3d0; /* emerald-200 */
+        }
+        .highlight-key {
+            background-color: #fef08a; /* yellow-200 */
+        }
+        .highlight-individual-data {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            font-weight: bold;
+            padding: 1px 3px;
+            border-radius: 3px;
+        }
+        .hidden-plot {
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+    </style>
+    <script>
+        // --- NAVIGATION STATE ---
+        let currentPage = 0;
+        const maxPages = 6; // Reduced back to 6
+        
+        function navigate(direction) {
+            let newPage = currentPage + direction;
+            if (newPage >= 0 && newPage < maxPages) {
+                currentPage = newPage;
+                showPage(currentPage);
+            } else if (newPage === maxPages) {
+                // Loop back to start on the final "Start Over" click
+                currentPage = 0;
+                showPage(currentPage);
+            }
+        }
+
+        function showPage(index) {
+            // 1. Hide ALL pages
+            document.querySelectorAll('.page-content').forEach(div => {
+                div.classList.add('hidden');
+            });
+
+            const currentPageElement = document.getElementById(`page-${index}`);
+            // 2. Show current page content
+            currentPageElement.classList.remove('hidden');
+
+            // --- SPECIFIC PAGE INITS (Updated Indices) ---
+            if (index === 1) { // New index for 2-Digit Demo 
+                 setupWalkthrough();
+            } else if (index === 2) { // New index for 3-Digit Demo 
+                 setupWalkthrough2(); 
+            } else if (index === 3) { // New index for Decimal Demo 
+                 setupWalkthrough3(); 
+            }
+
+
+            // 3. Update navigation buttons (Local to the current page)
+            const prevBtn = currentPageElement.querySelector('.page-prev-btn');
+            const nextBtn = currentPageElement.querySelector('.page-next-btn');
+
+
+            if (prevBtn) {
+                // Attach common navigation handler
+                prevBtn.onclick = () => navigate(-1);
+                // Page 0 (Sorting Challenge) should hide Previous button
+                prevBtn.classList.toggle('invisible', index === 0);
+            }
+            
+            if (nextBtn) {
+                // Reset to default state
+                nextBtn.disabled = false;
+                nextBtn.onclick = () => navigate(1); // Default action
+                nextBtn.textContent = 'Next Step →';
+
+                // Specific logic for page types
+                if (index === 0) { // NEW: Sorting Challenge Page
+                    renderSortingQuiz(); // Needs to run to check quiz state
+                    // The checkOrder function now handles the nextBtn state
+                } else if (index === maxPages - 1) { // Last Page (Interpretation)
+                    nextBtn.textContent = 'Start Over';
+                }
+            }
+        }
+
+        // Global utility to safely convert input to a number array
+        function parseData(input) {
+            return input
+                .split(',')
+                .map(s => s.trim())
+                .filter(s => s !== '' && !isNaN(Number(s)))
+                .map(Number);
+        }
+
+        // --- COMMON UTILITY FUNCTION ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[i], array[j]];
+            }
+            return array;
+        }
+        
+        // --- DATA DEFINITIONS ---
+        // Page 1 Data (2-Digit)
+        const plotData = [7, 8, 13, 15, 17, 22, 24, 25, 27, 28, 32, 43];
+        const initialUnorderedData = '15, 27, 8, 17, 13, 22, 24, 25, 32, 28, 43, 7';
+        const requiredStems = [0, 1, 2, 3, 4];
+
+        // Page 2 Data (3-Digit)
+        const plotData3Digit = [72, 76, 85, 88, 89, 93, 97, 102, 108, 113, 115];
+        const initialUnorderedData3Digit = '72, 108, 85, 115, 93, 76, 88, 102, 113, 89, 97';
+        const requiredStems3Digit = [7, 8, 9, 10, 11];
+
+        // Page 3 Data (Decimal)
+        const plotDataDecimal = [1.2, 1.5, 1.8, 2.3, 2.4, 2.7, 2.9, 3.2, 3.6, 6.1, 10.6, 12.4];
+        const initialUnorderedDataDecimal = '2.7, 1.5, 12.4, 3.6, 2.4, 1.2, 10.6, 6.1, 1.8, 3.2, 2.9, 2.3';
+        const requiredStemsDecimal = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+
+        // Step definitions for the new granular walkthrough
+        const walkThroughSteps = [
+            // Stage 1: Data Ordering
+            { text: "Stage 1: The Raw Data. The data starts unordered. The first required step is sorting.", action: 'show_unordered' },
+            { text: "Stage 2: Order the Data. The data must be sorted from smallest to largest. This is crucial for plotting leaves correctly.", action: 'show_ordered' },
+            
+            // Stage 2: Plot Structure Setup (Stem Definition)
+            { text: "Stage 3: Set Up the Stems (Structure). The stem is the leading digit(s). We list all unique stems from the smallest to the largest.", action: 'show_stems_blank' },
+            
+            // Stage 3: Leaf Plotting (Iterative)
+            { text: "Stage 4: Plotting the Leaves. We now take each number, split it, and add the Leaf to its Stem row, ensuring the Leaf remains the single final digit.", action: 'plot_leaves_start' },
+            
+            // Stage 4: Key Creation (NEW)
+            { text: "Stage 5: Create the Key. The Key uses the smallest stem and its smallest leaf to define the place value for the entire plot. It shows: **Stem + Leaf = Value**.", action: 'explain_key' }
+        ];
+        
+        function clearHighlights() {
+            document.querySelectorAll('#data-unordered, #ordered-data span, #unordered-data-2, #ordered-data-2 span, #unordered-data-3, #ordered-data-3 span').forEach(s => s.classList.remove('highlight-individual-data', 'highlight-data'));
+            document.querySelectorAll('.stem-column, .leaf-column').forEach(el => {
+                el.classList.remove('highlight-stem', 'highlight-leaf', 'highlight-data');
+            });
+            document.getElementById('demo-key').classList.remove('highlight-key');
+            document.getElementById('demo-key-2').classList.remove('highlight-key');
+            document.getElementById('demo-key-3').classList.remove('highlight-key');
+
+            document.getElementById('unordered-data').classList.remove('highlight-data');
+            document.getElementById('ordered-data').classList.remove('highlight-data');
+            document.getElementById('unordered-data-2').classList.remove('highlight-data');
+            document.getElementById('ordered-data-2').classList.remove('highlight-data');
+            document.getElementById('unordered-data-3').classList.remove('highlight-data');
+            document.getElementById('ordered-data-3').classList.remove('highlight-data');
+        }
+
+        // --- PAGE 1 WALKTHROUGH FUNCTIONS (2-Digit) ---
+
+        function setupWalkthrough() {
+            const btn = document.getElementById('start-walkthrough-btn');
+            btn.onclick = () => startWalkthrough(0, plotData, initialUnorderedData, requiredStems, 'final-plot', 'data-title', 'unordered-data', 'ordered-data', 'demo-key', 'stem-', 'leaf-', false); // Pass isDecimalPlot=false
+            document.getElementById('walkthrough-message').textContent = "Click 'Start Walkthrough' to see the process in action.";
+            clearHighlights();
+            btn.disabled = false;
+            btn.textContent = 'Start Walkthrough';
+
+            // Reset initial visibility and content
+            document.getElementById('unordered-data').innerHTML = initialUnorderedData;
+            document.getElementById('ordered-data').innerHTML = plotData.map((d, i) => `<span data-index="${i}">${d}</span>`).join(', ');
+            
+            // Set initial state for data display
+            document.getElementById('unordered-data').classList.remove('hidden'); // Show unordered
+            document.getElementById('ordered-data').classList.add('hidden'); // Hide ordered
+            document.getElementById('data-title').textContent = 'Unordered Data:';
+
+            // Ensure the plot is entirely blank
+            document.getElementById('final-plot').classList.add('hidden-plot');
+            requiredStems.forEach(stem => {
+                const stemEl = document.getElementById(`stem-${stem}`);
+                if (stemEl) {
+                    stemEl.textContent = ''; // Clear stems initially
+                    document.getElementById(`leaf-${stem}`).textContent = ''; // Clear leaves
+                }
+            });
+            document.getElementById('demo-key').classList.add('invisible');
+        }
+
+        // --- PAGE 2 WALKTHROUGH FUNCTIONS (3-Digit) ---
+
+        function setupWalkthrough2() {
+            const btn = document.getElementById('start-walkthrough-btn-2');
+            btn.onclick = () => startWalkthrough(0, plotData3Digit, initialUnorderedData3Digit, requiredStems3Digit, 'final-plot-2', 'data-title-2', 'unordered-data-2', 'ordered-data-2', 'demo-key-2', 'stem-2-', 'leaf-2-', false); // Pass isDecimalPlot=false
+            document.getElementById('walkthrough-message-2').textContent = "Click 'Start Walkthrough' to see the process in action.";
+            clearHighlights();
+            btn.disabled = false;
+            btn.textContent = 'Start Walkthrough';
+
+            // Reset initial visibility and content
+            document.getElementById('unordered-data-2').innerHTML = initialUnorderedData3Digit;
+            document.getElementById('ordered-data-2').innerHTML = plotData3Digit.map((d, i) => `<span data-index="${i}">${d}</span>`).join(', ');
+            
+            // Set initial state for data display
+            document.getElementById('unordered-data-2').classList.remove('hidden'); // Show unordered
+            document.getElementById('ordered-data-2').classList.add('hidden'); // Hide ordered
+            document.getElementById('data-title-2').textContent = 'Unordered Data:';
+
+            // Ensure the plot is entirely blank
+            document.getElementById('final-plot-2').classList.add('hidden-plot');
+            requiredStems3Digit.forEach(stem => {
+                const stemEl = document.getElementById(`stem-2-${stem}`);
+                if (stemEl) {
+                    stemEl.textContent = ''; // Clear stems initially
+                    document.getElementById(`leaf-2-${stem}`).textContent = ''; // Clear leaves
+                }
+            });
+            document.getElementById('demo-key-2').classList.add('invisible');
+        }
+
+        // --- PAGE 3 WALKTHROUGH FUNCTIONS (Decimal) ---
+
+        function setupWalkthrough3() {
+            const btn = document.getElementById('start-walkthrough-btn-3');
+            btn.onclick = () => startWalkthrough(0, plotDataDecimal, initialUnorderedDataDecimal, requiredStemsDecimal, 'final-plot-3', 'data-title-3', 'unordered-data-3', 'ordered-data-3', 'demo-key-3', 'stem-3-', 'leaf-3-', true); // Pass isDecimalPlot=true
+            document.getElementById('walkthrough-message-3').textContent = "Click 'Start Walkthrough' to see the process in action.";
+            clearHighlights();
+            btn.disabled = false;
+            btn.textContent = 'Start Walkthrough';
+
+            // Reset initial visibility and content
+            document.getElementById('unordered-data-3').innerHTML = initialUnorderedDataDecimal;
+            document.getElementById('ordered-data-3').innerHTML = plotDataDecimal.map((d, i) => `<span data-index="${i}">${d}</span>`).join(', ');
+            
+            // Set initial state for data display
+            document.getElementById('unordered-data-3').classList.remove('hidden'); // Show unordered
+            document.getElementById('ordered-data-3').classList.add('hidden'); // Hide ordered
+            document.getElementById('data-title-3').textContent = 'Unordered Data:';
+
+            // Ensure the plot is entirely blank
+            document.getElementById('final-plot-3').classList.add('hidden-plot');
+            requiredStemsDecimal.forEach(stem => {
+                const stemEl = document.getElementById(`stem-3-${stem}`);
+                if (stemEl) {
+                    stemEl.textContent = ''; // Clear stems initially
+                    document.getElementById(`leaf-${stem}`).textContent = ''; // Clear leaves
+                }
+            });
+            document.getElementById('demo-key-3').classList.add('invisible');
+        }
+
+
+        // --- GENERALIZED WALKTHROUGH CORE LOGIC ---
+
+        function getStemLeaf(value, isDecimalPlot) {
+            
+            if (isDecimalPlot) {
+                // Decimal Rule: Stem is the whole number, Leaf is the first decimal digit
+                const stem = Math.floor(value);
+                // Calculate the remainder, multiply by 10, and round to handle floating point errors
+                const leaf = Math.round((value - stem) * 10);
+                return { stem, leaf };
+            } else {
+                // Standard Integer Rule: Stem is everything but the last digit
+                const stem = Math.floor(value / 10) || 0;
+                const leaf = value % 10;
+                return { stem, leaf };
+            }
+        }
+
+        function startWalkthrough(stepIndex, dataArray, initialData, requiredStems, plotId, titleId, unorderedId, orderedId, keyId, stemPrefix, leafPrefix, isDecimalPlot) {
+            const btn = document.getElementById(`start-walkthrough-btn${plotId.includes('-3') ? '-3' : plotId.includes('-2') ? '-2' : ''}`);
+            const msg = document.getElementById(`walkthrough-message${plotId.includes('-3') ? '-3' : plotId.includes('-2') ? '-2' : ''}`);
+            const dataTitleEl = document.getElementById(titleId);
+            const unorderedDataEl = document.getElementById(unorderedId);
+            const orderedDataEl = document.getElementById(orderedId);
+            const plotEl = document.getElementById(plotId);
+            const keyEl = document.getElementById(keyId);
+            
+            // Base case: End of steps
+            if (stepIndex >= walkThroughSteps.length) {
+                msg.innerHTML = '<span class="font-bold text-green-700">Walkthrough Complete!</span> The plot is finished and the Key is defined. Proceed to the next example.';
+                btn.textContent = 'Replay Walkthrough';
+                btn.disabled = false;
+                btn.onclick = () => { 
+                    if (currentPage === 3) {
+                        setupWalkthrough3();
+                    } else if (currentPage === 2) {
+                        setupWalkthrough2();
+                    } else {
+                        setupWalkthrough();
+                    }
+                };
+                return;
+            }
+
+            clearHighlights();
+            btn.disabled = true;
+            btn.textContent = 'Stage ' + (stepIndex + 1) + ' of 5...';
+
+            const currentStep = walkThroughSteps[stepIndex];
+            msg.textContent = currentStep.text;
+
+            const nextStep = () => startWalkthrough(stepIndex + 1, dataArray, initialData, requiredStems, plotId, titleId, unorderedId, orderedId, keyId, stemPrefix, leafPrefix, isDecimalPlot);
+
+
+            // Handle actions specific to this granular walkthrough
+            if (currentStep.action === 'show_unordered') {
+                unorderedDataEl.classList.remove('hidden'); 
+                unorderedDataEl.classList.add('highlight-data');
+                plotEl.classList.add('hidden-plot');
+            } else if (currentStep.action === 'show_ordered') {
+                unorderedDataEl.classList.add('hidden'); 
+                unorderedDataEl.classList.remove('highlight-data');
+
+                orderedDataEl.classList.remove('hidden'); 
+                dataTitleEl.textContent = 'Ordered Data:';
+                orderedDataEl.classList.add('highlight-data');
+            } else if (currentStep.action === 'show_stems_blank') {
+                orderedDataEl.classList.remove('highlight-data');
+                plotEl.classList.remove('hidden-plot'); 
+                
+                plotStemsIteratively(nextStep, dataArray, requiredStems, orderedId, stemPrefix, isDecimalPlot);
+                return;
+            } else if (currentStep.action === 'plot_leaves_start') {
+                plotIndividualLeaves(nextStep, dataArray, requiredStems, orderedId, stemPrefix, leafPrefix, isDecimalPlot);
+                return;
+            } else if (currentStep.action === 'explain_key') {
+                 // Calculate key values using the universal function
+                 const firstValue = dataArray[0];
+                 const { stem, leaf } = getStemLeaf(firstValue, isDecimalPlot);
+                 
+                 keyEl.innerHTML = `Key: <span class="font-bold">${stem}</span> | <span class="font-bold">${leaf}</span> = <span class="font-bold">${firstValue}</span> (Stem + Leaf = Value)`;
+                 keyEl.classList.remove('invisible');
+                 keyEl.classList.add('highlight-key');
+                 
+                 const keyStemEl = document.getElementById(`${stemPrefix}${stem}`);
+                 const keyLeafEl = document.getElementById(`${leafPrefix}${stem}`);
+                 const keyLeafContent = keyLeafEl ? keyLeafEl.textContent : '';
+
+                 // 1. Highlight the Stem
+                 if(keyStemEl) keyStemEl.classList.add('highlight-stem');
+                 
+                 // 2. Temporarily highlight the *first* leaf
+                 if(keyLeafEl && keyLeafContent.length > 0) keyLeafEl.innerHTML = `<span class="highlight-individual-data">${keyLeafContent[0]}</span>${keyLeafContent.substring(1)}`; 
+
+
+                 setTimeout(() => {
+                     // Clean up the temporary leaf highlight before finalizing
+                     if(keyLeafEl) keyLeafEl.textContent = keyLeafContent; 
+                     if(keyStemEl) keyStemEl.classList.remove('highlight-stem');
+                     nextStep(); 
+                 }, 3000); 
+                 return;
+            }
+
+
+            // Continue to the next step after a delay for static steps
+            setTimeout(nextStep, 3000); 
+        }
+
+        // --- GENERALIZED PLOTTING FUNCTIONS ---
+
+        function plotStemsIteratively(callback, dataArray, requiredStems, orderedId, stemPrefix, isDecimalPlot) {
+            let stemIndex = 0;
+            const orderedDataSelector = `#${orderedId} span`;
+
+            function plotNextStem() {
+                if (stemIndex >= requiredStems.length) {
+                    clearHighlights();
+                    setTimeout(callback, 500); // Done plotting stems, move to next stage
+                    return;
+                }
+
+                const currentStem = requiredStems[stemIndex];
+                const stemEl = document.getElementById(`${stemPrefix}${currentStem}`);
+                
+                if (!stemEl) {
+                    // This handles missing stems (like 5 and 6 for the 2-digit demo)
+                    stemIndex++;
+                    plotNextStem();
+                    return;
+                }
+
+                clearHighlights();
+                
+                // 1. Highlight all source numbers in the ordered list corresponding to the current stem
+                const dataIndicesToHighlight = [];
+                for (let i = 0; i < dataArray.length; i++) {
+                    const { stem: dataStem } = getStemLeaf(dataArray[i], isDecimalPlot); // Universal calculation
+                    
+                    if (dataStem === currentStem) {
+                        dataIndicesToHighlight.push(i);
+                        const sourceSpan = document.querySelector(`${orderedDataSelector}[data-index="${i}"]`);
+                        if (sourceSpan) {
+                            sourceSpan.classList.add('highlight-individual-data');
+                        }
+                    }
+                }
+
+                // 2. Add the stem to the plot and highlight the column
+                stemEl.textContent = currentStem;
+                stemEl.classList.add('highlight-stem');
+
+                // 3. Pause for visibility
+                setTimeout(() => {
+                    // 4. Remove highlights
+                    stemEl.classList.remove('highlight-stem');
+                    dataIndicesToHighlight.forEach(i => {
+                        const sourceSpan = document.querySelector(`${orderedDataSelector}[data-index="${i}"]`);
+                        if (sourceSpan) {
+                            sourceSpan.classList.remove('highlight-individual-data');
+                        }
+                    });
+
+                    // 5. Move to the next stem
+                    stemIndex++;
+                    plotNextStem();
+                }, 1500); // Show highlight for 1.5 seconds
+            }
+            plotNextStem();
+        }
+
+
+        function plotIndividualLeaves(callback, dataArray, requiredStems, orderedId, stemPrefix, leafPrefix, isDecimalPlot) {
+            const numbersToPlot = dataArray.map((value, index) => {
+                const { stem, leaf } = getStemLeaf(value, isDecimalPlot); // Universal calculation
+                return { index, value, stem, leaf };
+            });
+            
+            let plotIndex = 0;
+            let currentLeafContents = {};
+            const orderedDataSelector = `#${orderedId} span`;
+
+            // Initialize plot content to blank
+            requiredStems.forEach(stem => {
+                currentLeafContents[stem] = '';
+                const leafEl = document.getElementById(`${leafPrefix}${stem}`);
+                if (leafEl) leafEl.textContent = '';
+            });
+
+            function plotNext() {
+                if (plotIndex >= numbersToPlot.length) {
+                    setTimeout(callback, 500);
+                    return;
+                }
+
+                const item = numbersToPlot[plotIndex];
+                const orderedDataEl = document.getElementById(orderedId);
+                if (orderedDataEl.classList.contains('hidden')) {
+                     orderedDataEl.classList.remove('hidden');
+                }
+
+                const sourceSpan = document.querySelector(`${orderedDataSelector}[data-index="${item.index}"]`);
+                const targetStem = document.getElementById(`${stemPrefix}${item.stem}`);
+                const targetLeaf = document.getElementById(`${leafPrefix}${item.stem}`);
+                
+                // *** Null checks ***
+                if (!sourceSpan || !targetStem || !targetLeaf) {
+                     // Log the missing element but proceed to the next item
+                     console.error(`Missing element in plotNext for item: `, item, "Check data/HTML structure.");
+                     plotIndex++; 
+                     setTimeout(plotNext, 100); 
+                     return;
+                }
+                // ******************************
+
+                clearHighlights();
+
+                // 1. Highlight the source number in the ordered list
+                sourceSpan.classList.add('highlight-individual-data');
+
+                // 2. Highlight the target stem/leaf columns
+                targetStem.classList.add('highlight-stem');
+                targetLeaf.classList.add('highlight-leaf');
+                
+                // 3. Show the leaf being placed with animation effect
+                const existingContent = currentLeafContents[item.stem];
+                targetLeaf.innerHTML = existingContent + `<span class="text-xl font-bold text-red-600 transition duration-500">${item.leaf}</span>`;
+                
+                // 4. Update the final content after the animation pulse
+                setTimeout(() => {
+                    // Final content placement
+                    currentLeafContents[item.stem] += item.leaf;
+                    targetLeaf.textContent = currentLeafContents[item.stem];
+
+                    // Clear highlights from the element
+                    sourceSpan.classList.remove('highlight-individual-data');
+                    targetStem.classList.remove('highlight-stem');
+                    targetLeaf.classList.remove('highlight-leaf');
+
+                    plotIndex++;
+                    setTimeout(plotNext, 500); // Short delay before next number
+                }, 1200); // Keep highlight and transient animation for 1.2 seconds
+
+            }
+            plotNext();
+        }
+
+
+        // --- STEP SORTING QUIZ LOGIC (Remains index 0) ---
+        // CORRECT ORDER (The sequence the user must drag steps into)
+        const correctSteps = [
+            "Order the Data: Always sort your numbers from smallest to largest first.",
+            "Define Stem and Leaf: The Stem is the leading digit(s); the Leaf is the final, single digit. (e.g., in 72, Stem=7, Leaf=2).",
+            "List Stems: Write all possible stems consecutively from the smallest to the largest, including stems with no data points.",
+            "Plot Leaves: For each stem, list the corresponding leaves in ascending order, separated only by space (no commas).",
+            "Create the Key: Always define what one stem and one leaf represent (e.g., 3|1 = 31)."
+        ];
+
+        const hints = [
+            "Hint: Which step is the foundational requirement for correctly plotting and ordering all subsequent leaves?",
+            "Hint: After sorting the data, you must establish the rules for separating the number into its two components.",
+            "Hint: With the rules defined, which step creates the vertical structure (the trunk) of the plot?",
+            "Hint: The structure is ready. Which step involves placing the single final digits into their corresponding rows?",
+            "Hint: What is the final piece of mandatory documentation that defines the number values for the entire plot?"
+        ];
+        
+        // PRESENTATION ORDER (The fixed order the steps appear in the Unassigned Steps box)
+        const presentationSteps = [
+            "List Stems: Write all possible stems consecutively from the smallest to the largest, including stems with no data points.",
+            "Define Stem and Leaf: The Stem is the leading digit(s); the Leaf is the final, single digit. (e.g., in 72, Stem=7, Leaf=2).",
+            "Plot Leaves: For each stem, list the corresponding leaves in ascending order, separated only by space (no commas).",
+            "Create the Key: Always define what one stem and one leaf represent (e.g., 3|1 = 31).",
+            "Order the Data: Always sort your numbers from smallest to largest first."
+        ];
+
+
+        let quizActive = false;
+        let draggedElement = null;
+        const indicator = document.createElement('div');
+        indicator.className = 'drag-indicator'; // Visual placeholder
+
+
+        function handleDragStart(e) {
+            draggedElement = e.currentTarget;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', e.currentTarget.getAttribute('data-step-text'));
+            setTimeout(() => e.currentTarget.classList.add('dragging'), 0);
+        }
+
+        function handleDragEnd(e) {
+            const targetElement = e.currentTarget;
+            if (targetElement) {
+                targetElement.classList.remove('dragging');
+            }
+            if (indicator.parentNode) {
+                indicator.parentNode.removeChild(indicator);
+            }
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = Array.from(container.querySelectorAll('.draggable-step:not(.dragging)'));
+
+            return draggableElements.reduce((closest, child) => {
+                const rect = child.getBoundingClientRect();
+                const offset = y - rect.top - rect.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault(); 
+            e.dataTransfer.dropEffect = 'move';
+            
+            const container = e.currentTarget;
+            if (container.id === 'ordered-list-container') {
+                const afterElement = getDragAfterElement(container, e.clientY);
+                if (afterElement == null) {
+                    container.appendChild(indicator);
+                } else {
+                    container.insertBefore(indicator, afterElement);
+                }
+            }
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            
+            const dropContainer = document.getElementById('ordered-list-container');
+            
+            // If the drop was valid (i.e., the indicator exists)
+            if (indicator.parentNode === dropContainer && draggedElement) {
+                dropContainer.insertBefore(draggedElement, indicator);
+                dropContainer.removeChild(indicator);
+                
+                checkOrder(true);
+            } else if (draggedElement) {
+                // Handle drop into the empty container
+                if (e.target === dropContainer) {
+                    dropContainer.appendChild(draggedElement);
+                    checkOrder(true);
+                }
+            }
+            draggedElement = null;
+        }
+        
+        function handleUnassignedDrop(e) {
+             e.preventDefault();
+             const unassignedContainer = document.getElementById('unassigned-steps-container');
+             if (draggedElement) {
+                 // Dropping back into the source container
+                 if (e.target === unassignedContainer || Array.from(unassignedContainer.children).includes(e.target)) {
+                    unassignedContainer.appendChild(draggedElement);
+                    checkOrder(true);
+                    draggedElement = null;
+                 }
+             }
+        }
+
+        // Global check function now reads the DOM order
+        function checkOrder(provideHint = false) {
+            const dropContainer = document.getElementById('ordered-list-container');
+            const message = document.getElementById('sorting-quiz-message');
+            const nextBtn = document.getElementById('page-0').querySelector('.page-next-btn'); // UPDATED INDEX to page-0
+
+            const currentDOMOrder = Array.from(dropContainer.children)
+                .filter(el => el.classList.contains('draggable-step'))
+                .map(el => el.getAttribute('data-step-text'));
+            
+            const isFullyPopulated = currentDOMOrder.length === correctSteps.length;
+            const isCorrect = isFullyPopulated && currentDOMOrder.every((step, i) => step === correctSteps[i]);
+            
+            // --- HINT LOGIC ---
+            if (provideHint) {
+                if (!isCorrect) {
+                    let misplacedIndex = -1;
+                    // Check for the first item that is out of order
+                    for (let i = 0; i < currentDOMOrder.length; i++) {
+                        if (currentDOMOrder[i] !== correctSteps[i]) {
+                            misplacedIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (misplacedIndex !== -1) {
+                        const nextStepNumber = misplacedIndex + 1;
+                        const nextCorrectStepHint = hints[misplacedIndex];
+                        
+                        message.innerHTML = `
+                            <span class="text-red-700 font-extrabold">Hold on!</span> 
+                            Step <span class="font-bold text-red-700">${nextStepNumber}</span> is incorrect.
+                            <br>
+                            <span class="text-blue-700 font-bold">${nextCorrectStepHint}</span>
+                        `;
+                    } else if (currentDOMOrder.length > 0) {
+                        // All placed steps are correct, but not all steps are placed
+                        message.innerHTML = '<span class="text-green-700 font-bold">Steps look correct so far! Keep dragging all 5 steps into the box.</span>';
+                    } else {
+                        message.innerHTML = '<span class="text-gray-700 font-bold">Drag the steps into the box and put them in order.</span>';
+                    }
+                }
+            } else if (!isFullyPopulated) {
+                // Default message when not actively dropping
+                message.innerHTML = '<span class="text-gray-700 font-bold">Drag the steps into the box and put them in order.</span>';
+            }
+
+
+            // --- FINAL STATE LOGIC ---
+            if (isCorrect) {
+                message.innerHTML = '<span class="text-green-700 font-extrabold">✅ Correct! You have mastered the process steps. Click Next Step to continue.</span>';
+                Array.from(dropContainer.children).forEach(el => {
+                    el.classList.add('bg-green-200', 'border-green-600');
+                    el.classList.remove('bg-white'); // Remove white background on success
+                });
+                nextBtn.disabled = false;
+            } else {
+                nextBtn.disabled = true;
+                Array.from(dropContainer.children).forEach(el => {
+                    el.classList.remove('bg-green-200', 'border-green-600');
+                    if (!el.classList.contains('bg-white')) el.classList.add('bg-white');
+                });
+            }
+        }
+        
+        function renderSortingQuiz() {
+            const unassignedContainer = document.getElementById('unassigned-steps-container');
+            const orderedContainer = document.getElementById('ordered-list-container');
+            
+            // Set up drop handlers on the containers
+            orderedContainer.ondragover = handleDragOver;
+            orderedContainer.ondrop = handleDrop;
+            unassignedContainer.ondragover = handleDragOver;
+            unassignedContainer.ondrop = handleUnassignedDrop;
+            
+            // Clear children but preserve drop handlers
+            unassignedContainer.innerHTML = '';
+            orderedContainer.innerHTML = '';
+            
+            // USE presentationSteps to render the source box in the fixed order requested by the user
+            presentationSteps.forEach(stepText => {
+                const button = document.createElement('div');
+                const label = stepText.split(':')[0];
+                button.textContent = label;
+                
+                // Add fixed width to maintain the screenshot layout appearance
+                button.className = 'draggable-step text-center p-3 border-2 border-gray-300 rounded-lg hover:bg-yellow-50 transition duration-150 shadow-sm text-gray-800 font-medium bg-white w-[calc(50%-4px)] sm:w-auto';
+                button.setAttribute('draggable', 'true');
+                button.setAttribute('data-step-text', stepText);
+                button.addEventListener('dragstart', handleDragStart);
+                button.addEventListener('dragend', handleDragEnd);
+                
+                // 2. Append the steps in the fixed order (no shuffle)
+                unassignedContainer.appendChild(button);
+            });
+                
+            quizActive = true;
+            
+            checkOrder(false); // Initial check to set message/button state
+        }
+        
+        function resetQuiz() {
+            quizActive = false;
+            renderSortingQuiz(); 
+            // Re-render will automatically re-shuffle and reset the containers
+            document.getElementById('reset-quiz-btn-0').removeEventListener('click', resetQuiz); // UPDATED ID
+            document.getElementById('reset-quiz-btn-0').addEventListener('click', resetQuiz); // UPDATED ID
+        }
+        
+        // --- SECTION 2: CREATION LOGIC ---
+
+        function createPlot(rawData) {
+            const data = [...rawData].sort((a, b) => a - b);
+            if (data.length === 0) return { html: "<p class='text-center text-red-500'>Please enter valid numbers.</p>", key: "" };
+
+            const min = data[0];
+            const max = data[data.length - 1];
+
+            let multiplier = 1;
+            let keyText = "";
+
+            let isDecimal = data.some(n => n % 1 !== 0);
+
+            if (isDecimal) {
+                 let decimalPlaces = 0;
+                 for (const num of data) {
+                     const parts = num.toString().split('.');
+                     if (parts.length > 1) {
+                         decimalPlaces = Math.max(decimalPlaces, parts[1].length);
+                     }
+                 }
+                 multiplier = Math.pow(10, decimalPlaces);
+                 // If data is 1.2, multiplier is 10. Stem is 12 / 10 = 1. Leaf is 2. 
+                 keyText = `Stem = ones digit, Leaf = ${1/multiplier} place`;
+            } else if (min >= 100 || max >= 1000) {
+                 // For 3-digit numbers, Stem = 10s/100s, Leaf = 1s
+                 multiplier = 1;
+                 keyText = "Stem = hundreds/tens digit(s), Leaf = ones digit";
+            } else {
+                multiplier = 1;
+                keyText = "Stem = tens digit, Leaf = ones digit";
+            }
+
+            // The plotting logic assumes the stem is floor(value/10) and leaf is value % 10.
+            // We need to adjust the input data based on decimals. E.g., 1.2 * 10 = 12. Stem 1, Leaf 2.
+            const transformedData = data.map(n => Math.round(n * multiplier));
+
+            const minTransformed = transformedData[0];
+            const maxTransformed = transformedData[transformedData.length - 1];
+
+            const minStem = Math.floor(minTransformed / 10);
+            const maxStem = Math.floor(maxTransformed / 10);
+
+            const plotMap = {};
+
+            for (let value of transformedData) {
+                const stem = Math.floor(value / 10);
+                const leaf = value % 10;
+                if (!plotMap[stem]) {
+                    plotMap[stem] = [];
+                }
+                plotMap[stem].push(leaf);
+            }
+
+            let html = "";
+            let firstNonEmptyStem = -1;
+            let firstLeaf = -1;
+
+            for (let stem = minStem; stem <= maxStem; stem++) {
+                const leaves = plotMap[stem] || [];
+                const leavesStr = leaves.join('');
+
+                if (firstNonEmptyStem === -1 && leaves.length > 0) {
+                    firstNonEmptyStem = stem;
+                    firstLeaf = leaves[0];
+                }
+
+                html += `
+                    <div class="plot-row">
+                        <div class="stem-column">${stem}</div>
+                        <div class="leaf-column">${leavesStr}</div>
+                    </div>
+                `;
+            }
+
+            if (firstNonEmptyStem !== -1) {
+                 const originalValue = data[0];
+                 keyText = `<span class="font-bold">${firstNonEmptyStem}</span> | <span class="font-bold">${firstLeaf}</span> = ${originalValue}`;
+            }
+
+
+            return { html, key: keyText };
+        }
+
+        function generatePlot() {
+            const rawInput = document.getElementById('data-input').value;
+            const rawData = parseData(rawInput);
+            const outputDiv = document.getElementById('plot-output');
+            const keyDiv = document.getElementById('plot-key');
+
+            if (rawData.length === 0) {
+                 outputDiv.innerHTML = `<p class="text-red-600 p-4">Please enter at least one number (e.g., 31, 48, 29).</p>`;
+                 keyDiv.innerHTML = '';
+                 return;
+            }
+
+            const { html, key } = createPlot(rawData);
+
+            outputDiv.innerHTML = `<div class="plot-container">${html}</div>`;
+            keyDiv.innerHTML = `Key: ${key}`;
+        }
+
+
+        // --- SECTION 3: ANALYSIS LOGIC ---
+
+        const analysisData = [59, 62, 62, 65, 70, 75, 75, 78, 79, 81, 83, 88, 91, 95];
+        const analysisAnswers = {
+            min: 59,
+            max: 95,
+            range: 36, // 95 - 59
+            mode: "62, 75", // Both occur twice
+            median: 76.5 // (75 + 78) / 2
+        };
+
+        function checkAnalysisAnswers() {
+            const results = {};
+            let allCorrect = true;
+
+            ['min', 'max', 'range', 'median', 'mode'].forEach(id => {
+                const inputElement = document.getElementById(id + '-input');
+                const value = inputElement.value.trim();
+                const container = inputElement.closest('.flex');
+
+                let isCorrect = false;
+
+                if (id === 'mode') {
+                    const userModes = value.split(/,\s*|\s+/).map(s => s.trim()).filter(s => s !== '').sort();
+                    const correctModes = analysisAnswers.mode.split(/,\s*/).sort();
+                    isCorrect = userModes.length === correctModes.length && userModes.every((val, index) => val === correctModes[index]);
+                } else {
+                    const numValue = Number(value);
+                    const correctAnswer = analysisAnswers[id];
+                    isCorrect = !isNaN(numValue) && numValue === correctAnswer;
+                }
+
+                if (isCorrect) {
+                    container.classList.remove('incorrect-answer', 'border-red-500');
+                    container.classList.add('correct-answer', 'border-green-500');
+                } else {
+                    container.classList.remove('correct-answer', 'border-green-500');
+                    container.classList.add('incorrect-answer', 'border-red-500');
+                    allCorrect = false;
+                }
+            });
+
+            const resultMessage = document.getElementById('analysis-result-message');
+            if (allCorrect) {
+                resultMessage.innerHTML = `<p class="text-green-700 font-bold mt-4">Great job! All answers are correct. You've mastered interpretation!</p>`;
+            } else {
+                resultMessage.innerHTML = `<p class="text-blue-700 mt-4">Keep practicing! Review the rules for Mean, Median, Mode, and Range.</p>`;
+            }
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = () => {
+             // Set the key for the Analysis Plot
+             const analysisKey = document.getElementById('analysis-key');
+             analysisKey.innerHTML = 'Key: <span class="font-bold">5</span> | <span class="font-bold">9</span> = 59 (Math Test Score)';
+
+             // Setup event listeners
+             document.getElementById('generate-plot-btn').addEventListener('click', generatePlot);
+             document.getElementById('check-analysis-btn').addEventListener('click', checkAnalysisAnswers);
+             
+             // The quiz reset button needs a specific ID for its page
+             const resetBtn1 = document.getElementById('reset-quiz-btn-0');
+             if (resetBtn1) resetBtn1.addEventListener('click', resetQuiz);
+             
+             // Start on the first page (the Review)
+             showPage(currentPage);
+        };
+
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 sm:p-8 font-[Inter] text-gray-800">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-blue-700 tracking-tight">Stem-and-Leaf Plot Lab</h1>
+            <p class="text-xl text-gray-600 mt-2">Mastering Creation and Interpretation of Data Plots</p>
+        </header>
+        
+        <!-- ================================================================================= -->
+        <!-- NEW PAGE 0: INTRO + QUIZ / UNIFIED LEARNING ENVIRONMENT -->
+        <!-- ================================================================================= -->
+        <div id="page-0" class="page-content">
+            <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg border-t-4 border-blue-500">
+                <h2 class="text-3xl font-bold mb-4 text-blue-700">Step 1: Process Review & Sorting Challenge</h2>
+                <p class="mb-6 text-gray-600">The first step to mastery is knowing the process. Review the steps below, then drag the **Unassigned Steps** into the correct sequence to prove you know the order!</p>
+
+                <div class="space-y-4 mb-8">
+                    <h3 class="font-extrabold text-xl mb-3 text-gray-900">The Core Construction Sequence (Reference)</h3>
+                    <ol class="list-decimal list-inside text-lg font-medium space-y-3 p-4 bg-gray-100 rounded-lg">
+                        <li class="text-gray-800"><strong>Order the Data:</strong> Always sort your numbers from smallest to largest first.</li>
+                        <li class="text-gray-800"><strong>Define Stem and Leaf:</strong> The Stem is the leading digit(s); the Leaf is the final, single digit.</li>
+                        <li class="text-gray-800"><strong>List Stems:</strong> Write all possible stems consecutively from the smallest to the largest, including stems with no data points.</li>
+                        <li class="text-gray-800"><strong>Plot Leaves:</strong> For each stem, list the corresponding leaves in ascending order, separated only by space (no commas).</li>
+                        <li class="text-gray-800"><strong>Create the Key:</strong> Always define what one stem and one leaf represent (e.g., 3|1 = 31).</li>
+                    </ol>
+                </div>
+                
+                <h3 class="font-bold text-gray-800 mt-6 mb-2">Ordered List (Drop Steps Here)</h3>
+                <div id="ordered-list-container" class="space-y-3 p-4 bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg min-h-[22rem] transition duration-200">
+                    <!-- The correct order will be built here -->
+                </div>
+
+                <div id="sorting-quiz-message" class="text-gray-700 text-lg font-semibold my-4">
+                    <!-- Instructions and feedback will be rendered here -->
+                </div>
+
+                <h3 class="font-bold text-gray-800 mt-6 mb-2">Unassigned Steps</h3>
+                <div id="unassigned-steps-container" class="space-y-3 p-4 bg-gray-50 border-2 border-gray-300 rounded-lg min-h-[10rem] flex flex-row flex-wrap gap-2 justify-start content-start">
+                    <!-- Steps are rendered here in the fixed source order -->
+                </div>
+
+                <button id="reset-quiz-btn-0" class="mt-4 w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 shadow-md">
+                    Reset Challenge
+                </button>
+
+                <!-- LOCAL NAVIGATION FOR PAGE 0 -->
+                <div class="flex justify-end items-center mt-6 pt-4 border-t border-gray-200">
+                    <button class="page-next-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 shadow-md" disabled>
+                        Next Step →
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ================================================================================= -->
+        <!-- NEW PAGE 1: GUIDED DEMONSTRATION 1 (OLD PAGE 2) -->
+        <!-- ================================================================================= -->
+        <div id="page-1" class="page-content hidden">
+            <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg border-t-4 border-blue-500">
+                <h2 class="text-3xl font-bold mb-6 text-blue-700">Step 2: Guided Demo - Two-Digit Integers Walkthrough</h2>
+                <p class="text-gray-600 mb-6">The best way to learn is by seeing the **5 Key Steps** applied to a complete data set. Click the button to watch the walkthrough!</p>
+                
+                <div class="space-y-6">
+                    <!-- Data Display -->
+                    <div class="text-center text-gray-800 font-mono text-sm border p-3 rounded-lg bg-gray-100 mx-auto max-w-lg">
+                        <span class="font-bold text-base block mb-1 text-blue-700" id="data-title">Unordered Data:</span>
+                        <span id="unordered-data" class="text-base"></span>
+                        <span id="ordered-data" class="text-base hidden"></span>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-6 justify-center items-start">
+                        <!-- Plot Structure -->
+                        <div class="w-48">
+                            <h3 class="font-bold text-gray-700 mb-2 text-center">Final Plot</h3>
+                            <div class="plot-container w-full mx-auto shadow-md hidden-plot" id="final-plot">
+                                <div class="plot-row"><div class="stem-column" id="stem-0"></div><div class="leaf-column" id="leaf-0"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-1"></div><div class="leaf-column" id="leaf-1"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-2"></div><div class="leaf-column" id="leaf-2"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-3"></div><div class="leaf-column" id="leaf-3"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-4"></div><div class="leaf-column" id="leaf-4"></div></div>
+                            </div>
+                            <p id="demo-key" class="key-line text-center text-sm mt-3 invisible">Key: <span class="font-bold">0</span> | <span class="font-bold">7</span> = <span class="font-bold">7</span> (Stem + Leaf = Value)</p>
+                        </div>
+                        
+                        <!-- 5 Key Steps List -->
+                        <div class="sm:w-1/2">
+                            <h3 class="font-bold text-gray-700 mb-2">5 Key Steps Reference</h3>
+                            <ul class="list-decimal list-inside space-y-2 text-gray-700">
+                                <li>**Order the Data** (Step 1)</li>
+                                <li>**Define Stem and Leaf** (Step 2)</li>
+                                <li>**List Stems** (Step 3)</li>
+                                <li>**Plot Leaves** (Step 4)</li>
+                                <li>**Create the Key** (Step 5)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <button id="start-walkthrough-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-150 shadow-md">
+                        Start Walkthrough
+                    </button>
+                    <p id="walkthrough-message" class="text-center mt-2 font-medium text-blue-700"></p>
+                </div>
+                
+                <!-- LOCAL NAVIGATION FOR PAGE 1 -->
+                <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
+                    <button class="page-prev-btn flex items-center text-gray-700 hover:text-indigo-600 transition duration-150" aria-label="Previous Page">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        ← Previous Step
+                    </button>
+                    <button class="page-next-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 shadow-md">
+                        Next Step →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================================= -->
+        <!-- NEW PAGE 2: GUIDED DEMONSTRATION 2 (OLD PAGE 3) -->
+        <!-- ================================================================================= -->
+        <div id="page-2" class="page-content hidden">
+            <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg border-t-4 border-blue-500">
+                <h2 class="text-3xl font-bold mb-6 text-blue-700">Step 3: Guided Demo - Three-Digit Integers Walkthrough</h2>
+                <p class="text-gray-600 mb-6">When numbers exceed 100, the Stem must adapt to include more than one digit. The **Leaf is always the single, final digit** (the ones place). Click the button to watch the walkthrough!</p>
+                
+                <div class="space-y-6">
+                    <!-- Data Display -->
+                    <div class="text-center text-gray-800 font-mono text-sm border p-3 rounded-lg bg-gray-100 mx-auto max-w-lg">
+                        <span class="font-bold text-base block mb-1 text-blue-700" id="data-title-2">Unordered Data:</span>
+                        <span id="unordered-data-2" class="text-base"></span>
+                        <span id="ordered-data-2" class="text-base hidden"></span>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-6 justify-center items-start">
+                        <!-- Plot Structure -->
+                        <div class="w-48">
+                            <h3 class="font-bold text-gray-700 mb-2 text-center">Final Plot</h3>
+                            <div class="plot-container w-full mx-auto shadow-md hidden-plot" id="final-plot-2">
+                                <!-- Dynamically created plot rows for the required stems -->
+                                <div class="plot-row"><div class="stem-column" id="stem-2-7"></div><div class="leaf-column" id="leaf-2-7"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-2-8"></div><div class="leaf-column" id="leaf-2-8"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-2-9"></div><div class="leaf-column" id="leaf-2-9"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-2-10"></div><div class="leaf-column" id="leaf-2-10"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-2-11"></div><div class="leaf-column" id="leaf-2-11"></div></div>
+                            </div>
+                            <p id="demo-key-2" class="key-line text-center text-sm mt-3 invisible">Key: <span class="font-bold">10</span> | <span class="font-bold">2</span> = <span class="font-bold">102</span> (Stem + Leaf = Value)</p>
+                        </div>
+                        
+                        <!-- 5 Key Steps List -->
+                        <div class="sm:w-1/2">
+                            <h3 class="font-bold text-gray-700 mb-2">3-Digit Rules Reference</h3>
+                            <ul class="list-decimal list-inside space-y-2 text-gray-700">
+                                <li>**Stem:** Hundreds & Tens Digits (e.g., 10, 11)</li>
+                                <li>**Leaf:** Always the Ones Digit (e.g., 2, 8, 3)</li>
+                                <li>**Order:** Still smallest to largest.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <button id="start-walkthrough-btn-2" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-150 shadow-md">
+                        Start Walkthrough
+                    </button>
+                    <p id="walkthrough-message-2" class="text-center mt-2 font-medium text-blue-700"></p>
+                </div>
+
+                <!-- LOCAL NAVIGATION FOR PAGE 2 -->
+                <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
+                    <button class="page-prev-btn flex items-center text-gray-700 hover:text-indigo-600 transition duration-150" aria-label="Previous Page">
+                         <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        ← Previous Step
+                    </button>
+                    <button class="page-next-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 shadow-md">
+                        Next Step →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================================= -->
+        <!-- NEW PAGE 3: GUIDED DEMONSTRATION 3 (OLD PAGE 4) -->
+        <!-- ================================================================================= -->
+        <div id="page-3" class="page-content hidden">
+            <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg border-t-4 border-blue-500">
+                <h2 class="text-3xl font-bold mb-6 text-blue-700">Step 4: Guided Demo - Decimal Numbers Walkthrough</h2>
+                <p class="text-gray-600 mb-6">When using decimals, the **Key** is the most important element. The **Stem** is the whole number (everything left of the decimal) and the **Leaf** is the first digit after the decimal. Click the button to watch the walkthrough!</p>
+                
+                 <div class="space-y-6">
+                    <!-- Data Display -->
+                    <div class="text-center text-gray-800 font-mono text-sm border p-3 rounded-lg bg-gray-100 mx-auto max-w-lg">
+                        <span class="font-bold text-base block mb-1 text-blue-700" id="data-title-3">Unordered Data:</span>
+                        <span id="unordered-data-3" class="text-base"></span>
+                        <span id="ordered-data-3" class="text-base hidden"></span>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-6 justify-center items-start">
+                        <!-- Plot Structure -->
+                        <div class="w-48">
+                            <h3 class="font-bold text-gray-700 mb-2 text-center">Final Plot</h3>
+                            <div class="plot-container w-full mx-auto shadow-md hidden-plot" id="final-plot-3">
+                                <!-- Dynamically created plot rows for the required stems -->
+                                <div class="plot-row"><div class="stem-column" id="stem-3-1"></div><div class="leaf-column" id="leaf-3-1"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-3-2"></div><div class="leaf-column" id="leaf-3-2"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-3-3"></div><div class="leaf-column" id="leaf-3-3"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-3-4"></div><div class="leaf-column" id="leaf-3-4"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-3-5"></div><div class="leaf-column" id="leaf-3-5"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-3-6"></div><div class="leaf-column" id="leaf-3-6"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-3-7"></div><div class="leaf-column" id="leaf-3-7"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-3-8"></div><div class="leaf-column" id="leaf-3-8"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-3-9"></div><div class="leaf-column" id="leaf-3-9"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-3-10"></div><div class="leaf-column" id="leaf-3-10"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-3-11"></div><div class="leaf-column" id="leaf-3-11"></div></div>
+                                <div class="plot-row"><div class="stem-column" id="stem-3-12"></div><div class="leaf-column" id="leaf-3-12"></div></div>
+                            </div>
+                            <p id="demo-key-3" class="key-line text-center text-sm mt-3 invisible">Key: <span class="font-bold">1</span> | <span class="font-bold">2</span> = <span class="font-bold">1.2</span> (Stem + Leaf = Value)</p>
+                        </div>
+                        
+                        <!-- 5 Key Steps List -->
+                        <div class="sm:w-1/2">
+                            <h3 class="font-bold text-gray-700 mb-2">Decimal Rules Reference</h3>
+                            <ul class="list-decimal list-inside space-y-2 text-gray-700">
+                                <li>**Stem:** Whole Number (e.g., 1, 2, 10)</li>
+                                <li>**Leaf:** Always the Tenths Digit (e.g., 2, 5, 6)</li>
+                                <li>**Order:** Still smallest to largest.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <button id="start-walkthrough-btn-3" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-150 shadow-md">
+                        Start Walkthrough
+                    </button>
+                    <p id="walkthrough-message-3" class="text-center mt-2 font-medium text-blue-700"></p>
+                </div>
+
+                
+                <!-- LOCAL NAVIGATION FOR PAGE 3 -->
+                <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
+                    <button class="page-prev-btn flex items-center text-gray-700 hover:text-indigo-600 transition duration-150" aria-label="Previous Page">
+                         <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        ← Previous Step
+                    </button>
+                    <button class="page-next-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 shadow-md">
+                        Next Step →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ================================================================================= -->
+        <!-- PAGE 4: CREATION PRACTICE (OLD PAGE 5) -->
+        <!-- ================================================================================= -->
+        <div id="page-4" class="page-content hidden">
+            <section id="creation-section" class="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4 text-gray-900">Step 5: Creation Challenge: Build Your Plot</h2>
+                <p class="mb-4 text-gray-600">Enter a set of numbers separated by commas to generate a correctly ordered Stem-and-Leaf Plot. This tool will check your understanding of the ordering and key steps!</p>
+                
+                <div class="bg-gray-100 p-3 rounded-lg border border-gray-300 mb-4 text-sm font-mono break-all">
+                    <span class="font-bold text-gray-700">Practice Data Set:</span> 31, 48, 29, 34, 94, 41, 45, 27, 49, 56, 49, 36, 52, 48, 96, 50, 54, 30, 29
+                </div>
+
+                <div class="space-y-4">
+                    <input type="text" id="data-input" placeholder="Enter data (e.g., 15, 22, 10, 25 or 8.7, 9.5, 7.3)" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    <button id="generate-plot-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-150 shadow-md">
+                        Generate Stem-and-Leaf Plot
+                    </button>
+                </div>
+
+                <div class="mt-6 border p-4 rounded-lg bg-gray-50">
+                    <h3 class="text-xl font-semibold mb-3 text-center">Generated Plot</h3>
+                    <div id="plot-output" class="mb-4">
+                         <!-- Placeholder content when input is empty -->
+                         <p class="text-center text-gray-500 p-4">Enter a data set above and click "Generate Plot" to see the result here.</p>
+                    </div>
+                    <p id="plot-key" class="key-line text-center"></p>
+                </div>
+                
+                <!-- LOCAL NAVIGATION FOR PAGE 4 -->
+                <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
+                    <button class="page-prev-btn flex items-center text-gray-700 hover:text-indigo-600 transition duration-150" aria-label="Previous Page">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        ← Previous Step
+                    </button>
+                    <button class="page-next-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 shadow-md">
+                        Next Step →
+                    </button>
+                </div>
+            </section>
+        </div>
+
+
+        <!-- ================================================================================= -->
+        <!-- PAGE 5: INTERPRETATION PRACTICE (OLD PAGE 6) -->
+        <!-- ================================================================================= -->
+        <div id="page-5" class="page-content hidden">
+            <section id="analysis-section" class="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4 text-gray-900">Step 6: Interpretation Practice: Data Analysis</h2>
+                <p class="mb-4 text-gray-600">Analyze the following plot of Math Test Scores (out of 100). Find the key data landmarks. Use the plot's ordered data to help you calculate quickly!</p>
+
+                <div class="flex flex-col sm:flex-row gap-6 mb-6">
+                    <!-- Analysis Plot -->
+                    <div class="sm:w-1/2">
+                        <h3 class="text-xl font-semibold mb-3 text-center">Math Test Scores Plot</h3>
+                        <div class="plot-container">
+                            <div class="plot-row"><div class="stem-column">5</div><div class="leaf-column">9</div></div>
+                            <div class="plot-row"><div class="stem-column">6</div><div class="leaf-column">225</div></div>
+                            <div class="plot-row"><div class="stem-column">7</div><div class="leaf-column">05589</div></div>
+                            <div class="plot-row"><div class="stem-column">8</div><div class="leaf-column">138</div></div>
+                            <div class="plot-row"><div class="stem-column">9</div><div class="leaf-column">15</div></div>
+                        </div>
+                        <p id="analysis-key" class="key-line text-center"></p>
+                    </div>
+
+                    <!-- Input Fields -->
+                    <div class="sm:w-1/2 space-y-3">
+                        <h3 class="text-xl font-semibold mb-3 text-center">Enter Landmarks</h3>
+
+                        <div class="flex items-center space-x-3 border-2 border-gray-300 rounded-lg p-2 bg-white transition duration-150">
+                            <label for="min-input" class="w-24 font-medium">Minimum:</label>
+                            <input type="number" id="min-input" placeholder="Min" class="flex-1 p-1 border-gray-200 rounded text-right">
+                        </div>
+
+                        <div class="flex items-center space-x-3 border-2 border-gray-300 rounded-lg p-2 bg-white transition duration-150">
+                            <label for="max-input" class="w-24 font-medium">Maximum:</label>
+                            <input type="number" id="max-input" placeholder="Max" class="flex-1 p-1 border-gray-200 rounded text-right">
+                        </div>
+
+                        <div class="flex items-center space-x-3 border-2 border-gray-300 rounded-lg p-2 bg-white transition duration-150">
+                            <label for="range-input" class="w-24 font-medium">Range:</label>
+                            <input type="number" id="range-input" placeholder="Range" class="flex-1 p-1 border-gray-200 rounded text-right">
+                        </div>
+
+                        <div class="flex items-center space-x-3 border-2 border-gray-300 rounded-lg p-2 bg-white transition duration-150">
+                            <label for="mode-input" class="w-24 font-medium">Mode(s):</label>
+                            <input type="text" id="mode-input" placeholder="e.g., 62, 75" class="flex-1 p-1 border-gray-200 rounded text-right">
+                        </div>
+
+                        <div class="flex items-center space-x-3 border-2 border-gray-300 rounded-lg p-2 bg-white transition duration-150">
+                            <label for="median-input" class="w-24 font-medium">Median:</label>
+                            <input type="number" step="0.5" id="median-input" placeholder="Median" class="flex-1 p-1 border-gray-200 rounded text-right">
+                        </div>
+
+                        <button id="check-analysis-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-150 shadow-md">
+                            Check My Answers
+                        </button>
+                        <div id="analysis-result-message" class="text-center font-medium"></div>
+                    </div>
+                </div>
+
+                <h3 class="text-2xl font-bold mt-8 mb-3 text-gray-900">Beyond the Numbers: Interpretation</h3>
+                <p class="text-gray-700">
+                    This is the final skill! By looking at the plot's shape, we can see the data is <strong class="text-pink-600">clustered heavily in the 60s, 70s, and 80s</strong>. If you were to turn the plot on its side, it would look slightly skewed left (tailing toward the 50s), indicating that most scores were higher than the average.
+                </p>
+                
+                <!-- LOCAL NAVIGATION FOR PAGE 6 -->
+                <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
+                    <button class="page-prev-btn flex items-center text-gray-700 hover:text-indigo-600 transition duration-150" aria-label="Previous Page">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        ← Previous Step
+                    </button>
+                    <button class="page-next-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 shadow-md">
+                        Start Over
+                    </button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+</body>
+</html>
