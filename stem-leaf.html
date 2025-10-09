@@ -449,7 +449,9 @@
                     nextBtn.disabled = false;
                     skipBtn.classList.add('hidden'); // Hide skip button on success
                  } else {
-                    resultMessage.innerHTML = `<p class="text-red-700 font-bold mt-4">❌ Keep trying! You got ${correctStatCount}/6 correct. Review your calculations and try again.</p>`;
+                    // **FIXED MESSAGE TO GUIDE USER TO SKIP BUTTON**
+                    resultMessage.innerHTML = `<p class="text-red-700 font-bold mt-4">❌ Keep trying! You got ${correctStatCount}/6 correct. Review your calculations, or click the yellow button below to record your score and proceed.</p>`;
+                    
                     // Show the skip option and update its message
                     skipBtn.classList.remove('hidden');
                     skipBtn.textContent = `Skip Challenge (Score ${correctStatCount}/6 Recorded) →`;
