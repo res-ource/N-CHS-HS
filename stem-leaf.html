@@ -434,6 +434,8 @@
 
             // 3. SCORING AND FEEDBACK UPDATES
             const resultMessage = document.getElementById(messageId);
+            const nextBtn = document.getElementById('analysis-next-btn');
+            const skipBtn = document.getElementById('analysis-skip-btn');
 
             if (isBuilder && allStatsCorrect) {
                  builderDataCompletion[currentDataSetIndex] = true;
@@ -444,9 +446,14 @@
                  
                  if (allStatsCorrect) {
                     resultMessage.innerHTML = `<p class="text-green-700 font-bold mt-4">✅ All Correct! Challenge ${currentChallengeIndex + 1} Mastered. Press "Next Challenge".</p>`;
-                    document.getElementById('analysis-next-btn').disabled = false;
+                    nextBtn.disabled = false;
+                    skipBtn.classList.add('hidden'); // Hide skip button on success
                  } else {
-                    resultMessage.innerHTML = `<p class="text-red-700 mt-4">❌ Keep trying! You got ${correctStatCount}/6 correct. Review your calculations and try again.</p>`;
+                    resultMessage.innerHTML = `<p class="text-red-700 font-bold mt-4">❌ Keep trying! You got ${correctStatCount}/6 correct. Review your calculations and try again.</p>`;
+                    // Show the skip option and update its message
+                    skipBtn.classList.remove('hidden');
+                    skipBtn.textContent = `Skip Challenge (Score ${correctStatCount}/6 Recorded) →`;
+                    nextBtn.disabled = true;
                  }
             } else if (isBuilder && !allStatsCorrect) {
                 resultMessage.innerHTML = `<p class="text-red-700 mt-4">❌ Keep trying! Review your calculations and try again.</p>`;
@@ -502,6 +509,7 @@
             // Reset inputs and messages for the new challenge
             resetInputs('analysis');
             document.getElementById('analysis-next-btn').disabled = true;
+            document.getElementById('analysis-skip-btn').classList.add('hidden'); // Hide skip button on load
 
             // Pre-fill Min/Max if desired (Min and Max are visually obvious and speed up the rest of the calculation)
             document.getElementById('min-analysis-input').value = challenge.answers.min;
@@ -509,6 +517,7 @@
         }
 
         function nextChallenge() {
+            // Check if the current challenge has been mastered (score 6) OR if the skip button was clicked
             if (currentChallengeIndex < challengeSets.length - 1) {
                 currentChallengeIndex++;
                 generateChallengePlot(currentChallengeIndex);
@@ -568,6 +577,7 @@
             document.getElementById('check-builder-btn').addEventListener('click', () => checkAnswers('builder'));
             document.getElementById('check-analysis-btn').addEventListener('click', () => checkAnswers('analysis'));
             document.getElementById('analysis-next-btn').addEventListener('click', nextChallenge);
+            // The skip button uses nextChallenge() directly via inline HTML `onclick`
             document.getElementById('data-set-select').addEventListener('change', generatePlot);
             showPage(currentPage);
         };
@@ -697,6 +707,9 @@
                         <button id="analysis-next-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-150 shadow-md" disabled>
                             Next Challenge →
                         </button>
+                        <button id="analysis-skip-btn" class="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold py-3 px-4 rounded-lg transition duration-150 shadow-md mt-2 hidden" onclick="nextChallenge()">
+                            Skip Challenge (Score 0/6 Recorded) →
+                        </button>
                         <div id="analysis-check-message" class="text-center font-medium"></div>
                     </div>
                 </div>
@@ -746,4 +759,3 @@
     </div>
 </body>
 </html>
-
