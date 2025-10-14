@@ -42,8 +42,12 @@
             cursor: not-allowed; text-decoration: line-through;
         }
         .draggable-bar {
-            background-color: #93c5fd; border: 2px solid #3b82f6;
-            cursor: ns-resize; position: relative;
+            background-color: #93c5fd; 
+            border-color: #3b82f6;
+            border-style: solid;
+            border-width: 2px 1px 0 1px;
+            cursor: ns-resize; 
+            position: relative;
         }
         .draggable-bar:hover { background-color: #60a5fa; }
         .bar-label {
@@ -52,18 +56,18 @@
             color: #1e3a8a; background-color: rgba(255,255,255,0.7);
             padding: 0 4px; border-radius: 4px;
         }
-        .shape-option {
+        .shape-option, .interval-option {
             border: 2px solid #cbd5e0;
             border-radius: 8px;
             padding: 1rem;
             cursor: pointer;
             transition: border-color 0.2s, background-color 0.2s;
         }
-        .shape-option:hover {
+        .shape-option:hover, .interval-option:hover {
             border-color: #60a5fa;
             background-color: #eff6ff;
         }
-        .shape-option.selected {
+        .shape-option.selected, .interval-option.selected {
             border-color: #2563eb;
             background-color: #dbeafe;
         }
@@ -108,19 +112,18 @@
 
     <div class="w-full max-w-4xl">
 
-        <!-- Introduction Container -->
-        <div id="introduction-container" class="font-handwriting">
-             <div class="worksheet-container p-8 w-full text-center">
-                <div class="worksheet-header pb-4 mb-8">
-                    <h2 class="font-marker text-5xl text-gray-800 tracking-wider">Welcome to Histograms!</h2>
-                </div>
-                <div class="worksheet-section space-y-4">
-                    <p>Ever have a long list of numbers and wonder what it all means?</p>
-                    <p>Histograms are powerful tools that turn messy data into a clear picture, making it easy to spot patterns.</p>
-                    <p>In the following exercises, you'll get hands-on practice building and interpreting your own histograms from start to finish.</p>
-                    <button id="start-button" class="nav-button bg-blue-500 text-white mt-6">Let's Begin!</button>
+        <!-- Pre-Lesson and Intro Container -->
+        <div id="pre-lesson-container" class="font-handwriting">
+             <div class="worksheet-container p-8 w-full">
+                <div id="pre-lesson-content">
+                    <!-- Pre-lesson steps injected here -->
                 </div>
              </div>
+             <div class="flex justify-between mt-8">
+                <button id="pre-lesson-back-button" class="nav-button bg-gray-400 text-white">Back</button>
+                <span id="pre-lesson-step-counter" class="text-gray-600 self-center"></span>
+                <button id="pre-lesson-next-button" class="nav-button bg-blue-500 text-white">Next</button>
+            </div>
         </div>
         
         <!-- Lesson Plan Container -->
@@ -132,9 +135,23 @@
             </div>
             <!-- Navigation Buttons -->
             <div class="flex justify-between mt-8">
-                <button id="back-button" class="nav-button bg-gray-400 text-white" onclick="navigate(-1)">Back</button>
+                <button id="back-button" class="nav-button bg-gray-400 text-white" onclick="navigateLesson(-1)">Back</button>
                 <span id="step-counter" class="text-gray-600 self-center"></span>
-                <button id="next-button" class="nav-button bg-blue-500 text-white" onclick="navigate(1)">Next</button>
+                <button id="next-button" class="nav-button bg-blue-500 text-white" onclick="navigateLesson(1)">Next</button>
+            </div>
+        </div>
+
+        <!-- Final Challenge Container -->
+        <div id="final-challenge-container" class="hidden font-handwriting">
+             <div class="worksheet-container p-8 w-full">
+                <div id="final-challenge-content">
+                    <!-- Final Challenge steps injected here -->
+                </div>
+             </div>
+             <div class="flex justify-between mt-8">
+                <button id="challenge-back-button" class="nav-button bg-gray-400 text-white">Back</button>
+                <span id="challenge-step-counter" class="text-gray-600 self-center"></span>
+                <button id="challenge-next-button" class="nav-button bg-blue-500 text-white">Next</button>
             </div>
         </div>
 
@@ -167,10 +184,10 @@
                 data: [68, 72, 75, 71, 69, 73, 78, 81, 79, 74, 70, 76, 77, 72, 75],
                 intervals: ["65-69", "70-74", "75-79", "80-84"],
                 maxFrequency: 6,
-                shape: "Symmetric",
-                modalClass: "70-74", // It has two modes, but we'll pick one for simplicity
+                shape: "Bimodal",
+                modalClass: ["70-74", "75-79"],
                 calculationQuestion: { question: "How many days was the temperature below 70°F?", answer: 2 },
-                analysisQuestion: "The data is roughly symmetric. What does this mean for the weather during this period?"
+                analysisQuestion: "The data is bimodal (has two peaks). What could this suggest about the weather?"
             },
             {
                 title: "Ages of Park Visitors",
@@ -179,129 +196,168 @@
                 maxFrequency: 6,
                 shape: "Bimodal",
                 modalClass: "0-9",
-                calculationQuestion: { question: "How many visitors were 30 or older?", answer: 6 },
+                calculationQuestion: { question: "How many visitors were 30 or older?", answer: 7 },
                 analysisQuestion: "This data has two peaks (bimodal). What could explain these two different age groups?"
             },
             {
                 title: "Commute Times (minutes)",
-                data: [15, 22, 18, 25, 45, 12, 19, 21, 28, 32, 16, 20, 65, 23, 19],
+                data: [11, 13, 15, 17, 19, 20, 22, 24, 26, 29, 33, 38, 42, 51, 60],
                 intervals: ["10-24", "25-39", "40-54", "55-69"],
-                maxFrequency: 10,
+                maxFrequency: 8,
                 shape: "Skewed Right",
                 modalClass: "10-24",
-                calculationQuestion: { question: "How many people have a commute shorter than 25 minutes?", answer: 10 },
+                calculationQuestion: { question: "How many people have a commute of 40 minutes or longer?", answer: 3 },
                 analysisQuestion: "The data is skewed right. What does this suggest about most employees' commutes?"
             }
         ];
 
-        let currentStep = 1;
-        let totalSteps = 8;
+        let lessonStep = 1;
+        let lessonTotalSteps = 5;
         let currentExampleIndex = 0;
         let userTallyTableContent = '';
+        let scores = [];
 
-        document.getElementById('start-button').onclick = () => {
-            document.getElementById('introduction-container').classList.add('hidden');
-            startLesson(0);
-        };
+        // --- Pre-Lesson Logic ---
+        let preLessonCurrentStep = 1;
+        const preLessonTotalSteps = 4;
+        const preLessonBackButton = document.getElementById('pre-lesson-back-button');
+        const preLessonNextButton = document.getElementById('pre-lesson-next-button');
 
+        function showPreLessonStep(step) {
+            const content = document.getElementById('pre-lesson-content');
+            content.innerHTML = getPreLessonHTML(step);
+            document.getElementById('pre-lesson-step-counter').textContent = `Step ${step} of ${preLessonTotalSteps}`;
+            
+            preLessonBackButton.style.visibility = (step === 1) ? 'hidden' : 'visible';
+            preLessonNextButton.textContent = (step === preLessonTotalSteps) ? "Start Lessons" : "Next";
+            
+            if (step === 3) initializeVocabCheck();
+        }
+
+        function navigatePreLesson(dir) {
+            preLessonCurrentStep += dir;
+            if (preLessonCurrentStep > preLessonTotalSteps) {
+                document.getElementById('pre-lesson-container').classList.add('hidden');
+                startLesson(0);
+            } else if (preLessonCurrentStep < 1) {
+                preLessonCurrentStep = 1;
+            } else {
+                showPreLessonStep(preLessonCurrentStep);
+            }
+        }
+        
+        preLessonBackButton.onclick = () => navigatePreLesson(-1);
+        preLessonNextButton.onclick = () => navigatePreLesson(1);
+        
+        // --- Lesson Logic ---
         function startLesson(index) {
             currentExampleIndex = index;
             document.getElementById('lesson-container').classList.remove('hidden');
-            currentStep = 1;
+            lessonStep = 1;
             userTallyTableContent = '';
-            showStep(currentStep);
+            showLessonStep(lessonStep);
         }
 
-        function showStep(stepNumber) {
+        function showLessonStep(stepNumber) {
             const lessonContent = document.getElementById('lesson-content');
-            lessonContent.innerHTML = getStepHTML(stepNumber);
+            lessonContent.innerHTML = getLessonHTML(stepNumber);
             
-            if (stepNumber === 3) initializeVocabCheck();
-            if (stepNumber === 5) initializeTallyStep();
-            if (stepNumber === 6) prepareDragStep();
-            if (stepNumber === 7) initializeAnalysisStep();
+            if (stepNumber === 2) initializeTallyStep();
+            if (stepNumber === 3) prepareDragStep();
+            if (stepNumber === 4) initializeAnalysisStep();
 
             const backButton = document.getElementById('back-button');
             const nextButton = document.getElementById('next-button');
             
-            nextButton.onclick = () => navigate(1);
+            nextButton.onclick = () => navigateLesson(1);
 
             if (currentExampleIndex === 0 && stepNumber === 1) {
-                backButton.style.visibility = 'hidden';
+                backButton.textContent = 'Back to Intro';
             } else {
-                backButton.style.visibility = 'visible';
-                backButton.textContent = (stepNumber === 1) ? 'Previous Example' : 'Back';
+                 backButton.textContent = (stepNumber === 1) ? 'Previous Example' : 'Back';
             }
             
-            if (stepNumber === totalSteps) {
+            if (stepNumber === lessonTotalSteps) {
                 nextButton.textContent = (currentExampleIndex === datasets.length - 1) ? 'Finish' : 'Next Example';
             } else {
                 nextButton.textContent = 'Next';
             }
 
-            document.getElementById('step-counter').textContent = `Example ${currentExampleIndex + 1} of ${datasets.length} | Step ${stepNumber} of ${totalSteps}`;
+            document.getElementById('step-counter').textContent = `Example ${currentExampleIndex + 1} of ${datasets.length} | Step ${stepNumber} of ${lessonTotalSteps}`;
         }
 
         function showFinalScreen() {
-            const lessonContent = document.getElementById('lesson-content');
-            lessonContent.innerHTML = `<div class="lesson-step worksheet-section text-center">
+            const lessonContainer = document.getElementById('lesson-container');
+            const challengeContainer = document.getElementById('final-challenge-container');
+            challengeContainer.classList.add('hidden');
+            lessonContainer.classList.remove('hidden');
+            
+            let totalCorrect = 0;
+            let totalPossible = scores.length * 3;
+            scores.forEach(s => {
+                if (s.modal) totalCorrect++;
+                if (s.shape) totalCorrect++;
+                if (s.calc) totalCorrect++;
+            });
+
+            lessonContainer.querySelector('#lesson-content').innerHTML = `<div class="lesson-step worksheet-section text-center">
                                         <h3 class="font-marker text-5xl">All Done!</h3>
                                         <p class="mt-4">You've completed all the practice examples. Fantastic work!</p>
-                                        <p class="mt-4">Click the button below to start over from the beginning.</p>
+                                        <p class="mt-6 font-bold text-2xl">Your Score: ${totalCorrect} / ${totalPossible}</p>
+                                        <div class="mt-4 flex justify-center gap-4">
+                                            <button onclick="restartAll()" class="nav-button bg-gray-400 text-white">Start Over</button>
+                                        </div>
                                      </div>`;
-            document.getElementById('step-counter').textContent = "Finished!";
-            document.getElementById('back-button').style.visibility = 'hidden';
-            const nextButton = document.getElementById('next-button');
-            nextButton.textContent = 'Start Over';
-            nextButton.onclick = () => {
-                 document.getElementById('lesson-container').classList.add('hidden');
-                 document.getElementById('introduction-container').classList.remove('hidden');
-            }
+            lessonContainer.querySelector('#step-counter').textContent = "Finished!";
+            lessonContainer.querySelector('#back-button').style.visibility = 'hidden';
+            lessonContainer.querySelector('#next-button').style.visibility = 'hidden';
         }
         
-        function navigate(direction) {
-            if (currentStep === 5 && direction === 1) {
+        function navigateLesson(direction) {
+            if (lessonStep === 2 && direction === 1) {
                 const tallyTable = document.querySelector('.worksheet-table');
                 if (tallyTable) userTallyTableContent = tallyTable.innerHTML;
             }
 
-            if (currentStep === totalSteps && direction === 1) {
+            if (lessonStep === lessonTotalSteps && direction === 1) {
                 currentExampleIndex++;
                 if (currentExampleIndex < datasets.length) {
                     startLesson(currentExampleIndex);
                 } else {
-                    showFinalScreen();
+                    showChallengeMode();
                 }
                 return;
             }
 
-            if (currentStep === 1 && direction === -1) {
+            if (lessonStep === 1 && direction === -1) {
                 if (currentExampleIndex > 0) {
                     currentExampleIndex--;
-                    currentStep = totalSteps; 
+                    lessonStep = lessonTotalSteps; 
                     startLesson(currentExampleIndex); 
-                    showStep(currentStep); 
+                    showLessonStep(lessonStep); 
                 } else {
                      document.getElementById('lesson-container').classList.add('hidden');
-                     document.getElementById('introduction-container').classList.remove('hidden');
+                     document.getElementById('pre-lesson-container').classList.remove('hidden');
+                     showPreLessonStep(preLessonTotalSteps);
                 }
                 return;
             }
 
-            currentStep += direction;
-            showStep(currentStep);
+            lessonStep += direction;
+            showLessonStep(lessonStep);
         }
 
-        function getStepHTML(stepNumber) {
-            const dataset = datasets[currentExampleIndex];
-            switch (stepNumber) {
-                case 1: // Intro
-                    return `<div class="lesson-step">
-                                <div class="worksheet-header text-center pb-4 mb-8"><h2 class="font-marker text-5xl text-gray-800 tracking-wider">${dataset.title}</h2><p class="text-xl text-gray-600 mt-2">Guided Practice</p></div>
-                                <div class="worksheet-section text-center"><p>Let's turn this list of numbers into a histogram together.</p><p class="mt-4">Let's get started!</p></div>
+        function getPreLessonHTML(step) {
+             switch (step) {
+                case 1:
+                    return `<div class="worksheet-header pb-4 mb-8 text-center"><h2 class="font-marker text-5xl text-gray-800 tracking-wider">Welcome to Histograms!</h2></div>
+                            <div class="worksheet-section space-y-4 text-center">
+                                <p>Ever have a long list of numbers and wonder what it all means?</p>
+                                <p>Histograms are powerful tools that turn messy data into a clear picture, making it easy to spot patterns.</p>
+                                <p>First, let's review some key vocabulary before you get hands-on practice.</p>
                             </div>`;
-                case 2: // Vocabulary
-                    return `<div class="lesson-step worksheet-section"><h3 class="font-marker">Vocabulary</h3>
+                case 2:
+                    return `<div class="worksheet-section"><h3 class="font-marker">Vocabulary</h3>
                                 <p>Let's start with a few key terms.</p>
                                 <ul class="list-disc list-inside mt-4 space-y-2">
                                     <li><strong>Histogram:</strong> A special type of bar chart that shows the frequency of data in continuous ranges or intervals. The bars touch each other!</li>
@@ -309,8 +365,8 @@
                                     <li><strong>Intervals:</strong> The ranges or "bins" used to group the data in a histogram (e.g., 0-4, 5-9).</li>
                                 </ul>
                             </div>`;
-                case 3: // Vocabulary Check
-                    return `<div class="lesson-step worksheet-section"><h3 class="font-marker">Vocabulary Check</h3>
+                case 3:
+                    return `<div class="worksheet-section"><h3 class="font-marker">Vocabulary Check</h3>
                                 <p>Drag each term to its correct definition to continue.</p>
                                 <div class="flex flex-col md:flex-row gap-8 mt-4">
                                     <div id="vocab-terms" class="flex md:flex-col gap-4">
@@ -326,16 +382,11 @@
                                 </div>
                                 <p id="vocab-feedback" class="mt-4 font-bold text-center text-green-600"></p>
                             </div>`;
-                case 4: // Key Concepts
-                     return `<div class="lesson-step worksheet-section"><h3 class="font-marker">Key Concepts</h3>
-                                <p>Before we start, let's review two important ideas for understanding histograms.</p>
-                                <div class="mt-4">
-                                    <h4 class="font-marker text-2xl">1. Modal Class</h4>
-                                    <p>This is the interval with the highest frequency. It's the <strong>tallest bar</strong> in the histogram!</p>
-                                </div>
-                                <div class="mt-6">
-                                    <h4 class="font-marker text-2xl">2. Shape of the Data</h4>
-                                    <p>The overall shape of the histogram tells us a story about the data.</p>
+                case 4:
+                     return `<div class="worksheet-section"><h3 class="font-marker">Key Concepts</h3>
+                                <p>Let's review two important ideas for understanding histograms.</p>
+                                <div class="mt-4"><h4 class="font-marker text-2xl">1. Modal Class</h4><p>This is the interval with the highest frequency. It's the <strong>tallest bar</strong> in the histogram!</p></div>
+                                <div class="mt-6"><h4 class="font-marker text-2xl">2. Shape of the Data</h4><p>The overall shape of the histogram tells us a story about the data.</p>
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2 text-center">
                                         <div class="border-2 p-2 rounded-lg"><strong>Symmetric</strong><div class="shape-icon mt-1"><div style="height:40%"></div><div style="height:70%"></div><div style="height:100%"></div><div style="height:70%"></div><div style="height:40%"></div></div><p class="text-sm">Data is balanced in the middle.</p></div>
                                         <div class="border-2 p-2 rounded-lg"><strong>Skewed Right</strong><div class="shape-icon mt-1"><div style="height:100%"></div><div style="height:70%"></div><div style="height:40%"></div><div style="height:20%"></div><div style="height:10%"></div></div><p class="text-sm">Most data is on the left.</p></div>
@@ -343,46 +394,32 @@
                                     </div>
                                 </div>
                             </div>`;
-                case 5: // Tally Data
-                    return `<div class="lesson-step worksheet-section"><h3 class="font-marker">Step 1: Tally the Data</h3><p>Click each number in the list to create your frequency table.</p>
-                                <div id="data-numbers-container" class="flex flex-wrap gap-2 p-2 rounded bg-gray-100 my-4 text-lg font-mono"></div>
-                                <p id="tally-progress" class="text-sm -mt-2 mb-4 text-gray-600 font-bold"></p>
-                                <table class="worksheet-table w-full bg-white rounded-lg text-center">
-                                    <thead class="bg-gray-200"><tr><th class="py-2 px-4">Intervals</th><th class="py-2 px-4">Tally</th><th class="py-2 px-4">Frequency</th></tr></thead>
-                                    <tbody>${dataset.intervals.map((interval, i) => `<tr class="${i%2 === 1 ? 'bg-gray-50' : ''}"><td class="py-2 px-4">${interval}</td><td id="tally-${i}" class="py-2 px-4 text-left text-blue-600 font-mono"></td><td id="freq-${i}" class="py-2 px-4 font-bold">0</td></tr>`).join('')}</tbody>
-                                </table>
-                            </div>`;
-                case 6: // Build Histogram
-                     return `<div class="lesson-step worksheet-section"><h3 class="font-marker">Step 2: Build the Histogram</h3><p>Great! Now use your table to build the histogram. Drag each bar to the correct height.</p>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-end mt-4">
-                                    <table id="reference-table" class="worksheet-table w-full bg-white rounded-lg text-center h-full"></table>
-                                    <div class="border-2 border-gray-400 rounded-lg p-4 bg-gray-50 h-80">
-                                        <div id="drag-container" class="flex justify-around items-end h-full relative">
-                                            <div class="absolute left-0 top-0 bottom-0 flex flex-col justify-between -ml-8 text-lg text-gray-500"><span>${dataset.maxFrequency}</span><span>${Math.ceil(dataset.maxFrequency/2)}</span><span>0</span></div>
-                                            ${dataset.intervals.map((interval, i) => `<div class="flex-1 flex flex-col justify-end items-center h-full"><div id="drag-bar-${i}" class="w-3/4 draggable-bar" data-freq="0"><span class="bar-label">0</span></div><span class="text-sm mt-1">${interval}</span></div>`).join('')}
-                                        </div><p class="text-center font-bold mt-2 text-lg">${dataset.title}</p></div>
-                                </div>
-                            </div>`;
-                case 7: // Analysis
-                    return `<div class="lesson-step worksheet-section"><h3 class="font-marker">Step 3: Analyze Your Histogram</h3><p>Perfect! Now let's analyze the chart you built.</p>
-                                <div class="space-y-4 mt-4">
-                                    <div><label class="font-bold">1. What is the modal class (the tallest bar)?</label><select id="modal-select" class="block w-full md:w-1/2 mt-1 p-1 border-2 rounded"><option value="">Select...</option>${dataset.intervals.map(i => `<option value="${i}">${i}</option>`).join('')}</select></div>
-                                    <div><label class="font-bold">2. What is the shape of the data?</label><div id="shape-options" class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1">${['Symmetric', 'Skewed Right', 'Skewed Left', 'Bimodal'].map(s => `<div class="shape-option" onclick="selectShape(this, '${s}')"><strong>${s}</strong></div>`).join('')}</div></div>
-                                    <div><label class="font-bold">3. ${dataset.calculationQuestion.question}</label><div><input type="number" id="answer-input" class="w-20 p-1 border-2 rounded"><button onclick="checkFinalAnswer()" class="nav-button bg-green-500 text-white ml-2 text-sm">Check</button><span id="final-answer-feedback" class="ml-2 text-base"></span></div></div>
-                                    <div><label class="font-bold">4. ${dataset.analysisQuestion}</label><p class="text-sm italic text-gray-500">(Think about what the shape and spread of the data tells you.)</p></div>
-                                </div>
-                            </div>`;
-                case 8: // Conclusion
+             }
+        }
+
+        function getLessonHTML(stepNumber) {
+            const dataset = datasets[currentExampleIndex];
+            switch (stepNumber) {
+                case 1:
+                    return `<div class="lesson-step"><div class="worksheet-header text-center pb-4 mb-8"><h2 class="font-marker text-5xl text-gray-800 tracking-wider">${dataset.title}</h2><p class="text-xl text-gray-600 mt-2">Guided Practice</p></div><div class="worksheet-section text-center"><p>Time to build your histogram! Follow the steps to turn this data into a chart.</p><p class="mt-4">Let's get started!</p></div></div>`;
+                case 2:
+                    return `<div class="lesson-step worksheet-section"><h3 class="font-marker">Step 1: Tally the Data</h3><p>Click each number in the list to create your frequency table.</p><div id="data-numbers-container" class="flex flex-wrap gap-2 p-2 rounded bg-gray-100 my-4 text-lg font-mono"></div><p id="tally-progress" class="text-sm -mt-2 mb-4 text-gray-600 font-bold"></p><table class="worksheet-table w-full bg-white rounded-lg text-center"><thead class="bg-gray-200"><tr><th class="py-2 px-4">Intervals</th><th class="py-2 px-4">Tally</th><th class="py-2 px-4">Frequency</th></tr></thead><tbody>${dataset.intervals.map((interval, i) => `<tr class="${i%2 === 1 ? 'bg-gray-50' : ''}"><td class="py-2 px-4">${interval}</td><td id="tally-${i}" class="py-2 px-4 text-left text-blue-600 font-mono"></td><td id="freq-${i}" class="py-2 px-4 font-bold">0</td></tr>`).join('')}</tbody></table></div>`;
+                case 3:
+                     return `<div class="lesson-step worksheet-section"><h3 class="font-marker">Step 2: Build the Histogram</h3><p>Great! Now use your table to build the histogram. Drag each bar to the correct height.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-end mt-4"><table id="reference-table" class="worksheet-table w-full bg-white rounded-lg text-center h-full"></table><div class="border-2 border-gray-400 rounded-lg p-4 bg-gray-50 h-80"><div id="drag-container" class="flex justify-center items-end h-full relative"><div class="absolute left-0 top-0 bottom-0 flex flex-col justify-between -ml-8 text-lg text-gray-500"><span>${dataset.maxFrequency}</span><span>${Math.ceil(dataset.maxFrequency/2)}</span><span>0</span></div>${dataset.intervals.map((interval, i) => `<div class="flex-1 flex flex-col justify-end items-center h-full"><div id="drag-bar-${i}" class="w-full draggable-bar" data-freq="0"><span class="bar-label">0</span></div><span class="text-sm mt-1">${interval}</span></div>`).join('')}</div><p class="text-center font-bold mt-2 text-lg">${dataset.title}</p></div></div></div>`;
+                case 4:
+                    const isBimodal = Array.isArray(dataset.modalClass);
+                    let modalInputHTML = isBimodal ? `<div id="modal-checkboxes" class="flex flex-wrap gap-4 mt-1">${dataset.intervals.map(i => `<div class="flex items-center"><input type="checkbox" id="modal-${i.replace(/\s/g, '')}" value="${i}" class="mr-2 h-4 w-4"><label for="modal-${i.replace(/\s/g, '')}">${i}</label></div>`).join('')}</div>` : `<select id="modal-select" class="block w-full md:w-1/2 mt-1 p-1 border-2 rounded"><option value="">Select...</option>${dataset.intervals.map(i => `<option value="${i}">${i}</option>`).join('')}</select>`;
+                    return `<div class="lesson-step worksheet-section"><h3 class="font-marker">Step 3: Analyze Your Histogram</h3><p>Perfect! Now let's analyze the chart you built.</p><div class="space-y-4 mt-4"><div><label class="font-bold">1. What is the modal class (the tallest bar)?</label><p class="text-sm italic text-gray-500">${isBimodal ? '(Select all that apply)' : ''}</p>${modalInputHTML}</div><div><label class="font-bold">2. What is the shape of the data?</label><div id="shape-options" class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1">${['Symmetric', 'Skewed Right', 'Skewed Left', 'Bimodal'].map(s => `<div class="shape-option" onclick="selectShape(this, '${s}')"><strong>${s}</strong></div>`).join('')}</div></div><div><label class="font-bold">3. ${dataset.calculationQuestion.question}</label><div><input type="number" id="answer-input" class="w-20 p-1 border-2 rounded"><button onclick="checkFinalAnswer()" class="nav-button bg-green-500 text-white ml-2 text-sm">Check</button><span id="final-answer-feedback" class="ml-2 text-base"></span></div></div><div><label class="font-bold">4. ${dataset.analysisQuestion}</label><p class="text-sm italic text-gray-500">(Think about what the shape and spread of the data tells you.)</p></div></div></div>`;
+                case 5:
                     return `<div class="lesson-step worksheet-section text-center"><h3 class="font-marker text-5xl">Great Work!</h3><p class="mt-4">You've mastered this dataset. Ready for the next one?</p><p class="mt-4">Click "Next Example" to continue.</p></div>`;
             }
             return '';
         }
 
-        // --- Vocabulary Drag and Drop ---
         let correctDrops = 0;
         function initializeVocabCheck() {
-            document.getElementById('next-button').disabled = true;
-            document.getElementById('next-button').classList.add('opacity-50', 'cursor-not-allowed');
+            preLessonNextButton.disabled = true;
+            preLessonNextButton.classList.add('opacity-50', 'cursor-not-allowed');
         }
         function allowDrop(ev) { ev.preventDefault(); const el = ev.target.closest('.vocab-def'); if (el) el.classList.add('over'); }
         function dragLeave(ev) { const el = ev.target.closest('.vocab-def'); if (el) el.classList.remove('over'); }
@@ -400,15 +437,12 @@
                 correctDrops++;
                 if (correctDrops === 3) {
                     document.getElementById('vocab-feedback').textContent = "Great job! You can now proceed.";
-                    const nextButton = document.getElementById('next-button');
-                    nextButton.disabled = false;
-                    nextButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    preLessonNextButton.disabled = false;
+                    preLessonNextButton.classList.remove('opacity-50', 'cursor-not-allowed');
                     correctDrops = 0; 
                 }
             }
         }
-
-        // --- Tally and Histogram Logic ---
         let talliedCount = 0;
         function initializeTallyStep() {
             const dataset = datasets[currentExampleIndex];
@@ -487,35 +521,246 @@
         }
         function initializeAnalysisStep() {
             const dataset = datasets[currentExampleIndex];
-            const modalSelect = document.getElementById('modal-select');
-            modalSelect.onchange = () => {
-                if(modalSelect.value === dataset.modalClass) { modalSelect.style.borderColor = 'green'; } 
-                else { modalSelect.style.borderColor = 'red'; }
-            };
+            scores[currentExampleIndex] = { modal: null, shape: null, calc: null };
+
+            if (Array.isArray(dataset.modalClass)) {
+                const checkboxes = document.querySelectorAll('#modal-checkboxes input');
+                checkboxes.forEach(cb => cb.onchange = () => {
+                    const selected = Array.from(checkboxes).filter(c => c.checked).map(c => c.value);
+                    const isCorrect = selected.length === dataset.modalClass.length && selected.every(val => dataset.modalClass.includes(val));
+                    if (scores[currentExampleIndex].modal === null) {
+                        scores[currentExampleIndex].modal = isCorrect;
+                    }
+                });
+            } else {
+                const modalSelect = document.getElementById('modal-select');
+                modalSelect.onchange = () => {
+                    const isCorrect = modalSelect.value === dataset.modalClass;
+                    modalSelect.style.borderColor = isCorrect ? 'green' : 'red';
+                    if (scores[currentExampleIndex].modal === null) {
+                        scores[currentExampleIndex].modal = isCorrect;
+                    }
+                };
+            }
         }
         function selectShape(selectedEl, shape) {
-            document.querySelectorAll('.shape-option').forEach(opt => opt.classList.remove('selected'));
+            document.querySelectorAll('.shape-option').forEach(opt => {
+                opt.classList.remove('selected');
+                opt.style.borderColor = '';
+            });
             selectedEl.classList.add('selected');
-            if (shape === datasets[currentExampleIndex].shape) { selectedEl.style.borderColor = 'green'; } 
-            else { selectedEl.style.borderColor = 'red'; }
+            const isCorrect = shape === datasets[currentExampleIndex].shape;
+            selectedEl.style.borderColor = isCorrect ? 'green' : 'red';
+            if (scores[currentExampleIndex].shape === null) {
+                scores[currentExampleIndex].shape = isCorrect;
+            }
         }
         function checkFinalAnswer() {
              const answerInput = document.getElementById('answer-input');
              const feedback = document.getElementById('final-answer-feedback');
              const dataset = datasets[currentExampleIndex];
-             if (parseInt(answerInput.value) === dataset.calculationQuestion.answer) {
+             const isCorrect = parseInt(answerInput.value) === dataset.calculationQuestion.answer
+             if (isCorrect) {
                  feedback.textContent = "Correct!";
                  feedback.className = 'ml-2 text-base text-green-600 font-bold';
              } else {
                  feedback.textContent = "Try again.";
                  feedback.className = 'ml-2 text-base text-red-600 font-bold';
              }
+             if (scores[currentExampleIndex].calc === null) {
+                scores[currentExampleIndex].calc = isCorrect;
+             }
         }
+
+        // --- Final Challenge & AI ---
+        const challengeData = [5, 12, 15, 18, 21, 22, 25, 28, 32, 35, 36, 38, 41, 45, 48, 50, 55, 58, 62, 70];
+        const shuffledChallengeData = [...challengeData].sort(() => Math.random() - 0.5);
+        const challengeIntervalSets = [
+            { name: "Option A", intervals: ["0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79"], description: "Groups of 10 minutes" },
+            { name: "Option B", intervals: ["0-19", "20-39", "40-59", "60-79"], description: "Groups of 20 minutes" },
+            { name: "Option C", intervals: ["0-39", "40-79"], description: "Groups of 40 minutes" }
+        ];
+        let challengeUserChoice = {};
+        let challengeStep = 1;
+        const challengeTotalSteps = 5;
+
+        function showChallengeMode() {
+            document.getElementById('lesson-container').classList.add('hidden');
+            document.getElementById('final-challenge-container').classList.remove('hidden');
+            challengeStep = 1;
+            challengeUserChoice = {};
+            showChallengeStep(1);
+        }
+
+        function navigateChallenge(dir) {
+            if (challengeStep === challengeTotalSteps && dir === 1) {
+                showFinalScreen(true);
+                return;
+            }
+
+            challengeStep += dir;
+            if (challengeStep < 1) {
+                showFinalScreen(true);
+                return;
+            }
+            showChallengeStep(challengeStep);
+        }
+        
+        document.getElementById('challenge-back-button').onclick = () => navigateChallenge(-1);
+        document.getElementById('challenge-next-button').onclick = () => navigateChallenge(1);
+
+        function showChallengeStep(step) {
+            const content = document.getElementById('final-challenge-content');
+            content.innerHTML = getChallengeHTML(step);
+            
+            const backButton = document.getElementById('challenge-back-button');
+            const nextButton = document.getElementById('challenge-next-button');
+            document.getElementById('challenge-step-counter').textContent = `Step ${step} of ${challengeTotalSteps}`;
+            
+            backButton.textContent = (step === 1) ? "Back to Menu" : "Back";
+            nextButton.style.visibility = 'visible';
+            nextButton.textContent = (step === challengeTotalSteps) ? "Finish Challenge" : "Next";
+
+            if (step === 4) {
+                buildChallengeHistogram();
+            }
+        }
+
+        function getChallengeHTML(step) {
+            switch(step) {
+                case 1:
+                    return `<div class="worksheet-header text-center pb-4 mb-8"><h2 class="font-marker text-5xl text-gray-800 tracking-wider">Final Challenge</h2></div>
+                            <div class="worksheet-section text-center"><p>You surveyed 20 classmates about how many minutes they spend on their phone before bed. Here is the data you collected:</p>
+                            <div class="p-2 rounded bg-gray-100 my-4 text-lg font-mono">${shuffledChallengeData.join(', ')}</div>
+                            <p>Your task is to turn this into a meaningful histogram. First, you'll need to find the range of the data.</p></div>`;
+                case 2:
+                    return `<div class="worksheet-section"><h3 class="font-marker">Step 1: Find the Range</h3>
+                            <p>Look at the data below and find the smallest and largest values. This will help you decide on your intervals.</p>
+                            <div class="p-2 rounded bg-gray-100 my-4 text-lg font-mono">${shuffledChallengeData.join(', ')}</div>
+                            <div class="mt-4 text-lg">
+                                <div><label>Smallest number (minimum): <input type="number" id="min-input" class="w-20 p-1 border-2 rounded"></label></div>
+                                <div class="mt-2"><label>Largest number (maximum): <input type="number" id="max-input" class="w-20 p-1 border-2 rounded"></label></div>
+                                <button onclick="checkChallengeMinMax()" class="nav-button bg-green-500 text-white mt-4">Check Answer</button>
+                                <p id="min-max-feedback" class="mt-2"></p>
+                            </div></div>`;
+                case 3:
+                    return `<div class="worksheet-section"><h3 class="font-marker">Step 2: Choose Your Intervals</h3>
+                            <p>Now, choose a set of intervals. A good choice will show the data's shape clearly, without being too detailed or too simple.</p>
+                            <div id="interval-options" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 text-center">
+                                ${challengeIntervalSets.map((set, i) => `<div class="interval-option" onclick="selectIntervalSet(this, ${i})"><strong>${set.name}</strong><p class="text-sm">${set.description}</p><p class="font-mono text-xs mt-2">${set.intervals.join(', ')}</p></div>`).join('')}
+                            </div></div>`;
+                case 4:
+                    return `<div class="worksheet-section"><h3 class="font-marker">Step 3: Build Your Histogram</h3>
+                            <p>Great choice! Now, click the numbers to tally the data using the intervals you selected.</p>
+                            <div id="challenge-data-numbers" class="flex flex-wrap gap-2 p-2 rounded bg-gray-100 my-4 text-lg font-mono"></div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-end mt-4">
+                                <table id="challenge-freq-table" class="worksheet-table w-full bg-white rounded-lg text-center h-full"></table>
+                                <div class="border-2 border-gray-400 rounded-lg p-4 bg-gray-50 h-80">
+                                    <div id="challenge-chart-container" class="flex justify-center items-end h-full relative"></div>
+                                    <p class="text-center font-bold mt-2 text-lg">Screen Time (minutes)</p>
+                                </div>
+                            </div></div>`;
+                case 5:
+                    const intervals = challengeUserChoice.intervalSet.intervals;
+                    return `<div class="worksheet-section"><h3 class="font-marker">Step 4: Analyze Your Creation</h3><p>Excellent! Now, answer a few questions about the histogram you just created.</p>
+                            <div class="space-y-4 mt-4">
+                                <div><label class="font-bold">1. What is the modal class?</label><select id="challenge-modal" class="block w-full md:w-1/2 mt-1 p-1 border-2 rounded"><option value="">Select...</option>${intervals.map(i => `<option value="${i}">${i}</option>`).join('')}</select></div>
+                                <div><label class="font-bold">2. What is the shape of your histogram?</label><div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1">${['Symmetric', 'Skewed Right', 'Skewed Left', 'Bimodal'].map(s => `<div class="shape-option" onclick="this.classList.toggle('selected')"><strong>${s}</strong></div>`).join('')}</div></div>
+                                <div><label class="font-bold">3. How many classmates use their phone for less than 20 minutes?</label><input type="number" id="challenge-calc" class="w-20 p-1 border-2 rounded"></div>
+                                <div><label class="font-bold">4. What does this histogram tell you about your classmates' screen time habits?</label><textarea id="challenge-inference" class="w-full h-20 p-2 mt-1 border-2 rounded text-base"></textarea></div>
+                            </div></div>`;
+            }
+        }
+
+        function checkChallengeMinMax() {
+            const minInput = document.getElementById('min-input').value;
+            const maxInput = document.getElementById('max-input').value;
+            const feedback = document.getElementById('min-max-feedback');
+            if (minInput === '5' && maxInput === '70') {
+                feedback.textContent = "Correct! The data ranges from 5 to 70.";
+                feedback.className = 'mt-2 text-green-600 font-bold';
+            } else {
+                feedback.textContent = "Not quite. Check the list again for the absolute smallest and largest values.";
+                feedback.className = 'mt-2 text-red-600 font-bold';
+            }
+        }
+
+        function selectIntervalSet(el, index) {
+            document.querySelectorAll('.interval-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+            challengeUserChoice.intervalSet = challengeIntervalSets[index];
+        }
+
+        function buildChallengeHistogram() {
+            const dataContainer = document.getElementById('challenge-data-numbers');
+            dataContainer.innerHTML = shuffledChallengeData.map(d => `<code class="data-number">${d}</code>`).join('');
+
+            const chosenIntervals = challengeUserChoice.intervalSet.intervals;
+            const table = document.getElementById('challenge-freq-table');
+            table.innerHTML = `<thead class="bg-gray-200"><tr><th class="py-2 px-4">Intervals</th><th class="py-2 px-4">Frequency</th></tr></thead>
+                               <tbody>${chosenIntervals.map((interval, i) => `<tr class="${i%2 === 1 ? 'bg-gray-50' : ''}"><td class="py-2 px-4">${interval}</td><td id="challenge-freq-${i}" class="py-2 px-4 font-bold">0</td></tr>`).join('')}</tbody>`;
+
+            const chart = document.getElementById('challenge-chart-container');
+            chart.innerHTML = `${chosenIntervals.map((interval, i) => `<div class="flex-1 flex flex-col justify-end items-center h-full"><div id="challenge-bar-${i}" style="height:0%" class="w-full draggable-bar"><span class="bar-label">0</span></div><span class="text-sm mt-1">${interval}</span></div>`).join('')}`;
+            
+            dataContainer.querySelectorAll('.data-number').forEach(numEl => {
+                numEl.onclick = () => {
+                    if (numEl.classList.contains('used')) return;
+                    numEl.classList.add('used');
+                    const num = parseInt(numEl.textContent);
+                    
+                    for(let i=0; i < chosenIntervals.length; i++){
+                        const parts = chosenIntervals[i].split('-').map(Number);
+                        if(num >= parts[0] && num <= parts[1]){
+                            const freqCell = document.getElementById(`challenge-freq-${i}`);
+                            const newFreq = parseInt(freqCell.textContent) + 1;
+                            freqCell.textContent = newFreq;
+                            break;
+                        }
+                    }
+                    updateChallengeChart();
+                };
+            });
+        }
+        
+        function updateChallengeChart() {
+            const chosenIntervals = challengeUserChoice.intervalSet.intervals;
+            const frequencies = chosenIntervals.map((_, i) => parseInt(document.getElementById(`challenge-freq-${i}`).textContent));
+            const maxFreq = Math.max(...frequencies, 1);
+            
+            let yAxis = document.querySelector('#challenge-chart-container .absolute');
+            if (!yAxis) {
+                yAxis = document.createElement('div');
+                yAxis.className = "absolute left-0 top-0 bottom-0 flex flex-col justify-between -ml-8 text-lg text-gray-500";
+                document.getElementById('challenge-chart-container').prepend(yAxis);
+            }
+            yAxis.innerHTML = `<span>${maxFreq}</span><span>${Math.ceil(maxFreq/2)}</span><span>0</span>`;
+
+            frequencies.forEach((freq, i) => {
+                const bar = document.getElementById(`challenge-bar-${i}`);
+                bar.style.height = `${(freq/maxFreq)*100}%`;
+                bar.querySelector('.bar-label').textContent = freq;
+            });
+        }
+        
+        // --- Other Functions ---
+        function restartAll() {
+            document.getElementById('lesson-container').classList.add('hidden');
+            document.getElementById('final-challenge-container').classList.add('hidden');
+            document.getElementById('pre-lesson-container').classList.remove('hidden');
+            scores = [];
+            showPreLessonStep(1);
+        }
+
         window.onload = () => {
-             document.getElementById('introduction-container').classList.remove('hidden');
+             document.getElementById('pre-lesson-container').classList.remove('hidden');
              document.getElementById('lesson-container').classList.add('hidden');
+             document.getElementById('final-challenge-container').classList.add('hidden');
+             showPreLessonStep(1);
         };
     </script>
 </body>
 </html>
+
+
 
