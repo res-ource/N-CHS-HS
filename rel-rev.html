@@ -42,6 +42,7 @@
             border-radius: 50%;
             box-shadow: 0 0 2px rgba(0,0,0,0.3);
             border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.5s ease-out; /* Smooth movement */
         }
         /* Trend visualization classes */
         .positive-trend .data-point { background-color: #10b981; }
@@ -75,6 +76,18 @@
             box-shadow: 0 0 0 3px #3b82f6; /* Blue ring for selection */
             transform: scale(1.05);
         }
+        /* Data table styling */
+        .data-table th, .data-table td {
+            padding: 0.5rem 0.75rem;
+            text-align: center;
+        }
+        .data-table th {
+            background-color: #e5e7eb;
+            font-weight: 600;
+        }
+        .data-table tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
     </style>
 </head>
 <body class="p-4 sm:p-8 min-h-screen flex justify-center items-center">
@@ -90,16 +103,31 @@
             <span id="timer" class="flex items-center text-red-600 font-semibold text-xl">0:00</span>
         </div>
 
+        <!-- PERSISTENT CONTEXT BANNER (Idea 3) -->
+        <div id="context-banner" class="hidden p-3 bg-indigo-50 text-indigo-800 font-medium text-sm text-center border-b border-indigo-200">
+            <span id="banner-text"></span>
+        </div>
+
         <!-- Main Content Area -->
         <div class="p-6 sm:p-8 pt-4 content-card relative">
             
             <!-- 0. WELCOME SCREEN -->
             <div id="welcome-screen" class="activity-screen flex flex-col items-center justify-center h-full text-center">
                 <p class="text-3xl font-bold text-gray-700 mb-4">Start Your Relationship Review!</p>
-                <p class="text-gray-600 mb-8">You will cover Vocabulary, Correlation vs. Causation, and Scatter Plot Trends across 7 stations.</p>
-                <button onclick="advanceFlow()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-xl transition duration-150 transform hover:scale-105">
+                <p class="text-gray-600 mb-6">Enter your name to personalize your study session:</p>
+                
+                <!-- NEW NAME INPUT -->
+                <input
+                    type="text"
+                    id="studentNameInput"
+                    placeholder="Your Name (e.g., Jane Doe)"
+                    class="w-full max-w-xs p-3 mb-6 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm text-center"
+                    onkeypress="if(event.key === 'Enter') startReview()"
+                >
+                <button onclick="startReview()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-xl transition duration-150 transform hover:scale-105">
                     Start Review →
                 </button>
+                <p id="name-error" class="text-red-500 mt-2 hidden">Please enter your name.</p>
             </div>
 
             <!-- 1. VOCAB LESSON CONTAINER (Flashcards) -->
@@ -122,7 +150,7 @@
 
             <!-- 2. VOCAB QUIZ CONTAINER (Match Term to Definition) -->
             <div id="vocab-quiz-container" class="activity-screen hidden">
-                <h2 class="text-xl font-bold mb-4 text-gray-700">2. Vocabulary Match (Definition to Term)</h2>
+                <h2 class="text-xl font-bold mb-4 text-gray-700">2. Vocabulary Match (Def to Term)</h2>
                 <div class="mb-4 flex justify-between items-center text-sm font-semibold">
                     <span id="vocab-counter" class="text-blue-600 bg-blue-100 px-3 py-1 rounded-full">Question 0/5</span>
                     <span id="vocab-score-display" class="text-blue-600">Score: 0</span>
@@ -139,7 +167,7 @@
                 <div id="vocab-feedback" class="mt-4 text-center font-bold h-6"></div>
             </div>
 
-            <!-- NEW 3. VOCAB SCENARIO GENERATION (Match Term to Scenario) -->
+            <!-- 3. VOCAB SCENARIO GENERATION (Match Term to Scenario) -->
             <div id="vocab-scenario-section" class="activity-screen hidden">
                 <h2 class="text-xl font-bold mb-4 text-gray-700">3. Vocabulary Scenario Match</h2>
                 <div class="mb-4 flex justify-between items-center text-sm font-semibold">
@@ -181,7 +209,7 @@
                 <div id="causation-feedback" class="mt-4 text-center font-bold h-6"></div>
             </div>
 
-            <!-- NEW 5. CAUSATION JUSTIFICATION STATION -->
+            <!-- 5. CAUSATION JUSTIFICATION STATION -->
             <div id="causation-justify-section" class="activity-screen hidden">
                 <h2 class="text-xl font-bold mb-4 text-gray-700">5. Causation Justification Station</h2>
                 <div class="mb-4 flex justify-between items-center text-sm font-semibold">
@@ -229,9 +257,37 @@
                 <div id="trend-feedback" class="mt-4 text-center font-bold h-6"></div>
             </div>
             
-            <!-- NEW 7A. TREND LABELING INTRODUCTION (The explanation slide) -->
+            <!-- 7. NEW DATA ANALYSIS STATION -->
+            <div id="data-analysis-section" class="activity-screen hidden">
+                <h2 class="text-xl font-bold mb-4 text-gray-700">7. Data-to-Trend Analyst</h2>
+                <div class="mb-4 flex justify-between items-center text-sm font-semibold">
+                    <span id="data-analysis-counter" class="text-blue-600 bg-blue-100 px-3 py-1 rounded-full">Question 0/2</span>
+                    <span id="data-analysis-score-display" class="text-blue-600">Score: 0</span>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg border-l-4 border-pink-400 mb-4 shadow-inner">
+                    <p class="text-lg font-semibold text-gray-700">Data Table (From Worksheet Q7/Q8):</p>
+                    <p id="data-analysis-scenario-text" class="text-xl font-bold text-gray-900 mt-1 mb-2"></p>
+                    <table id="data-table" class="data-table w-full border-collapse border border-gray-300 rounded-lg overflow-hidden">
+                        <!-- Data will be populated here -->
+                    </table>
+                </div>
+
+                <!-- Visualization Area for Data Table -->
+                <div id="data-analysis-visualization" class="plot-box mb-8">
+                    <p class="text-gray-500 italic">Determine the correlation from the data above.</p>
+                </div>
+
+                <p class="text-lg font-semibold text-gray-700 mb-3">Which correlation type does this data show?</p>
+                <div id="data-analysis-options" class="grid grid-cols-3 gap-3">
+                    <!-- Trend buttons inserted here by JS -->
+                </div>
+                <div id="data-analysis-feedback" class="mt-4 text-center font-bold h-6"></div>
+            </div>
+
+            <!-- 8. VARIABLE LABELING INTRODUCTION (was 7A) -->
             <div id="trend-label-intro-container" class="activity-screen hidden h-full">
-                <h2 class="text-xl font-bold mb-4 text-gray-700">7. Independent & Dependent Variables: The Magic Question</h2>
+                <h2 class="text-xl font-bold mb-4 text-gray-700">8. Independent & Dependent Variables: The Magic Question</h2>
                 
                 <div class="bg-green-50 p-6 rounded-xl border-4 border-green-300 mb-6 shadow-xl text-left min-h-[300px]">
                     <p class="text-gray-700 mb-4">You got the definition right, but applying it to real-world scenarios is tricky! To label scatter plot axes, ask this **Magic Question** about the two variables:</p>
@@ -260,9 +316,9 @@
                 </button>
             </div>
             
-            <!-- NEW 7B. TREND LABELING STATION (The quiz itself) -->
+            <!-- 9. VARIABLE LABELING QUIZ (was 7B) -->
             <div id="trend-label-section" class="activity-screen hidden">
-                <h2 class="text-xl font-bold mb-4 text-gray-700">7. Variable Association and Labeling</h2>
+                <h2 class="text-xl font-bold mb-4 text-gray-700">9. Variable Association and Labeling Quiz</h2>
                 <div class="mb-4 flex justify-between items-center text-sm font-semibold">
                     <span id="trend-label-counter" class="text-blue-600 bg-blue-100 px-3 py-1 rounded-full">Question 0/5</span>
                     <span id="trend-label-score-display" class="text-blue-600">Score: 0</span>
@@ -286,8 +342,28 @@
                 </div>
                 <div id="trend-label-feedback" class="mt-4 text-center font-bold h-6"></div>
             </div>
+            
+            <!-- 10. WORKSHEET VALIDATION STATION (was 8) -->
+            <div id="worksheet-validation-section" class="activity-screen hidden">
+                <h2 class="text-xl font-bold mb-4 text-gray-700">10. Worksheet Validation Check</h2>
+                <div class="mb-4 flex justify-between items-center text-sm font-semibold">
+                    <span id="worksheet-counter" class="text-blue-600 bg-blue-100 px-3 py-1 rounded-full">Question 0/5</span>
+                    <span id="worksheet-score-display" class="text-blue-600">Score: 0</span>
+                </div>
 
-            <!-- 8. COMPLETION SCREEN -->
+                <div class="bg-gray-50 p-4 rounded-lg border-l-4 border-teal-500 mb-6 shadow-inner">
+                    <p class="text-lg font-semibold text-gray-700">Original Worksheet Scenario (Questions 9-15):</p>
+                    <p id="worksheet-scenario-text" class="text-xl font-bold text-gray-900 mt-1"></p>
+                </div>
+
+                <p class="text-lg font-semibold text-gray-700 mb-3">Which correlation type best describes this relationship?</p>
+                <div id="worksheet-options" class="grid grid-cols-3 gap-3">
+                    <!-- Options buttons inserted here by JS -->
+                </div>
+                <div id="worksheet-feedback" class="mt-4 text-center font-bold h-6"></div>
+            </div>
+
+            <!-- 11. COMPLETION SCREEN (was 9) -->
             <div id="complete-screen" class="activity-screen hidden flex flex-col items-center justify-center h-full text-center">
                 <p class="text-3xl font-bold text-green-600 mb-4">Review Complete!</p>
                 <p class="text-lg text-gray-700 mb-6">Great job! Here are your final scores:</p>
@@ -297,7 +373,9 @@
                     <li class="text-red-700">Causation Sorter: <span id="final-score-causation" class="font-bold"></span>/5</li>
                     <li class="text-yellow-800">Causation Justification: <span id="final-score-causationJustify" class="font-bold"></span>/5</li>
                     <li class="text-blue-700">Trend Identifier (Trend Type): <span id="final-score-trend" class="font-bold"></span>/5</li>
+                    <li class="text-pink-700">Data-to-Trend Analyst: <span id="final-score-dataAnalysis" class="font-bold"></span>/2</li>
                     <li class="text-green-700">Trend Identifier (Labeling): <span id="final-score-trendLabel" class="font-bold"></span>/5</li>
+                    <li class="text-teal-700">Worksheet Validation: <span id="final-score-worksheetValidation" class="font-bold"></span>/5</li>
                 </ul>
                 <p id="final-time" class="text-xl font-semibold text-red-600 mb-8">Total Time: 0:00</p>
                 <button onclick="window.location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-xl transition duration-150 transform hover:scale-105">
@@ -312,10 +390,12 @@
         const QUIZ_LENGTH = 5; 
         let startTime;
         let timerInterval;
+        let studentName = 'Student'; // Global state for the student's name
 
         // Master Flow State
         const flowState = {
-            activity: 'welcome', // 'welcome', 'lesson', 'vocab', 'vocab-scenario', 'causation', 'causation-justify', 'trend', 'trend-label-intro', 'trend-label', 'complete'
+            activity: 'welcome', 
+            // Current Flow: welcome -> lesson -> vocab -> vocab-scenario -> causation -> causation-justify -> trend -> data-analysis -> trend-label-intro -> trendLabel -> worksheetValidation -> complete
         };
 
         // Utility to generate a consistent set of random points for scatter plots
@@ -330,89 +410,150 @@
             }
             return points;
         }
-        
-        // Data for Quizzes
+
+        // Utility to generate points based on actual data for visualization
+        function generatePlotFromData(data) {
+            const plotEl = document.createElement('div');
+            plotEl.className = 'plot-box positive-trend'; // Placeholder class, will be overwritten
+            plotEl.style.position = 'relative';
+            plotEl.style.width = '100%';
+            plotEl.style.height = '100%';
+            
+            // Extract the minimum and maximum values for scaling
+            const xValues = data.data.map(d => d[data.xKey]);
+            const yValues = data.data.map(d => d[data.yKey]);
+
+            const minX = Math.min(...xValues);
+            const maxX = Math.max(...xValues);
+            const minY = Math.min(...yValues);
+            const maxY = Math.max(...yValues);
+
+            // Determine correlation class for coloring
+            const trendClass = data.correct === 'Positive' ? 'positive-trend' : 
+                               data.correct === 'Negative' ? 'negative-trend' : 
+                               'none-trend';
+            plotEl.className = `plot-box ${trendClass}`;
+
+            data.data.forEach(point => {
+                const xVal = point[data.xKey];
+                const yVal = point[data.yKey];
+
+                // Normalize x and y to a 0-1 range for positioning
+                let normalizedX = (xVal - minX) / (maxX - minX);
+                let normalizedY = (yVal - minY) / (maxY - minY);
+
+                // Invert Y since screen coordinates start from top (y=0)
+                normalizedY = 1 - normalizedY;
+
+                // Add padding (10% on each side) to ensure points aren't on the edge
+                const xPos = 10 + normalizedX * 80; // 10% to 90% range
+                const yPos = 10 + normalizedY * 80; // 10% to 90% range
+
+                const pointEl = document.createElement('div');
+                pointEl.className = 'data-point';
+                pointEl.style.left = `${xPos}%`;
+                pointEl.style.top = `${yPos}%`;
+                plotEl.appendChild(pointEl);
+            });
+            
+            return plotEl;
+        }
+
+        // --- RESTORED DATA ARRAYS ---
+
         const allVocabQuestions = [
-            { term: "Correlation", definition: "A connection or relationship between two things/variables.", options: ["Causation", "Variable", "Correlation"], correct: "Correlation" },
-            { term: "Positive Relationship", definition: "As the first variable increases, the second variable also tends to increase.", options: ["Negative Relationship", "Positive Relationship", "No Relationship"], correct: "Positive Relationship" },
-            { term: "Causation", definition: "When one event directly causes a second event to happen.", options: ["Correlation", "Causation", "Trend"], correct: "Causation" },
-            { term: "Negative Relationship", definition: "As one variable increases, the other variable tends to decrease.", options: ["Negative Relationship", "Positive Relationship", "Variable"], correct: "Negative Relationship" },
-            { term: "Variable", definition: "A factor or condition that can be measured, observed, or changed.", options: ["Frequency", "Variable", "Range"], correct: "Variable" },
+            { term: "Correlation", definition: "A mutual relationship or connection between two or more things; they appear related but may not cause each other.", correct: "Correlation", options: ["Causation", "Correlation", "Hypothesis", "Constant"] },
+            { term: "Causation", definition: "The relationship where one variable directly causes a change or effect in another variable.", correct: "Causation", options: ["Trend", "Relationship", "Causation", "Coincidence"] },
+            { term: "Positive Correlation", definition: "As the X-variable increases, the Y-variable also tends to increase (points go up and to the right).", correct: "Positive Correlation", options: ["Negative Correlation", "Positive Correlation", "No Correlation", "Causation"] },
+            { term: "Negative Correlation", definition: "As the X-variable increases, the Y-variable tends to decrease (points go down and to the right).", correct: "Negative Correlation", options: ["Negative Correlation", "Positive Correlation", "No Correlation", "Inverse Causation"] },
+            { term: "No Correlation", definition: "The points on a scatter plot are scattered randomly with no clear trend or relationship.", correct: "No Correlation", options: ["Positive Correlation", "Weak Correlation", "No Correlation", "Zero Causation"] },
         ];
-        
-        // NEW 3. Vocab Scenario Data (Term to Example/Scenario Generation)
+
         const allVocabScenarioQuestions = [
-            { term: "Positive Relationship", correctScenario: "The amount of time spent exercising and the person's energy level.", incorrectScenarios: ["The temperature outside and the layers of clothing worn.", "A person's favorite song and their height."], correct: "The amount of time spent exercising and the person's energy level." },
-            { term: "Negative Relationship", correctScenario: "The number of hours of sleep missed and the reaction time in a driving test.", incorrectScenarios: ["The time a student spends reading and their vocabulary size.", "The number of dogs in a park and the temperature of the air."], correct: "The number of hours of sleep missed and the reaction time in a driving test." },
-            { term: "Correlation", correctScenario: "The number of people who fall asleep with shoes on and the number of people who develop headaches.", incorrectScenarios: ["Taking an aspirin and the reduction of a fever.", "Flipping a light switch and the light turning on."], correct: "The number of people who fall asleep with shoes on and the number of people who develop headaches." },
-            { term: "Causation", correctScenario: "Eating moldy bread and getting sick.", incorrectScenarios: ["The monthly sales of umbrellas and the monthly sales of raincoats.", "The number of storks and the number of human births."], correct: "Eating moldy bread and getting sick." },
-            { term: "Variable", correctScenario: "All of the following: Age, Income, Test Score.", incorrectScenarios: ["A constant value like Pi.", "The definition of a Positive Relationship."], correct: "All of the following: Age, Income, Test Score." },
+            { term: "Independent Variable (X)", scenario: "In the scenario: 'The amount of water a plant receives and its final height,' select the independent variable.", correct: "The amount of water a plant receives", options: ["The final height of the plant", "The amount of water a plant receives", "The temperature of the room"] },
+            { term: "Dependent Variable (Y)", scenario: "In the scenario: 'The age of a car and its selling price,' select the dependent variable.", correct: "The selling price", options: ["The selling price", "The age of the car", "The brand of the car"] },
+            { term: "Positive Correlation", scenario: "Which scenario describes a Positive Correlation?", correct: "The number of hours studied and the exam score.", options: ["The number of hours studied and the exam score.", "The outside temperature and the number of coats worn."] },
+            { term: "Negative Correlation", scenario: "Which scenario describes a Negative Correlation?", correct: "The age of a phone and its resale value.", options: ["The size of a family and the size of their house.", "The age of a phone and its resale value."] },
+            { term: "Causation", scenario: "Which scenario clearly indicates Causation?", correct: "Closing a water spigot and the flow of water stopping.", options: ["The amount of lightning strikes and the number of forest fires.", "Closing a water spigot and the flow of water stopping."] }
+        ];
+
+        const allCausationQuestions = [
+            { scenario: "Eating spoiled food and getting sick.", correct: "Causation" },
+            { scenario: "The number of firefighters at a fire and the damage caused by the fire.", correct: "Correlation" },
+            { scenario: "A rise in temperature and a rise in ice cream consumption.", correct: "Correlation" },
+            { scenario: "Flipping a light switch and the light turning on.", correct: "Causation" },
+            { scenario: "The number of hours you exercise and the amount of calories you burn.", correct: "Causation" },
+        ];
+
+        const allCausationJustifyQuestions = [
+            { scenario: "The number of ice cream cones sold and the number of violent crimes.", answer: "Correlation", correct: "A hidden variable, the summer heat, drives both up." },
+            { scenario: "A power surge and a computer breaking.", answer: "Causation", correct: "The power surge directly delivers too much electricity, physically breaking the components." },
+            { scenario: "Smoking cigarettes and developing lung cancer.", answer: "Causation", correct: "The chemicals in the smoke directly damage lung cells." },
+            { scenario: "The size of a child's foot and their reading level.", answer: "Correlation", correct: "Both variables increase over time due to the hidden variable of age." },
+            { scenario: "The amount of rain and the number of traffic accidents.", answer: "Causation", correct: "Rain makes roads slicker and visibility poor, directly causing accidents." }
+        ];
+
+        const allTrendQuestions = [
+            { scenario: "The number of hours spent studying and the score on a final exam.", correct: "Positive" },
+            { scenario: "The age of a phone and its resale value.", correct: "Negative" },
+            { scenario: "The amount of time spent listening to music and a person's shoe size.", correct: "None" },
+            { scenario: "The outside temperature and the number of layers of clothing worn.", correct: "Negative" },
+            { scenario: "The number of cups of coffee consumed and hours spent awake.", correct: "Positive" },
+        ];
+
+        // Worksheet Raw Data Analysis (Q7 and Q8)
+        const allDataAnalysisQuestions = [
+            { 
+                scenario: "A ministry teacher studied her students' hours of sleep and their score on an exam.", 
+                xLabel: "Hours Slept",
+                yLabel: "Test Score",
+                xKey: "sleep",
+                yKey: "score",
+                correct: "Positive",
+                data: [
+                    { sleep: 8, score: 63 }, { sleep: 7, score: 74 }, { sleep: 8, score: 88 }, 
+                    { sleep: 7, score: 76 }, { sleep: 6, score: 74 }, { sleep: 5, score: 60 }, 
+                    { sleep: 7, score: 90 }, { sleep: 9, score: 89 }, { sleep: 7, score: 81 }
+                ]
+            },
+            { 
+                scenario: "Assume that during a three-hour period spent outside, a person recorded the temperature and their water consumption.", 
+                xLabel: "Temperature (°F)",
+                yLabel: "Water Consumption (Oz)",
+                xKey: "temp",
+                yKey: "water",
+                correct: "Positive",
+                data: [
+                    { temp: 99, water: 48 }, { temp: 97, water: 42 }, { temp: 95, water: 30 }, 
+                    { temp: 92, water: 32 }, { temp: 85, water: 25 }, { temp: 83, water: 20 },
+                    { temp: 93, water: 35 },
+                ]
+            }
         ];
         
-        // 4. Correlation vs. Causation Sorter Data
-        const allCausationQuestions = [
-            { scenario: "The number of ice cream cones sold and the number of people wearing shorts.", correct: "Correlation", options: ["Correlation", "Causation"] },
-            { scenario: "Turning the key in the ignition and the car engine starting.", correct: "Causation", options: ["Correlation", "Causation"] },
-            { scenario: "The number of firefighters at a fire and the amount of damage done.", correct: "Correlation", options: ["Correlation", "Causation"] },
-            { scenario: "Practicing the piano every day and improving piano skill.", correct: "Causation", options: ["Correlation", "Causation"] },
-            { scenario: "The size of a person's shoe and their ability to solve math problems.", correct: "Correlation", options: ["Correlation", "Causation"] },
-        ];
-
-        // NEW 5. Causation Justification Data
-        const allCausationJustifyQuestions = [
-            { relationship: "Causation", scenario: "Drinking more water and having clearer skin.", correct: "Water intake directly affects skin hydration and health.", distractor: "The two variables happen to be related during the summer months." },
-            { relationship: "Correlation", scenario: "The sale of sunglasses and the number of drownings in the summer.", correct: "Both are caused by a lurking variable (hot weather) but neither causes the other.", distractor: "The number of drownings directly impacts the sale of sunglasses." },
-            { relationship: "Causation", scenario: "Spending more money on advertising and increasing product sales.", correct: "Advertising directly increases product visibility and consumer demand.", distractor: "The change in advertising cost happens at the same time as the sales increase." },
-            { relationship: "Correlation", scenario: "Students with higher grades tend to have fewer cavities.", correct: "Both are likely related to a third variable, like conscientiousness and better overall habits.", distractor: "Having fewer cavities gives you a bigger brain for better study habits." },
-            { relationship: "Causation", scenario: "Placing a wet dish into the oven and having the water evaporate.", correct: "The heat from the oven directly causes the water to change state (evaporate).", distractor: "Wet dishes are only put into the oven during the dry months, which is why they dry quickly." },
-        ];
-
-        // 6. Trend Identifier Data
-        const allTrendQuestions = [
-            { scenario: "The number of hours studied for a test and the test score.", correct: "Positive", plotType: "positive", options: ["Positive", "Negative", "None"] },
-            { scenario: "The age of a car and its current resale value.", correct: "Negative", plotType: "negative", options: ["Positive", "Negative", "None"] },
-            { scenario: "A person's height and their favorite color.", correct: "None", plotType: "none", options: ["Positive", "Negative", "None"] },
-            { scenario: "The speed of a car and the amount of gas remaining in the tank.", correct: "Negative", plotType: "negative", options: ["Positive", "Negative", "None"] },
-            { scenario: "The number of people employed in a city and the number of houses being built.", correct: "Positive", plotType: "positive", options: ["Positive", "Negative", "None"] },
-        ];
-
-        // NEW 7. Trend Labeling Data - FIXED: renamed 'correctLabel' to 'correct' for consistency
         const allTrendLabelQuestions = [
-            { 
-                scenario: "The number of times a person brushes their teeth (X-axis) and the number of cavities they have (Y-axis).", 
-                correctTrend: "Negative", plotType: "negative", 
-                correct: "Times Brushing (X) / Number of Cavities (Y)", // FIX
-                distractorLabel: "Number of Cavities (X) / Times Brushing (Y)",
-                xLabel: "Times Brushing", yLabel: "Number of Cavities"
-            },
-            { 
-                scenario: "The daily outside temperature (X-axis) and the daily ice cream sales (Y-axis).", 
-                correctTrend: "Positive", plotType: "positive", 
-                correct: "Temperature (X) / Ice Cream Sales (Y)", // FIX
-                distractorLabel: "Ice Cream Sales (X) / Temperature (Y)",
-                xLabel: "Temperature", yLabel: "Ice Cream Sales"
-            },
-            { 
-                scenario: "The weight of a car (X-axis) and the car's fuel efficiency (Y-axis).", 
-                correctTrend: "Negative", plotType: "negative", 
-                correct: "Car Weight (X) / Fuel Efficiency (Y)", // FIX
-                distractorLabel: "Fuel Efficiency (X) / Car Weight (Y)",
-                xLabel: "Car Weight", yLabel: "Fuel Efficiency"
-            },
-            { 
-                scenario: "The number of hours spent training for a race (X-axis) and the race finish time (Y-axis).", 
-                correctTrend: "Negative", plotType: "negative", 
-                correct: "Training Hours (X) / Race Finish Time (Y)", // FIX
-                distractorLabel: "Race Finish Time (X) / Training Hours (Y)",
-                xLabel: "Training Hours", yLabel: "Race Finish Time"
-            },
-            { 
-                scenario: "A child's age (X-axis) and the time it takes them to run 50 meters (Y-axis).", 
-                correctTrend: "Negative", plotType: "negative", 
-                correct: "Child's Age (X) / Run Time (Y)", // FIX
-                distractorLabel: "Run Time (X) / Child's Age (Y)",
-                xLabel: "Child's Age", yLabel: "Run Time"
-            },
+            { scenario: "Height of a plant and the amount of fertilizer used.", correct: "X: Fertilizer Used, Y: Plant Height", relationship: "Positive", options: ["X: Fertilizer Used, Y: Plant Height", "X: Plant Height, Y: Fertilizer Used", "X: Soil Type, Y: Plant Height"] },
+            { scenario: "The amount of time a candle burns and its height.", correct: "X: Time, Y: Candle Height", relationship: "Negative", options: ["X: Candle Height, Y: Time", "X: Time, Y: Candle Height", "X: Wax Type, Y: Candle Height"] },
+            { scenario: "The number of hours spent exercising and the calories burned.", correct: "X: Hours Exercising, Y: Calories Burned", relationship: "Positive", options: ["X: Calories Burned, Y: Hours Exercising", "X: Hours Exercising, Y: Calories Burned", "X: Type of Exercise, Y: Calories Burned"] },
+            { scenario: "The amount of sleep a student gets and their test score.", correct: "X: Hours of Sleep, Y: Test Score", relationship: "Positive", options: ["X: Test Score, Y: Hours of Sleep", "X: Hours of Sleep, Y: Test Score", "X: Teacher's Name, Y: Test Score"] },
+            { scenario: "The speed a car is traveling and the time it takes to stop.", correct: "X: Car Speed, Y: Stopping Time", relationship: "Positive", options: ["X: Stopping Time, Y: Car Speed", "X: Car Speed, Y: Stopping Time", "X: Tire Pressure, Y: Car Speed"] }
+        ];
+
+        const allWorksheetQuestions = [
+            // 9. The number of hours a person has driven and the number of miles driven.
+            { scenario: "The number of hours a person has driven and the number of miles driven.", correct: "Positive" }, 
+            // 10. The number of siblings a student has and the grade they have in math class.
+            { scenario: "The number of siblings a student has and the grade they have in math class.", correct: "None" }, 
+            // 11. The age of a car and the value of the car.
+            { scenario: "The age of a car and the value of the car.", correct: "Negative" }, 
+            // 12. The number of weeks a CD has been out and the total sales. (Sales typically decrease over time)
+            { scenario: "The number of weeks a CD has been out and the total sales.", correct: "Negative" }, 
+            // 13. The number of years a person went to school and their income.
+            { scenario: "The number of years a person went to school and their income.", correct: "Positive" },
+            // 14. The number of songs downloaded on your iPod and the amount of memory available.
+            { scenario: "The number of songs downloaded on your iPod and the amount of memory available.", correct: "Negative" },
+            // 15. The amount of time spent on the computer communicating with friends and the number of computers in your house.
+            { scenario: "The amount of time spent on the computer communicating with friends and the number of computers in your house.", correct: "None" },
         ];
 
 
@@ -423,10 +564,12 @@
             causation: { questions: [], current: 0, score: 0, all: allCausationQuestions, scoreDisplayEl: 'causation-score-display', counterEl: 'causation-counter', feedbackEl: 'causation-feedback', optionsEl: 'causation-options' },
             causationJustify: { questions: [], current: 0, score: 0, all: allCausationJustifyQuestions, scoreDisplayEl: 'causation-justify-score-display', counterEl: 'causation-justify-counter', feedbackEl: 'causation-justify-feedback', optionsEl: 'causation-justify-options' },
             trend: { questions: [], current: 0, score: 0, all: allTrendQuestions, scoreDisplayEl: 'trend-score-display', counterEl: 'trend-counter', feedbackEl: 'trend-feedback', optionsEl: 'trend-options' },
+            dataAnalysis: { questions: [], current: 0, score: 0, all: allDataAnalysisQuestions, scoreDisplayEl: 'data-analysis-score-display', counterEl: 'data-analysis-counter', feedbackEl: 'data-analysis-feedback', optionsEl: 'data-analysis-options' },
             trendLabel: { questions: [], current: 0, score: 0, all: allTrendLabelQuestions, scoreDisplayEl: 'trend-label-score-display', counterEl: 'trend-label-counter', feedbackEl: 'trend-label-feedback', optionsEl: 'trend-label-options' },
+            worksheetValidation: { questions: [], current: 0, score: 0, all: allWorksheetQuestions, scoreDisplayEl: 'worksheet-score-display', counterEl: 'worksheet-counter', feedbackEl: 'worksheet-feedback', optionsEl: 'worksheet-options' },
         };
 
-        // --- Timer Functions ---
+        // --- Timer Functions (RESTORED) ---
         const timerEl = document.getElementById('timer');
 
         function startTimer() {
@@ -444,7 +587,6 @@
         }
 
         // --- Utility Functions ---
-
         function shuffle(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -457,6 +599,30 @@
             document.querySelectorAll('.activity-screen').forEach(content => {
                 content.classList.add('hidden');
             });
+        }
+        
+        // --- Start Review Function ---
+        function startReview() {
+            const inputEl = document.getElementById('studentNameInput');
+            const name = inputEl.value.trim();
+            const errorEl = document.getElementById('name-error');
+
+            if (name === "") {
+                errorEl.classList.remove('hidden');
+                inputEl.classList.add('border-red-500');
+                return;
+            }
+
+            errorEl.classList.add('hidden');
+            inputEl.classList.remove('border-red-500');
+            
+            // Store and display the name
+            studentName = name.charAt(0).toUpperCase() + name.slice(1);
+            document.getElementById('banner-text').textContent = `Welcome, ${studentName}! This review is based on your uploaded Scatter Plot & Correlation Worksheets.`;
+            document.getElementById('context-banner').classList.remove('hidden');
+
+            // Start the flow
+            advanceFlow();
         }
 
         // --- Flow Management ---
@@ -472,85 +638,154 @@
                 flowState.activity = 'vocab';
                 startQuiz('vocab');
             } else if (flowState.activity === 'vocab') {
-                flowState.activity = 'vocabScenario'; // NEW STEP
+                flowState.activity = 'vocabScenario'; 
                 startQuiz('vocabScenario');
-            } else if (flowState.activity === 'vocabScenario') { // NEW STEP
+            } else if (flowState.activity === 'vocabScenario') { 
                 flowState.activity = 'causation';
                 startQuiz('causation');
             } else if (flowState.activity === 'causation') {
-                flowState.activity = 'causationJustify'; // NEW STEP
+                flowState.activity = 'causationJustify'; 
                 startQuiz('causationJustify');
             } else if (flowState.activity === 'causationJustify') {
                 flowState.activity = 'trend';
                 startQuiz('trend');
             } else if (flowState.activity === 'trend') {
-                flowState.activity = 'trend-label-intro'; // NEW: Go to Intro screen first
+                flowState.activity = 'dataAnalysis';
+                startQuiz('dataAnalysis');
+            } else if (flowState.activity === 'dataAnalysis') {
+                flowState.activity = 'trend-label-intro'; 
                 showTrendLabelIntroScreen();
-            } else if (flowState.activity === 'trend-label-intro') { // NEW: Then go to the quiz
+            } else if (flowState.activity === 'trend-label-intro') { 
                 flowState.activity = 'trendLabel'; 
                 startQuiz('trendLabel');
             } else if (flowState.activity === 'trendLabel') {
+                flowState.activity = 'worksheetValidation'; 
+                startQuiz('worksheetValidation');
+            } else if (flowState.activity === 'worksheetValidation') { 
                 flowState.activity = 'complete';
                 showCompleteScreen();
             }
         }
 
-        // --- Screen Setup Functions ---
+        // --- Screen Setup Functions (RESTORED) ---
+
+        function displayLessonCard() {
+            const state = quizState.vocab;
+            const currentCard = state.all[state.lessonIndex];
+            const cardEl = document.getElementById('lesson-card');
+
+            document.getElementById('lesson-counter').textContent = `Card ${state.lessonIndex + 1}/${state.all.length}`;
+            document.getElementById('lesson-term').textContent = currentCard.term;
+            document.getElementById('lesson-definition').textContent = currentCard.definition;
+            
+            // Reset state and hide definition
+            state.isDefinitionRevealed = false;
+            document.getElementById('definition-label').classList.remove('card-reveal');
+            document.getElementById('lesson-definition').classList.remove('card-reveal');
+
+            const btn = document.getElementById('lesson-action-btn');
+            btn.textContent = 'Reveal Definition';
+            btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+            btn.classList.add('bg-purple-600', 'hover:bg-purple-700');
+        }
 
         function showLessonScreen() {
             document.getElementById('vocab-lesson-container').classList.remove('hidden');
-            document.getElementById('activity-title').textContent = '1. Vocab Lesson';
-            document.getElementById('activity-subtitle').textContent = 'Learn the 5 key terms.';
-            
+            document.getElementById('activity-title').textContent = '1. Vocabulary Lesson (Flashcards)';
+            document.getElementById('activity-subtitle').textContent = 'Reviewing core terminology.';
             quizState.vocab.lessonIndex = 0;
-            showVocabLessonCard();
-        }
-        
-        // NEW: Intro screen for Variable Labeling
-        function showTrendLabelIntroScreen() {
-            document.getElementById('trend-label-intro-container').classList.remove('hidden');
-            document.getElementById('activity-title').textContent = '7. Independent & Dependent Variables';
-            document.getElementById('activity-subtitle').textContent = 'Reviewing X and Y axis definitions.';
+            quizState.vocab.isDefinitionRevealed = false;
+            displayLessonCard();
         }
 
+        function nextLessonStep() {
+            const state = quizState.vocab;
+            if (!state.isDefinitionRevealed) {
+                // Step 1: Reveal Definition
+                document.getElementById('definition-label').classList.add('card-reveal');
+                document.getElementById('lesson-definition').classList.add('card-reveal');
+                state.isDefinitionRevealed = true;
+                
+                const btn = document.getElementById('lesson-action-btn');
+                btn.textContent = 'Next Term →';
+                btn.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+                btn.classList.add('bg-green-600', 'hover:bg-green-700');
+            } else {
+                // Step 2: Move to next card or next activity
+                state.lessonIndex++;
+                if (state.lessonIndex < state.all.length) {
+                    displayLessonCard();
+                } else {
+                    advanceFlow(); // Move to the vocab quiz
+                }
+            }
+        }
+
+        function showTrendLabelIntroScreen() {
+            document.getElementById('trend-label-intro-container').classList.remove('hidden');
+            document.getElementById('activity-title').textContent = '8. Independent & Dependent Variables: The Magic Question';
+            document.getElementById('activity-subtitle').textContent = 'How to label your axes correctly.';
+        }
 
         function startQuiz(quizName) {
             const state = quizState[quizName];
-            state.questions = shuffle([...state.all]).slice(0, QUIZ_LENGTH);
+            
+            // Data analysis only has 2 questions, others use QUIZ_LENGTH
+            if (quizName === 'dataAnalysis') {
+                state.questions = shuffle([...state.all]).slice(0, state.all.length); // Use all 2 questions
+            } else {
+                state.questions = shuffle([...state.all]).slice(0, QUIZ_LENGTH);
+            }
+            
             state.current = 0;
             state.score = 0;
             
             let title, subtitle, containerId;
             switch (quizName) {
                 case 'vocab':
-                    title = '2. Vocabulary Match (Def→Term)';
+                    title = '2. Vocabulary Match (Def to Term)';
                     subtitle = 'Match the definition to the term.';
                     containerId = 'vocab-quiz-container';
                     break;
-                case 'vocabScenario': // NEW
-                    title = '3. Vocabulary Scenario Match (Term→Scenario)';
-                    subtitle = 'Find the scenario that fits the term.';
+                case 'vocabScenario': 
+                    title = '3. Vocabulary Scenario Match';
+                    subtitle = 'Match the term to the correct scenario.';
                     containerId = 'vocab-scenario-section';
                     break;
-                case 'causation':
+                case 'causation': 
                     title = '4. Correlation vs. Causation Sorter';
-                    subtitle = 'Analyze the relationship scenarios.';
+                    subtitle = 'Identify the type of relationship.';
                     containerId = 'causation-section';
                     break;
-                case 'causationJustify': // NEW
+                case 'causationJustify':
                     title = '5. Causation Justification Station';
-                    subtitle = 'Provide evidence for the relationship.';
+                    subtitle = 'Explain *why* a correlation exists.';
                     containerId = 'causation-justify-section';
                     break;
                 case 'trend':
                     title = '6. Trend Identifier Challenge';
-                    subtitle = 'Identify the relationship type from the plot.';
+                    subtitle = 'Identify the trend from the scenario.';
                     containerId = 'trend-section';
                     break;
-                case 'trendLabel': // NEW
-                    title = '7. Variable Association and Labeling';
-                    subtitle = 'Label the axes based on the scenario.';
+                case 'dataAnalysis':
+                    title = '7. Data-to-Trend Analyst';
+                    subtitle = 'Analyze the raw data to determine the correlation.';
+                    containerId = 'data-analysis-section';
+                    break;
+                case 'trendLabel': 
+                    title = '9. Variable Association and Labeling Quiz';
+                    subtitle = 'Choose the correct X and Y axis labels.';
                     containerId = 'trend-label-section';
+                    break;
+                case 'worksheetValidation': 
+                    title = '10. Worksheet Validation Check';
+                    subtitle = 'Apply concepts to your homework scenarios.';
+                    containerId = 'worksheet-validation-section';
+                    break;
+                default:
+                    title = `Review Station`;
+                    subtitle = `Currently in ${quizName}`;
+                    containerId = `${quizName}-section`;
                     break;
             }
 
@@ -573,109 +808,68 @@
             const seconds = elapsed % 60;
             document.getElementById('final-time').textContent = `Total Time: ${minutes} minutes and ${seconds} seconds`;
 
-            // Display final scores (All 6 modules)
+            // Display final scores (All 8 modules)
             document.getElementById('final-score-vocab').textContent = quizState.vocab.score;
             document.getElementById('final-score-vocabScenario').textContent = quizState.vocabScenario.score;
             document.getElementById('final-score-causation').textContent = quizState.causation.score;
             document.getElementById('final-score-causationJustify').textContent = quizState.causationJustify.score;
             document.getElementById('final-score-trend').textContent = quizState.trend.score;
+            document.getElementById('final-score-dataAnalysis').textContent = quizState.dataAnalysis.score;
             document.getElementById('final-score-trendLabel').textContent = quizState.trendLabel.score;
+            document.getElementById('final-score-worksheetValidation').textContent = quizState.worksheetValidation.score; 
         }
 
-        // --- Vocab Lesson Functions (Existing - Flashcard) ---
-
-        function showVocabLessonCard() {
-            const state = quizState.vocab;
-            const termEl = document.getElementById('lesson-term');
-            const defEl = document.getElementById('lesson-definition');
-            const counterEl = document.getElementById('lesson-counter');
-            const actionBtn = document.getElementById('lesson-action-btn');
-            const defLabel = document.getElementById('definition-label');
-
-            if (state.lessonIndex >= state.all.length) {
-                // Lesson complete, move to the next activity (Vocab Quiz)
-                advanceFlow();
-                return;
-            }
-
-            const currentCard = state.all[state.lessonIndex];
-            
-            state.isDefinitionRevealed = false;
-            termEl.textContent = currentCard.term;
-            defEl.textContent = '';
-            defEl.classList.remove('card-reveal');
-            defLabel.classList.remove('card-reveal');
-
-            actionBtn.textContent = 'Reveal Definition';
-            counterEl.textContent = `Card ${state.lessonIndex + 1}/${state.all.length}`;
-        }
-
-        function nextLessonStep() {
-            const state = quizState.vocab;
-            const defEl = document.getElementById('lesson-definition');
-            const actionBtn = document.getElementById('lesson-action-btn');
-            const defLabel = document.getElementById('definition-label');
-
-            if (!state.isDefinitionRevealed) {
-                const currentCard = state.all[state.lessonIndex];
-                defEl.textContent = currentCard.definition;
-                defEl.classList.add('card-reveal');
-                defLabel.classList.add('card-reveal');
-                actionBtn.textContent = 'Next Card →';
-                state.isDefinitionRevealed = true;
-            } else {
-                state.lessonIndex++;
-                showVocabLessonCard();
-            }
-        }
 
         // --- Quiz Logic (Core) ---
-
         function checkAnswer(quizName, selectedAnswer) {
             const state = quizState[quizName];
             const currentQ = state.questions[state.current];
             const feedbackEl = document.getElementById(state.feedbackEl);
-            
-            // Check if selected answer matches the 'correct' property, which is now standardized.
-            let isCorrect = selectedAnswer === currentQ.correct;
-            
-            if (isCorrect) {
+            const optionsEl = document.getElementById(state.optionsEl);
+
+            optionsEl.querySelectorAll('button').forEach(btn => btn.disabled = true); // Disable all options
+
+            if (selectedAnswer === currentQ.correct) {
                 state.score++;
-                feedbackEl.classList.remove('text-red-600');
+                feedbackEl.textContent = "Correct! Nice analysis.";
+                feedbackEl.classList.remove('text-red-500');
                 feedbackEl.classList.add('text-green-600');
-                feedbackEl.textContent = 'Correct!';
-            } else {
-                feedbackEl.classList.remove('text-green-600');
-                feedbackEl.classList.add('text-red-600');
                 
-                let correctDisplay = currentQ.correct;
-                if (quizName === 'causationJustify') {
-                    // For Justification, show both the correct answer (Correlation/Causation) and the correct reasoning
-                    correctDisplay = `the justification: ${currentQ.correct}`;
-                } else if (quizName === 'trendLabel') {
-                    // FIX: Since 'correctLabel' was renamed to 'correct', we use 'currentQ.correct' here.
-                    correctDisplay = `the label combination: ${currentQ.correct}`; 
+                // Special visual for Data Analysis
+                if (quizName === 'dataAnalysis' || quizName === 'trend') {
+                    const vizEl = document.getElementById(quizName === 'dataAnalysis' ? 'data-analysis-visualization' : 'plot-visualization');
+                    vizEl.innerHTML = '';
+                    if (quizName === 'dataAnalysis') {
+                        vizEl.appendChild(generatePlotFromData(currentQ));
+                    } else { // trend quiz uses simulated plots
+                         const trendClass = currentQ.correct === 'Positive' ? 'positive-trend' : 
+                                               currentQ.correct === 'Negative' ? 'negative-trend' : 
+                                               'none-trend';
+                        vizEl.className = `plot-box ${trendClass}`;
+                        vizEl.innerHTML = generateDataPoints(15).map(p => 
+                            `<div class="data-point" style="--i:${p.i}; --r1:${p.r1}; --r2:${p.r2};"></div>`
+                        ).join('');
+                    }
+                    vizEl.classList.remove('justify-center', 'items-center');
                 }
-                
-                feedbackEl.textContent = `Incorrect. The correct answer was ${correctDisplay}.`; 
+
+            } else {
+                feedbackEl.textContent = `Incorrect. The correct answer was: ${currentQ.correct}`;
+                feedbackEl.classList.remove('text-green-600');
+                feedbackEl.classList.add('text-red-500');
             }
-            
-            document.getElementById(state.scoreDisplayEl).textContent = `Score: ${state.score}`;
 
-            // Disable all buttons to prevent double-clicking/changing answer
-            document.querySelectorAll(`#${state.optionsEl} button`).forEach(btn => btn.disabled = true);
-
-            // Move to the next question after a brief delay
+            // Move to next question after a short delay
             setTimeout(() => {
                 state.current++;
-                if (state.current >= state.questions.length) {
-                    advanceFlow(); // Move to the next major activity
-                } else {
+                if (state.current < state.questions.length) {
                     displayQuestion(quizName);
+                } else {
+                    advanceFlow();
                 }
-            }, 1500); // 1.5 seconds delay
+            }, 1500);
         }
-        
+
         // --- Display Functions (Per Quiz Type) ---
 
         function displayQuestion(quizName) {
@@ -689,8 +883,66 @@
             const optionsEl = document.getElementById(state.optionsEl);
             optionsEl.innerHTML = '';
 
+            const trendOptions = ["Positive", "Negative", "None"];
+            const trendColors = {
+                'Positive': 'bg-green-500 hover:bg-green-600',
+                'Negative': 'bg-orange-500 hover:bg-orange-600',
+                'None': 'bg-gray-500 hover:bg-gray-600'
+            };
+
+            // --- 7. DATA ANALYSIS STATION ---
+            if (quizName === 'dataAnalysis') {
+                document.getElementById('data-analysis-scenario-text').textContent = currentQ.scenario;
+                
+                // Clear and hide visualization until answered
+                const vizEl = document.getElementById('data-analysis-visualization');
+                vizEl.innerHTML = '<p class="text-gray-500 italic">Determine the correlation from the data above.</p>';
+                vizEl.classList.add('justify-center', 'items-center');
+
+                // Generate Data Table
+                const tableEl = document.getElementById('data-table');
+                tableEl.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>${currentQ.xLabel}</th>
+                            <th>${currentQ.yLabel}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${currentQ.data.map(d => `
+                            <tr>
+                                <td>${d[currentQ.xKey]}</td>
+                                <td>${d[currentQ.yKey]}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                `;
+
+                shuffle([...trendOptions]).forEach(option => {
+                    const button = document.createElement('button');
+                    const colorClass = trendColors[option] || 'bg-indigo-500 hover:bg-indigo-600';
+                    button.onclick = () => checkAnswer(quizName, option);
+                    button.className = `option-btn ${colorClass} text-white font-semibold py-3 px-2 rounded-lg shadow-md transition duration-150 transform hover:scale-105`;
+                    button.textContent = option;
+                    optionsEl.appendChild(button);
+                });
+            }
+            
+            // --- 10. WORKSHEET VALIDATION STATION ---
+            else if (quizName === 'worksheetValidation') {
+                document.getElementById('worksheet-scenario-text').textContent = currentQ.scenario;
+                shuffle([...trendOptions]).forEach(option => {
+                    const button = document.createElement('button');
+                    const colorClass = trendColors[option] || 'bg-indigo-500 hover:bg-indigo-600';
+                    button.onclick = () => checkAnswer(quizName, option);
+                    button.className = `option-btn ${colorClass} text-white font-semibold py-3 px-2 rounded-lg shadow-md transition duration-150 transform hover:scale-105`;
+                    button.textContent = option;
+                    optionsEl.appendChild(button);
+                });
+            } 
+
             // --- 2. Vocab Quiz (Match Definition to Term) ---
-            if (quizName === 'vocab') {
+            else if (quizName === 'vocab') {
                 document.getElementById('vocab-definition').textContent = currentQ.definition;
                 shuffle([...currentQ.options]).forEach(option => {
                     const button = document.createElement('button');
@@ -701,30 +953,22 @@
                 });
             } 
             
-            // --- 3. Vocab Scenario (Match Term to Scenario) ---
+            // --- 3. Vocab Scenario Quiz ---
             else if (quizName === 'vocabScenario') {
                 document.getElementById('vocab-scenario-term').textContent = currentQ.term;
-                
-                // FIX: Ensure options array is correctly constructed and contains scenarios.
-                const incorrect = Array.isArray(currentQ.incorrectScenarios) ? currentQ.incorrectScenarios : [];
-                let scenarioOptions = [currentQ.correctScenario, ...incorrect];
-
-                shuffle(scenarioOptions).forEach(scenario => {
+                shuffle([...currentQ.options]).forEach(option => {
                     const button = document.createElement('button');
-                    button.onclick = () => checkAnswer(quizName, scenario);
-                    button.className = 'option-btn text-left bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 px-3 rounded-lg shadow-md transition duration-150 transform hover:scale-105';
-                    button.textContent = scenario;
+                    button.onclick = () => checkAnswer(quizName, option);
+                    button.className = 'option-btn bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 px-2 rounded-lg shadow-md transition duration-150 transform hover:scale-105';
+                    button.textContent = option;
                     optionsEl.appendChild(button);
                 });
-            }
+            } 
             
-            // --- 4. Causation Sorter (Correlation vs. Causation) ---
+            // --- 4. Causation Sorter ---
             else if (quizName === 'causation') {
                 document.getElementById('causation-scenario-text').textContent = currentQ.scenario;
-                
-                // FIX: Regenerate buttons dynamically since optionsEl.innerHTML was cleared above,
-                // and the buttons are no longer hardcoded in the HTML.
-                currentQ.options.forEach(option => {
+                shuffle(["Causation", "Correlation"]).forEach(option => {
                     const button = document.createElement('button');
                     button.onclick = () => checkAnswer(quizName, option);
                     button.className = 'option-btn bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-2 rounded-lg shadow-md transition duration-150 transform hover:scale-105';
@@ -732,49 +976,34 @@
                     optionsEl.appendChild(button);
                 });
             }
-
-            // --- 5. Causation Justification Station ---
+            
+            // --- 5. Causation Justification ---
             else if (quizName === 'causationJustify') {
                 document.getElementById('causation-justify-scenario-text').textContent = currentQ.scenario;
-                document.getElementById('causation-justify-answer').textContent = `Relationship Type: ${currentQ.relationship}`;
-
-                let justificationOptions = [currentQ.correct, currentQ.distractor];
-                shuffle(justificationOptions).forEach(justification => {
+                document.getElementById('causation-justify-answer').textContent = `Relationship: ${currentQ.answer}`;
+                
+                // Get the correct answer and mix it with others (assuming others are just placeholders for now)
+                const allOptions = [currentQ.correct, "This is a plausible but incorrect justification.", "This justification is totally unrelated to the scenario."];
+                
+                shuffle(allOptions).forEach(option => {
                     const button = document.createElement('button');
-                    button.onclick = () => checkAnswer(quizName, justification);
-                    button.className = 'option-btn text-left bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-3 rounded-lg shadow-md transition duration-150 transform hover:scale-105';
-                    button.textContent = justification;
+                    button.onclick = () => checkAnswer(quizName, option);
+                    button.className = 'option-btn bg-yellow-500 hover:bg-yellow-600 text-gray-800 font-semibold text-left py-3 px-4 rounded-lg shadow-md transition duration-150 transform hover:scale-105';
+                    button.textContent = option;
                     optionsEl.appendChild(button);
                 });
             }
             
-            // --- 6. Trend Identifier Challenge (Identify Trend Type) ---
+            // --- 6. Trend Identifier ---
             else if (quizName === 'trend') {
-                const plotVisualizationEl = document.getElementById('plot-visualization');
                 document.getElementById('trend-scenario-text').textContent = currentQ.scenario;
-
-                plotVisualizationEl.innerHTML = '';
-                plotVisualizationEl.className = 'plot-box mb-8'; 
-                plotVisualizationEl.classList.add(`${currentQ.plotType.toLowerCase()}-trend`);
-
-                // Dynamically create 15 data points for the visualization
-                generateDataPoints(15).forEach(point => {
-                    const div = document.createElement('div');
-                    div.classList.add('data-point');
-                    div.style.setProperty('--i', point.i);
-                    div.style.setProperty('--r1', point.r1);
-                    div.style.setProperty('--r2', point.r2);
-                    plotVisualizationEl.appendChild(div);
-                });
                 
-                // Dynamically create options buttons
-                const trendColors = {
-                    'Positive': 'bg-green-500 hover:bg-green-600',
-                    'Negative': 'bg-orange-500 hover:bg-orange-600',
-                    'None': 'bg-gray-500 hover:bg-gray-600'
-                };
-                
-                shuffle([...currentQ.options]).forEach(option => {
+                // Clear and hide visualization until answered
+                const vizEl = document.getElementById('plot-visualization');
+                vizEl.innerHTML = '<p class="text-gray-500 italic">Visualize the scatter plot for this data...</p>';
+                vizEl.classList.add('justify-center', 'items-center');
+
+                shuffle([...trendOptions]).forEach(option => {
                     const button = document.createElement('button');
                     const colorClass = trendColors[option] || 'bg-indigo-500 hover:bg-indigo-600';
                     button.onclick = () => checkAnswer(quizName, option);
@@ -783,46 +1012,22 @@
                     optionsEl.appendChild(button);
                 });
             }
-
-            // --- 7. Trend Labeling Station (Identify Axis Labels) ---
+            
+            // --- 9. Trend Labeling Quiz ---
             else if (quizName === 'trendLabel') {
-                const plotVisualizationEl = document.getElementById('trend-label-visualization');
                 document.getElementById('trend-label-scenario-text').textContent = currentQ.scenario;
-                document.getElementById('trend-label-relationship').textContent = `Relationship Type: ${currentQ.correctTrend}`;
+                document.getElementById('trend-label-relationship').textContent = `Relationship: ${currentQ.relationship}`;
 
+                // Visualization (simple placeholder until answered)
+                const vizEl = document.getElementById('trend-label-visualization');
+                vizEl.innerHTML = '<p class="text-gray-500 italic">Identify X and Y axes for this scenario.</p>';
+                vizEl.classList.add('justify-center', 'items-center');
 
-                plotVisualizationEl.innerHTML = '';
-                plotVisualizationEl.className = 'plot-box mb-8'; 
-                plotVisualizationEl.classList.add(`${currentQ.plotType.toLowerCase()}-trend`);
-                
-                // Add axis labels to the plot visualization
-                const xLabelEl = document.createElement('span');
-                xLabelEl.classList.add('plot-box-label', 'x-label');
-                xLabelEl.textContent = currentQ.xLabel; 
-                plotVisualizationEl.appendChild(xLabelEl);
-
-                const yLabelEl = document.createElement('span');
-                yLabelEl.classList.add('plot-box-label', 'y-label');
-                yLabelEl.textContent = currentQ.yLabel; 
-                plotVisualizationEl.appendChild(yLabelEl);
-
-                // Dynamically create 15 data points for the visualization
-                generateDataPoints(15).forEach(point => {
-                    const div = document.createElement('div');
-                    div.classList.add('data-point');
-                    div.style.setProperty('--i', point.i);
-                    div.style.setProperty('--r1', point.r1);
-                    div.style.setProperty('--r2', point.r2);
-                    plotVisualizationEl.appendChild(div);
-                });
-
-
-                let labelOptions = [currentQ.correct, currentQ.distractorLabel]; // NOTE: currentQ.correct is now the answer
-                shuffle(labelOptions).forEach(label => {
+                shuffle([...currentQ.options]).forEach(option => {
                     const button = document.createElement('button');
-                    button.onclick = () => checkAnswer(quizName, label);
-                    button.className = 'option-btn text-left bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-3 rounded-lg shadow-md transition duration-150 transform hover:scale-105';
-                    button.textContent = label;
+                    button.onclick = () => checkAnswer(quizName, option);
+                    button.className = 'option-btn bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-2 rounded-lg shadow-md transition duration-150 transform hover:scale-105';
+                    button.textContent = option;
                     optionsEl.appendChild(button);
                 });
             }
