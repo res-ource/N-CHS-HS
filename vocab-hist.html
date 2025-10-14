@@ -3,527 +3,519 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relationship Review Station</title>
+    <title>Student Portal & Lesson</title>
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for worksheet style -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Patrick+Hand&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
+        body { font-family: sans-serif; }
+        .font-marker { font-family: 'Permanent Marker', cursive; }
+        .font-handwriting { font-family: 'Patrick Hand', cursive; }
+        .worksheet-container {
+            background-color: #fffff8;
+            border: 3px solid #1a202c;
+            border-radius: 10px;
+            box-shadow: 0 0 0 6px #1a202c, 12px 12px 20px 0 rgba(0,0,0,0.1);
         }
-        
-        /* Shared Styles for Visualizations */
-        .plot-box {
-            position: relative;
-            width: 100%;
-            height: 100px;
-            border: 2px solid #cbd5e1;
-            border-radius: 0.5rem;
-            margin-top: 1rem;
-            overflow: hidden;
+        .worksheet-header { border-bottom: 2px dashed #a0aec0; }
+        .worksheet-section h3 { font-size: 1.75rem; color: #2d3748; }
+        .worksheet-section p, .worksheet-section table, .worksheet-section li { font-size: 1.25rem; color: #4a5568; }
+        .worksheet-table th, .worksheet-table td { border: 1px solid #cbd5e0; }
+        .nav-button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .data-number {
+            cursor: pointer; padding: 2px 6px; border-radius: 4px;
+            background-color: #e2e8f0; transition: background-color 0.2s;
+        }
+        .data-number:hover { background-color: #cbd5e0; }
+        .data-number.used {
+            background-color: #f1f5f9; color: #94a3b8;
+            cursor: not-allowed; text-decoration: line-through;
+        }
+        .draggable-bar {
+            background-color: #93c5fd; border: 2px solid #3b82f6;
+            cursor: ns-resize; position: relative;
+        }
+        .draggable-bar:hover { background-color: #60a5fa; }
+        .bar-label {
+            position: absolute; top: -24px; left: 50%;
+            transform: translateX(-50%); font-weight: bold;
+            color: #1e3a8a; background-color: rgba(255,255,255,0.7);
+            padding: 0 4px; border-radius: 4px;
+        }
+        .shape-option {
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+        .shape-option:hover {
+            border-color: #60a5fa;
+            background-color: #eff6ff;
+        }
+        .shape-option.selected {
+            border-color: #2563eb;
+            background-color: #dbeafe;
+        }
+        .shape-icon {
+            height: 50px;
             display: flex;
+            align-items: flex-end;
             justify-content: center;
-            align-items: center;
-            background-color: #fff;
+            gap: 2px;
         }
-
-        /* --- Scatter Plot (Trend Identifier) Styling --- */
-        .data-point {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            box-shadow: 0 0 2px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+        .shape-icon div {
+            background-color: #9ca3af;
+            width: 15%;
         }
-        .positive-trend .data-point { background-color: #10b981; }
-        .negative-trend .data-point { background-color: #f97316; }
-        .none-trend .data-point { background-color: #64748b; }
-        .positive-trend .data-point { top: calc(80% - 60% * (var(--i) / 15) + 10% * var(--r1)); left: calc(10% + 70% * (var(--i) / 15) + 5% * var(--r2)); }
-        .negative-trend .data-point { top: calc(20% + 60% * (var(--i) / 15) + 10% * var(--r1)); left: calc(10% + 70% * (var(--i) / 15) + 5% * var(--r2)); }
-        .none-trend .data-point { top: calc(10% + 70% * var(--r1)); left: calc(10% + 70% * var(--r2)); }
-        
-        .hint-box {
-            padding: 10px;
-            background-color: #fef3c7;
-            color: #92400e;
-            border-left: 4px solid #f59e0b;
-            border-radius: 0 8px 8px 0;
-            font-size: 0.875rem;
-            margin-top: 1rem;
+        .vocab-term {
+            padding: 0.75rem;
+            background-color: #e0f2fe;
+            border: 2px dashed #7dd3fc;
+            border-radius: 8px;
+            cursor: grab;
+            text-align: center;
         }
-        /* Flashcard specific style */
-        .card-reveal {
-            opacity: 1 !important;
+        .vocab-def {
+            padding: 1.25rem;
+            background-color: #f1f5f9;
+            border: 2px dashed #94a3b8;
+            border-radius: 8px;
+            min-height: 70px;
+            transition: background-color 0.2s;
         }
-        .content-card {
-            min-height: 450px; /* Ensures consistent layout height */
+        .vocab-def.over {
+            background-color: #e2e8f0;
         }
-        .option-btn {
-            font-size: 0.875rem; /* Ensure buttons fit content */
+        .vocab-def.correct {
+            background-color: #dcfce7;
+            border-color: #22c55e;
+            color: #166534;
         }
     </style>
 </head>
-<body class="p-4 sm:p-8 min-h-screen flex justify-center items-center">
+<body class="bg-gray-200 flex items-center justify-center min-h-screen py-12 px-4">
 
-    <div id="app" class="w-full max-w-xl bg-white rounded-xl shadow-2xl transition-all duration-300">
+    <div class="w-full max-w-4xl">
+
+        <!-- Introduction Container -->
+        <div id="introduction-container" class="font-handwriting">
+             <div class="worksheet-container p-8 w-full text-center">
+                <div class="worksheet-header pb-4 mb-8">
+                    <h2 class="font-marker text-5xl text-gray-800 tracking-wider">Welcome to Histograms!</h2>
+                </div>
+                <div class="worksheet-section space-y-4">
+                    <p>Ever have a long list of numbers and wonder what it all means?</p>
+                    <p>Histograms are powerful tools that turn messy data into a clear picture, making it easy to spot patterns.</p>
+                    <p>In the following exercises, you'll get hands-on practice building and interpreting your own histograms from start to finish.</p>
+                    <button id="start-button" class="nav-button bg-blue-500 text-white mt-6">Let's Begin!</button>
+                </div>
+             </div>
+        </div>
         
-        <!-- Header -->
-        <div class="p-6 sm:p-8 pb-4 flex justify-between items-center border-b border-gray-100">
-            <div>
-                <h1 id="activity-title" class="text-2xl font-extrabold text-gray-800 sm:text-3xl">Review Station</h1>
-                <p id="activity-subtitle" class="text-gray-500 text-sm">Welcome!</p>
-            </div>
-            <span id="timer" class="flex items-center text-red-600 font-semibold text-xl">0:00</span>
-        </div>
-
-        <!-- Main Content Area -->
-        <div class="p-6 sm:p-8 pt-4 content-card relative">
-            
-            <!-- 0. WELCOME SCREEN -->
-            <div id="welcome-screen" class="activity-screen flex flex-col items-center justify-center h-full text-center">
-                <p class="text-3xl font-bold text-gray-700 mb-4">Start Your Relationship Review!</p>
-                <p class="text-gray-600 mb-8">You will cover Vocabulary, Correlation vs. Causation, and Scatter Plot Trends.</p>
-                <button onclick="advanceFlow()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-xl transition duration-150 transform hover:scale-105">
-                    Start Review →
-                </button>
-            </div>
-
-            <!-- 1. VOCAB LESSON CONTAINER -->
-            <div id="vocab-lesson-container" class="activity-screen hidden h-full">
-                <h2 class="text-xl font-bold mb-4 text-gray-700">1. Vocabulary Lesson</h2>
-                <div id="lesson-card" class="bg-purple-50 p-6 rounded-xl border-4 border-purple-300 mb-6 shadow-xl text-center min-h-[250px] flex flex-col justify-center">
-                    <p class="text-sm font-semibold text-purple-600 mb-2">Term:</p>
-                    <p id="lesson-term" class="text-3xl font-extrabold text-purple-800 mb-4">Loading...</p>
-                    <p class="text-sm font-semibold text-gray-600 mb-1 opacity-0 transition-opacity duration-500" id="definition-label">Definition:</p>
-                    <p id="lesson-definition" class="text-lg text-gray-700 italic opacity-0 transition-opacity duration-500"></p>
-                </div>
-                
-                <div class="flex justify-between items-center">
-                    <span id="lesson-counter" class="text-base font-semibold text-purple-600">Card 0/0</span>
-                    <button id="lesson-action-btn" onclick="nextLessonStep()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition duration-150 transform hover:scale-105">
-                        Reveal Definition
-                    </button>
+        <!-- Lesson Plan Container -->
+        <div id="lesson-container" class="hidden font-handwriting">
+            <div class="worksheet-container p-8 w-full">
+                <div id="lesson-content">
+                    <!-- Steps will be dynamically injected here -->
                 </div>
             </div>
-
-            <!-- 2. VOCAB QUIZ CONTAINER -->
-            <div id="vocab-quiz-container" class="activity-screen hidden">
-                <h2 class="text-xl font-bold mb-4 text-gray-700">1. Vocabulary Match</h2>
-                <div class="mb-4 flex justify-between items-center text-sm font-semibold">
-                    <span id="vocab-counter" class="text-blue-600 bg-blue-100 px-3 py-1 rounded-full">Question 0/5</span>
-                    <span id="vocab-score-display" class="text-blue-600">Score: 0</span>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg border-l-4 border-purple-400 mb-6 shadow-inner">
-                    <p class="text-lg font-semibold text-gray-700">Definition:</p>
-                    <p id="vocab-definition" class="text-xl font-bold text-gray-900 mt-1"></p>
-                </div>
-
-                <div id="vocab-options" class="grid grid-cols-2 gap-3">
-                    <!-- Vocab buttons inserted here by JS -->
-                </div>
-                <div id="vocab-feedback" class="mt-4 text-center font-bold h-6"></div>
-            </div>
-
-            <!-- 3. CORRELATION VS. CAUSATION SECTION (Replaces Histogram) -->
-            <div id="causation-section" class="activity-screen hidden">
-                <h2 class="text-xl font-bold mb-4 text-gray-700">2. Correlation vs. Causation Sorter</h2>
-                <div class="mb-4 flex justify-between items-center text-sm font-semibold">
-                    <span id="causation-counter" class="text-blue-600 bg-blue-100 px-3 py-1 rounded-full">Question 0/5</span>
-                    <span id="causation-score-display" class="text-blue-600">Score: 0</span>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg border-l-4 border-red-400 mb-6 shadow-inner">
-                    <p class="text-lg font-semibold text-gray-700">Scenario:</p>
-                    <p id="causation-scenario-text" class="text-xl font-bold text-gray-900 mt-1"></p>
-                </div>
-
-                <div class="hint-box bg-red-50 border-red-400 text-red-800">
-                    <strong>Hint:</strong> Correlation means two things are related. Causation means one thing directly **makes** the other happen.
-                </div>
-
-                <div id="causation-options" class="grid grid-cols-2 gap-3 mt-4">
-                    <button onclick="checkAnswer('causation', 'Correlation')" class="option-btn bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-2 rounded-lg shadow-md transition duration-150 transform hover:scale-105">Correlation</button>
-                    <button onclick="checkAnswer('causation', 'Causation')" class="option-btn bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-2 rounded-lg shadow-md transition duration-150 transform hover:scale-105">Causation</button>
-                </div>
-                <div id="causation-feedback" class="mt-4 text-center font-bold h-6"></div>
-            </div>
-
-            <!-- 4. TREND IDENTIFIER SECTION -->
-            <div id="trend-section" class="activity-screen hidden">
-                <h2 class="text-xl font-bold mb-4 text-gray-700">3. Trend Identifier Challenge</h2>
-                <div class="mb-4 flex justify-between items-center text-sm font-semibold">
-                    <span id="trend-counter" class="text-blue-600 bg-blue-100 px-3 py-1 rounded-full">Question 0/5</span>
-                    <span id="trend-score-display" class="text-blue-600">Score: 0</span>
-                </div>
-
-                <div class="bg-gray-50 p-4 rounded-lg border-l-4 border-blue-400 mb-6 shadow-inner">
-                    <p class="text-lg font-semibold text-gray-700">Scenario:</p>
-                    <p id="trend-scenario-text" class="text-xl font-bold text-gray-900 mt-1"></p>
-                </div>
-
-                <!-- Visualization Area -->
-                <div id="plot-visualization" class="plot-box mb-8">
-                    <p class="text-gray-500 italic">Visualize the scatter plot for this data...</p>
-                </div>
-
-                <!-- OPTIONS (INSERTED BY JS DYNAMICALLY) -->
-                <div id="trend-options" class="grid grid-cols-3 gap-3">
-                    <!-- Trend buttons inserted here by JS -->
-                </div>
-                <!-- END OPTIONS -->
-
-                <div id="trend-feedback" class="mt-4 text-center font-bold h-6"></div>
-            </div>
-            
-            <!-- 5. COMPLETION SCREEN -->
-            <div id="complete-screen" class="activity-screen hidden flex flex-col items-center justify-center h-full text-center">
-                <p class="text-3xl font-bold text-green-600 mb-4">Review Complete!</p>
-                <p class="text-lg text-gray-700 mb-6">Great job! Here are your final scores:</p>
-                <ul class="text-left space-y-2 mb-8 text-lg font-medium">
-                    <li class="text-purple-700">Vocab Match: <span id="final-score-vocab" class="font-bold"></span>/5</li>
-                    <li class="text-red-700">Causation Sorter: <span id="final-score-causation" class="font-bold"></span>/5</li>
-                    <li class="text-blue-700">Trend Identifier: <span id="final-score-trend" class="font-bold"></span>/5</li>
-                </ul>
-                <p id="final-time" class="text-xl font-semibold text-red-600 mb-8">Total Time: 0:00</p>
-                <button onclick="window.location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-xl transition duration-150 transform hover:scale-105">
-                    Start Over
-                </button>
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between mt-8">
+                <button id="back-button" class="nav-button bg-gray-400 text-white" onclick="navigate(-1)">Back</button>
+                <span id="step-counter" class="text-gray-600 self-center"></span>
+                <button id="next-button" class="nav-button bg-blue-500 text-white" onclick="navigate(1)">Next</button>
             </div>
         </div>
+
     </div>
 
     <script>
-        // --- Setup and Data ---
-        const QUIZ_LENGTH = 5; 
-        let startTime;
-        let timerInterval;
+        const datasets = [
+            {
+                title: "Student Absences",
+                data: [14, 11, 18, 6, 15, 3, 24, 9, 8, 1, 4, 7, 13, 9, 8, 10, 0],
+                intervals: ["0-4", "5-9", "10-14", "15-19", "20-24"],
+                maxFrequency: 6,
+                shape: "Skewed Right",
+                modalClass: "5-9",
+                calculationQuestion: { question: "How many students were absent 10 or more times?", answer: 7 },
+                analysisQuestion: "The data is skewed right. What does this tell you about student attendance?"
+            },
+            {
+                title: "Quiz Scores (out of 20)",
+                data: [18, 20, 19, 17, 16, 20, 18, 19, 15, 17, 18, 19, 12, 20, 19],
+                intervals: ["10-11", "12-13", "14-15", "16-17", "18-20"],
+                maxFrequency: 10,
+                shape: "Skewed Left",
+                modalClass: "18-20",
+                calculationQuestion: { question: "How many students scored below 16?", answer: 2 },
+                analysisQuestion: "The data is skewed left. What does this tell you about how the class performed?"
+            },
+            {
+                title: "Daily Temperatures (°F)",
+                data: [68, 72, 75, 71, 69, 73, 78, 81, 79, 74, 70, 76, 77, 72, 75],
+                intervals: ["65-69", "70-74", "75-79", "80-84"],
+                maxFrequency: 6,
+                shape: "Symmetric",
+                modalClass: "70-74", // It has two modes, but we'll pick one for simplicity
+                calculationQuestion: { question: "How many days was the temperature below 70°F?", answer: 2 },
+                analysisQuestion: "The data is roughly symmetric. What does this mean for the weather during this period?"
+            },
+            {
+                title: "Ages of Park Visitors",
+                data: [5, 8, 35, 42, 6, 9, 40, 38, 12, 7, 45, 33, 10, 5, 39],
+                intervals: ["0-9", "10-19", "20-29", "30-39", "40-49"],
+                maxFrequency: 6,
+                shape: "Bimodal",
+                modalClass: "0-9",
+                calculationQuestion: { question: "How many visitors were 30 or older?", answer: 6 },
+                analysisQuestion: "This data has two peaks (bimodal). What could explain these two different age groups?"
+            },
+            {
+                title: "Commute Times (minutes)",
+                data: [15, 22, 18, 25, 45, 12, 19, 21, 28, 32, 16, 20, 65, 23, 19],
+                intervals: ["10-24", "25-39", "40-54", "55-69"],
+                maxFrequency: 10,
+                shape: "Skewed Right",
+                modalClass: "10-24",
+                calculationQuestion: { question: "How many people have a commute shorter than 25 minutes?", answer: 10 },
+                analysisQuestion: "The data is skewed right. What does this suggest about most employees' commutes?"
+            }
+        ];
 
-        // Master Flow State
-        const flowState = {
-            activity: 'welcome', // 'welcome', 'lesson', 'vocab', 'causation', 'trend', 'complete'
+        let currentStep = 1;
+        let totalSteps = 8;
+        let currentExampleIndex = 0;
+        let userTallyTableContent = '';
+
+        document.getElementById('start-button').onclick = () => {
+            document.getElementById('introduction-container').classList.add('hidden');
+            startLesson(0);
         };
 
-        // Data for Quizzes
-        const allVocabQuestions = [
-            { term: "Correlation", definition: "A connection or relationship between two things/variables.", options: ["Causation", "Variable", "Correlation"], correct: "Correlation" },
-            { term: "Positive Relationship", definition: "As the first variable increases, the second variable also tends to increase.", options: ["Negative Relationship", "Positive Relationship", "No Relationship"], correct: "Positive Relationship" },
-            { term: "Causation", definition: "When one event directly causes a second event to happen.", options: ["Correlation", "Causation", "Trend"], correct: "Causation" },
-            { term: "Negative Relationship", definition: "As one variable increases, the other variable tends to decrease.", options: ["Negative Relationship", "Positive Relationship", "Variable"], correct: "Negative Relationship" },
-            { term: "Variable", definition: "A factor or condition that can be measured, observed, or changed.", options: ["Frequency", "Variable", "Range"], correct: "Variable" },
-        ];
+        function startLesson(index) {
+            currentExampleIndex = index;
+            document.getElementById('lesson-container').classList.remove('hidden');
+            currentStep = 1;
+            userTallyTableContent = '';
+            showStep(currentStep);
+        }
+
+        function showStep(stepNumber) {
+            const lessonContent = document.getElementById('lesson-content');
+            lessonContent.innerHTML = getStepHTML(stepNumber);
+            
+            if (stepNumber === 3) initializeVocabCheck();
+            if (stepNumber === 5) initializeTallyStep();
+            if (stepNumber === 6) prepareDragStep();
+            if (stepNumber === 7) initializeAnalysisStep();
+
+            const backButton = document.getElementById('back-button');
+            const nextButton = document.getElementById('next-button');
+            
+            nextButton.onclick = () => navigate(1);
+
+            if (currentExampleIndex === 0 && stepNumber === 1) {
+                backButton.style.visibility = 'hidden';
+            } else {
+                backButton.style.visibility = 'visible';
+                backButton.textContent = (stepNumber === 1) ? 'Previous Example' : 'Back';
+            }
+            
+            if (stepNumber === totalSteps) {
+                nextButton.textContent = (currentExampleIndex === datasets.length - 1) ? 'Finish' : 'Next Example';
+            } else {
+                nextButton.textContent = 'Next';
+            }
+
+            document.getElementById('step-counter').textContent = `Example ${currentExampleIndex + 1} of ${datasets.length} | Step ${stepNumber} of ${totalSteps}`;
+        }
+
+        function showFinalScreen() {
+            const lessonContent = document.getElementById('lesson-content');
+            lessonContent.innerHTML = `<div class="lesson-step worksheet-section text-center">
+                                        <h3 class="font-marker text-5xl">All Done!</h3>
+                                        <p class="mt-4">You've completed all the practice examples. Fantastic work!</p>
+                                        <p class="mt-4">Click the button below to start over from the beginning.</p>
+                                     </div>`;
+            document.getElementById('step-counter').textContent = "Finished!";
+            document.getElementById('back-button').style.visibility = 'hidden';
+            const nextButton = document.getElementById('next-button');
+            nextButton.textContent = 'Start Over';
+            nextButton.onclick = () => {
+                 document.getElementById('lesson-container').classList.add('hidden');
+                 document.getElementById('introduction-container').classList.remove('hidden');
+            }
+        }
         
-        // NEW DATA for Correlation vs. Causation
-        const allCausationQuestions = [
-            { scenario: "The number of ice cream cones sold and the number of people wearing shorts.", correct: "Correlation", options: ["Correlation", "Causation"] },
-            { scenario: "Turning the key in the ignition and the car engine starting.", correct: "Causation", options: ["Correlation", "Causation"] },
-            { scenario: "The number of firefighters at a fire and the amount of damage done.", correct: "Correlation", options: ["Correlation", "Causation"] },
-            { scenario: "Practicing the piano every day and improving piano skill.", correct: "Causation", options: ["Correlation", "Causation"] },
-            { scenario: "The size of a person's shoe and their ability to solve math problems.", correct: "Correlation", options: ["Correlation", "Causation"] },
-        ];
-
-        const allTrendQuestions = [
-            { scenario: "The number of hours studied for a test and the test score.", correct: "Positive", plotType: "positive", options: ["Positive", "Negative", "None"] },
-            { scenario: "The age of a car and its current resale value.", correct: "Negative", plotType: "negative", options: ["Positive", "Negative", "None"] },
-            { scenario: "A person's height and their favorite color.", correct: "None", plotType: "none", options: ["Positive", "Negative", "None"] },
-            { scenario: "The speed of a car and the amount of gas remaining in the tank.", correct: "Negative", plotType: "negative", options: ["Positive", "Negative", "None"] },
-            { scenario: "The number of people employed in a city and the number of houses being built.", correct: "Positive", plotType: "positive", options: ["Positive", "Negative", "None"] },
-        ];
-
-        // Quiz State Objects
-        const quizState = {
-            vocab: { questions: [], current: 0, score: 0, all: allVocabQuestions, lessonIndex: 0, isDefinitionRevealed: false, scoreDisplayEl: 'vocab-score-display', counterEl: 'vocab-counter' },
-            causation: { questions: [], current: 0, score: 0, all: allCausationQuestions, scoreDisplayEl: 'causation-score-display', counterEl: 'causation-counter' },
-            trend: { questions: [], current: 0, score: 0, all: allTrendQuestions, scoreDisplayEl: 'trend-score-display', counterEl: 'trend-counter' },
-        };
-
-        // --- Timer Functions ---
-        const timerEl = document.getElementById('timer');
-
-        function startTimer() {
-            startTime = Date.now();
-            timerInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                const minutes = Math.floor(elapsed / 60);
-                const seconds = elapsed % 60;
-                timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
-        }
-
-        function stopTimer() {
-            clearInterval(timerInterval);
-        }
-
-        // --- Utility Functions ---
-
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        function hideAllScreens() {
-            document.querySelectorAll('.activity-screen').forEach(content => {
-                content.classList.add('hidden');
-            });
-        }
-
-        // --- Flow Management ---
-
-        function advanceFlow() {
-            hideAllScreens();
-
-            if (flowState.activity === 'welcome') {
-                flowState.activity = 'lesson';
-                startTimer();
-                showLessonScreen();
-            } else if (flowState.activity === 'lesson') {
-                flowState.activity = 'vocab';
-                startQuiz('vocab');
-            } else if (flowState.activity === 'vocab') {
-                flowState.activity = 'causation'; // NEW STEP
-                startQuiz('causation');
-            } else if (flowState.activity === 'causation') { // OLD HISTOGRAM STEP
-                flowState.activity = 'trend';
-                startQuiz('trend');
-            } else if (flowState.activity === 'trend') {
-                flowState.activity = 'complete';
-                showCompleteScreen();
-            }
-        }
-
-        // --- Screen Setup Functions ---
-
-        function showLessonScreen() {
-            flowState.activity = 'lesson';
-            document.getElementById('vocab-lesson-container').classList.remove('hidden');
-            document.getElementById('activity-title').textContent = '1. Vocab Lesson';
-            document.getElementById('activity-subtitle').textContent = 'Learn the 5 key terms.';
-            
-            quizState.vocab.lessonIndex = 0;
-            showVocabLessonCard();
-        }
-
-        function startQuiz(quizName) {
-            const state = quizState[quizName];
-            state.questions = shuffle([...state.all]).slice(0, QUIZ_LENGTH);
-            state.current = 0;
-            state.score = 0;
-            
-            let title, subtitle, containerId;
-            if (quizName === 'vocab') {
-                title = '1. Vocabulary Match';
-                subtitle = 'Match the definition to the term.';
-                containerId = 'vocab-quiz-container';
-            } else if (quizName === 'causation') { // NEW
-                title = '2. Correlation vs. Causation Sorter';
-                subtitle = 'Analyze the relationship scenarios.';
-                containerId = 'causation-section';
-            } else if (quizName === 'trend') {
-                title = '3. Trend Identifier Challenge';
-                subtitle = 'Identify the relationship type from the plot.';
-                containerId = 'trend-section';
+        function navigate(direction) {
+            if (currentStep === 5 && direction === 1) {
+                const tallyTable = document.querySelector('.worksheet-table');
+                if (tallyTable) userTallyTableContent = tallyTable.innerHTML;
             }
 
-            document.getElementById('activity-title').textContent = title;
-            document.getElementById('activity-subtitle').textContent = subtitle;
-            document.getElementById(containerId).classList.remove('hidden');
-            
-            displayQuestion(quizName);
-        }
-
-        function showCompleteScreen() {
-            stopTimer();
-            document.getElementById('complete-screen').classList.remove('hidden');
-            document.getElementById('activity-title').textContent = 'Review Complete!';
-            document.getElementById('activity-subtitle').textContent = 'Check your results.';
-
-            // Calculate final time
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const minutes = Math.floor(elapsed / 60);
-            const seconds = elapsed % 60;
-            document.getElementById('final-time').textContent = `Total Time: ${minutes} minutes and ${seconds} seconds`;
-
-            // Display final scores
-            document.getElementById('final-score-vocab').textContent = quizState.vocab.score;
-            document.getElementById('final-score-causation').textContent = quizState.causation.score; // UPDATED
-            document.getElementById('final-score-trend').textContent = quizState.trend.score;
-        }
-
-        // --- Vocab Lesson Functions ---
-
-        function showVocabLessonCard() {
-            const state = quizState.vocab;
-            const termEl = document.getElementById('lesson-term');
-            const defEl = document.getElementById('lesson-definition');
-            const counterEl = document.getElementById('lesson-counter');
-            const actionBtn = document.getElementById('lesson-action-btn');
-            const defLabel = document.getElementById('definition-label');
-
-            if (state.lessonIndex >= state.all.length) {
-                // Lesson complete, move to the next activity (Vocab Quiz)
-                advanceFlow();
+            if (currentStep === totalSteps && direction === 1) {
+                currentExampleIndex++;
+                if (currentExampleIndex < datasets.length) {
+                    startLesson(currentExampleIndex);
+                } else {
+                    showFinalScreen();
+                }
                 return;
             }
 
-            const currentCard = state.all[state.lessonIndex];
-            
-            // Reset for a new card
-            state.isDefinitionRevealed = false;
-            termEl.textContent = currentCard.term;
-            defEl.textContent = '';
-            defEl.classList.remove('card-reveal');
-            defLabel.classList.remove('card-reveal');
-
-            actionBtn.textContent = 'Reveal Definition';
-            counterEl.textContent = `Card ${state.lessonIndex + 1}/${state.all.length}`;
-        }
-
-        function nextLessonStep() {
-            const state = quizState.vocab;
-            const defEl = document.getElementById('lesson-definition');
-            const actionBtn = document.getElementById('lesson-action-btn');
-            const defLabel = document.getElementById('definition-label');
-
-            if (!state.isDefinitionRevealed) {
-                // Step 1: Reveal Definition
-                const currentCard = state.all[state.lessonIndex];
-                defEl.textContent = currentCard.definition;
-                defEl.classList.add('card-reveal');
-                defLabel.classList.add('card-reveal');
-                actionBtn.textContent = 'Next Card →';
-                state.isDefinitionRevealed = true;
-            } else {
-                // Step 2: Go to next card
-                state.lessonIndex++;
-                showVocabLessonCard();
-            }
-        }
-
-        // --- Quiz Logic ---
-
-        function checkAnswer(quizName, selectedAnswer) {
-            const state = quizState[quizName];
-            const currentQ = state.questions[state.current];
-            const feedbackEl = document.getElementById(`${quizName}-feedback`);
-            
-            let isCorrect = selectedAnswer === currentQ.correct;
-            
-            if (isCorrect) {
-                state.score++;
-                feedbackEl.classList.remove('text-red-600');
-                feedbackEl.classList.add('text-green-600');
-                feedbackEl.textContent = 'Correct!';
-            } else {
-                feedbackEl.classList.remove('text-green-600');
-                feedbackEl.classList.add('text-red-600');
-                feedbackEl.textContent = `Incorrect. The answer was ${currentQ.correct}.`; 
-            }
-            
-            document.getElementById(state.scoreDisplayEl).textContent = `Score: ${state.score}`;
-
-            // Move to the next question after a brief delay
-            setTimeout(() => {
-                state.current++;
-                if (state.current >= state.questions.length) {
-                    advanceFlow(); // Move to the next major activity
+            if (currentStep === 1 && direction === -1) {
+                if (currentExampleIndex > 0) {
+                    currentExampleIndex--;
+                    currentStep = totalSteps; 
+                    startLesson(currentExampleIndex); 
+                    showStep(currentStep); 
                 } else {
-                    displayQuestion(quizName);
+                     document.getElementById('lesson-container').classList.add('hidden');
+                     document.getElementById('introduction-container').classList.remove('hidden');
                 }
-            }, 1000); 
-        }
-        
-        // --- Display Functions ---
-
-        function displayQuestion(quizName) {
-            const state = quizState[quizName];
-            const currentQ = state.questions[state.current];
-            
-            document.getElementById(state.counterEl).textContent = `Question ${state.current + 1}/${state.questions.length}`;
-            document.getElementById(`${quizName}-feedback`).textContent = '';
-            document.getElementById(state.scoreDisplayEl).textContent = `Score: ${state.score}`;
-            
-            const optionsEl = document.getElementById(`${quizName}-options`);
-            optionsEl.innerHTML = '';
-
-            // Vocab Quiz Logic
-            if (quizName === 'vocab') {
-                document.getElementById('vocab-definition').textContent = currentQ.definition;
-                shuffle([...currentQ.options]).forEach(option => {
-                    const button = document.createElement('button');
-                    button.onclick = () => checkAnswer(quizName, option);
-                    button.className = 'option-btn bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 px-2 rounded-lg shadow-md transition duration-150 transform hover:scale-105';
-                    button.textContent = option;
-                    optionsEl.appendChild(button);
-                });
-            } 
-            // Causation Quiz Logic (NEW)
-            else if (quizName === 'causation') {
-                document.getElementById('causation-scenario-text').textContent = currentQ.scenario;
-                
-                // Hardcoded options for this 2-option quiz
-                const causationOptionsEl = document.getElementById('causation-options');
-                causationOptionsEl.innerHTML = ''; // Ensure fresh buttons
-                
-                shuffle([...currentQ.options]).forEach(option => {
-                    const button = document.createElement('button');
-                    button.onclick = () => checkAnswer(quizName, option);
-                    button.className = `option-btn ${option === 'Causation' ? 'bg-red-700 hover:bg-red-800' : 'bg-red-500 hover:bg-red-600'} text-white font-semibold py-3 px-2 rounded-lg shadow-md transition duration-150 transform hover:scale-105`;
-                    button.textContent = option;
-                    causationOptionsEl.appendChild(button);
-                });
+                return;
             }
-            // Trend Quiz Logic
-            else if (quizName === 'trend') {
-                const plotVisualizationEl = document.getElementById('plot-visualization');
-                document.getElementById('trend-scenario-text').textContent = currentQ.scenario;
 
-                plotVisualizationEl.innerHTML = '';
-                plotVisualizationEl.className = 'plot-box mb-8'; 
-                plotVisualizationEl.classList.add(`${currentQ.plotType.toLowerCase()}-trend`);
+            currentStep += direction;
+            showStep(currentStep);
+        }
 
-                // Dynamically create 15 data points for the visualization
-                for (let i = 1; i <= 15; i++) {
-                    const point = document.createElement('div');
-                    point.classList.add('data-point');
+        function getStepHTML(stepNumber) {
+            const dataset = datasets[currentExampleIndex];
+            switch (stepNumber) {
+                case 1: // Intro
+                    return `<div class="lesson-step">
+                                <div class="worksheet-header text-center pb-4 mb-8"><h2 class="font-marker text-5xl text-gray-800 tracking-wider">${dataset.title}</h2><p class="text-xl text-gray-600 mt-2">Guided Practice</p></div>
+                                <div class="worksheet-section text-center"><p>Let's turn this list of numbers into a histogram together.</p><p class="mt-4">Let's get started!</p></div>
+                            </div>`;
+                case 2: // Vocabulary
+                    return `<div class="lesson-step worksheet-section"><h3 class="font-marker">Vocabulary</h3>
+                                <p>Let's start with a few key terms.</p>
+                                <ul class="list-disc list-inside mt-4 space-y-2">
+                                    <li><strong>Histogram:</strong> A special type of bar chart that shows the frequency of data in continuous ranges or intervals. The bars touch each other!</li>
+                                    <li><strong>Frequency:</strong> The number of times a value or a group of values appears in a data set.</li>
+                                    <li><strong>Intervals:</strong> The ranges or "bins" used to group the data in a histogram (e.g., 0-4, 5-9).</li>
+                                </ul>
+                            </div>`;
+                case 3: // Vocabulary Check
+                    return `<div class="lesson-step worksheet-section"><h3 class="font-marker">Vocabulary Check</h3>
+                                <p>Drag each term to its correct definition to continue.</p>
+                                <div class="flex flex-col md:flex-row gap-8 mt-4">
+                                    <div id="vocab-terms" class="flex md:flex-col gap-4">
+                                        <div id="term1" draggable="true" ondragstart="drag(event)" class="vocab-term">Histogram</div>
+                                        <div id="term2" draggable="true" ondragstart="drag(event)" class="vocab-term">Frequency</div>
+                                        <div id="term3" draggable="true" ondragstart="drag(event)" class="vocab-term">Intervals</div>
+                                    </div>
+                                    <div class="flex-grow space-y-2">
+                                        <div id="def1" data-term="term2" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" class="vocab-def">The number of times a value appears.</div>
+                                        <div id="def2" data-term="term3" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" class="vocab-def">The ranges or "bins" used to group data.</div>
+                                        <div id="def3" data-term="term1" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" class="vocab-def">A chart where touching bars show frequency.</div>
+                                    </div>
+                                </div>
+                                <p id="vocab-feedback" class="mt-4 font-bold text-center text-green-600"></p>
+                            </div>`;
+                case 4: // Key Concepts
+                     return `<div class="lesson-step worksheet-section"><h3 class="font-marker">Key Concepts</h3>
+                                <p>Before we start, let's review two important ideas for understanding histograms.</p>
+                                <div class="mt-4">
+                                    <h4 class="font-marker text-2xl">1. Modal Class</h4>
+                                    <p>This is the interval with the highest frequency. It's the <strong>tallest bar</strong> in the histogram!</p>
+                                </div>
+                                <div class="mt-6">
+                                    <h4 class="font-marker text-2xl">2. Shape of the Data</h4>
+                                    <p>The overall shape of the histogram tells us a story about the data.</p>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2 text-center">
+                                        <div class="border-2 p-2 rounded-lg"><strong>Symmetric</strong><div class="shape-icon mt-1"><div style="height:40%"></div><div style="height:70%"></div><div style="height:100%"></div><div style="height:70%"></div><div style="height:40%"></div></div><p class="text-sm">Data is balanced in the middle.</p></div>
+                                        <div class="border-2 p-2 rounded-lg"><strong>Skewed Right</strong><div class="shape-icon mt-1"><div style="height:100%"></div><div style="height:70%"></div><div style="height:40%"></div><div style="height:20%"></div><div style="height:10%"></div></div><p class="text-sm">Most data is on the left.</p></div>
+                                        <div class="border-2 p-2 rounded-lg"><strong>Skewed Left</strong><div class="shape-icon mt-1"><div style="height:10%"></div><div style="height:20%"></div><div style="height:40%"></div><div style="height:70%"></div><div style="height:100%"></div></div><p class="text-sm">Most data is on the right.</p></div>
+                                    </div>
+                                </div>
+                            </div>`;
+                case 5: // Tally Data
+                    return `<div class="lesson-step worksheet-section"><h3 class="font-marker">Step 1: Tally the Data</h3><p>Click each number in the list to create your frequency table.</p>
+                                <div id="data-numbers-container" class="flex flex-wrap gap-2 p-2 rounded bg-gray-100 my-4 text-lg font-mono"></div>
+                                <p id="tally-progress" class="text-sm -mt-2 mb-4 text-gray-600 font-bold"></p>
+                                <table class="worksheet-table w-full bg-white rounded-lg text-center">
+                                    <thead class="bg-gray-200"><tr><th class="py-2 px-4">Intervals</th><th class="py-2 px-4">Tally</th><th class="py-2 px-4">Frequency</th></tr></thead>
+                                    <tbody>${dataset.intervals.map((interval, i) => `<tr class="${i%2 === 1 ? 'bg-gray-50' : ''}"><td class="py-2 px-4">${interval}</td><td id="tally-${i}" class="py-2 px-4 text-left text-blue-600 font-mono"></td><td id="freq-${i}" class="py-2 px-4 font-bold">0</td></tr>`).join('')}</tbody>
+                                </table>
+                            </div>`;
+                case 6: // Build Histogram
+                     return `<div class="lesson-step worksheet-section"><h3 class="font-marker">Step 2: Build the Histogram</h3><p>Great! Now use your table to build the histogram. Drag each bar to the correct height.</p>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-end mt-4">
+                                    <table id="reference-table" class="worksheet-table w-full bg-white rounded-lg text-center h-full"></table>
+                                    <div class="border-2 border-gray-400 rounded-lg p-4 bg-gray-50 h-80">
+                                        <div id="drag-container" class="flex justify-around items-end h-full relative">
+                                            <div class="absolute left-0 top-0 bottom-0 flex flex-col justify-between -ml-8 text-lg text-gray-500"><span>${dataset.maxFrequency}</span><span>${Math.ceil(dataset.maxFrequency/2)}</span><span>0</span></div>
+                                            ${dataset.intervals.map((interval, i) => `<div class="flex-1 flex flex-col justify-end items-center h-full"><div id="drag-bar-${i}" class="w-3/4 draggable-bar" data-freq="0"><span class="bar-label">0</span></div><span class="text-sm mt-1">${interval}</span></div>`).join('')}
+                                        </div><p class="text-center font-bold mt-2 text-lg">${dataset.title}</p></div>
+                                </div>
+                            </div>`;
+                case 7: // Analysis
+                    return `<div class="lesson-step worksheet-section"><h3 class="font-marker">Step 3: Analyze Your Histogram</h3><p>Perfect! Now let's analyze the chart you built.</p>
+                                <div class="space-y-4 mt-4">
+                                    <div><label class="font-bold">1. What is the modal class (the tallest bar)?</label><select id="modal-select" class="block w-full md:w-1/2 mt-1 p-1 border-2 rounded"><option value="">Select...</option>${dataset.intervals.map(i => `<option value="${i}">${i}</option>`).join('')}</select></div>
+                                    <div><label class="font-bold">2. What is the shape of the data?</label><div id="shape-options" class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1">${['Symmetric', 'Skewed Right', 'Skewed Left', 'Bimodal'].map(s => `<div class="shape-option" onclick="selectShape(this, '${s}')"><strong>${s}</strong></div>`).join('')}</div></div>
+                                    <div><label class="font-bold">3. ${dataset.calculationQuestion.question}</label><div><input type="number" id="answer-input" class="w-20 p-1 border-2 rounded"><button onclick="checkFinalAnswer()" class="nav-button bg-green-500 text-white ml-2 text-sm">Check</button><span id="final-answer-feedback" class="ml-2 text-base"></span></div></div>
+                                    <div><label class="font-bold">4. ${dataset.analysisQuestion}</label><p class="text-sm italic text-gray-500">(Think about what the shape and spread of the data tells you.)</p></div>
+                                </div>
+                            </div>`;
+                case 8: // Conclusion
+                    return `<div class="lesson-step worksheet-section text-center"><h3 class="font-marker text-5xl">Great Work!</h3><p class="mt-4">You've mastered this dataset. Ready for the next one?</p><p class="mt-4">Click "Next Example" to continue.</p></div>`;
+            }
+            return '';
+        }
 
-                    point.style.setProperty('--i', i);
-                    point.style.setProperty('--r1', Math.random().toFixed(2));
-                    point.style.setProperty('--r2', Math.random().toFixed(2));
-
-                    plotVisualizationEl.appendChild(point);
+        // --- Vocabulary Drag and Drop ---
+        let correctDrops = 0;
+        function initializeVocabCheck() {
+            document.getElementById('next-button').disabled = true;
+            document.getElementById('next-button').classList.add('opacity-50', 'cursor-not-allowed');
+        }
+        function allowDrop(ev) { ev.preventDefault(); const el = ev.target.closest('.vocab-def'); if (el) el.classList.add('over'); }
+        function dragLeave(ev) { const el = ev.target.closest('.vocab-def'); if (el) el.classList.remove('over'); }
+        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
+        function drop(ev) {
+            ev.preventDefault();
+            const targetEl = ev.target.closest('.vocab-def');
+            targetEl.classList.remove('over');
+            const data = ev.dataTransfer.getData("text");
+            const draggedEl = document.getElementById(data);
+            if (targetEl.dataset.term === data) {
+                targetEl.innerHTML = `<strong>${draggedEl.textContent}</strong>`;
+                targetEl.classList.add('correct');
+                draggedEl.style.display = 'none';
+                correctDrops++;
+                if (correctDrops === 3) {
+                    document.getElementById('vocab-feedback').textContent = "Great job! You can now proceed.";
+                    const nextButton = document.getElementById('next-button');
+                    nextButton.disabled = false;
+                    nextButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    correctDrops = 0; 
                 }
-                
-                // Dynamically create options buttons (Fix for the missing button issue)
-                const trendColors = {
-                    'Positive': 'bg-green-500 hover:bg-green-600',
-                    'Negative': 'bg-orange-500 hover:bg-orange-600',
-                    'None': 'bg-gray-500 hover:bg-gray-600'
-                };
-                
-                shuffle([...currentQ.options]).forEach(option => {
-                    const button = document.createElement('button');
-                    const colorClass = trendColors[option] || 'bg-indigo-500 hover:bg-indigo-600';
-                    button.onclick = () => checkAnswer(quizName, option);
-                    button.className = `option-btn ${colorClass} text-white font-semibold py-3 px-2 rounded-lg shadow-md transition duration-150 transform hover:scale-105`;
-                    button.textContent = option;
-                    optionsEl.appendChild(button);
-                });
             }
         }
-        
-        // --- Initialization ---
 
-        window.onload = function() {
-            // Initial setup to show welcome screen
-            hideAllScreens();
-            document.getElementById('welcome-screen').classList.remove('hidden');
+        // --- Tally and Histogram Logic ---
+        let talliedCount = 0;
+        function initializeTallyStep() {
+            const dataset = datasets[currentExampleIndex];
+            const container = document.getElementById('data-numbers-container');
+            if (!container) return;
+            container.innerHTML = '';
+            dataset.data.forEach(num => {
+                const numEl = document.createElement('code');
+                numEl.textContent = num; numEl.className = 'data-number';
+                numEl.onclick = () => tallyNumber(num, numEl);
+                container.appendChild(numEl);
+            });
+            talliedCount = 0;
+            updateTallyProgress();
+        }
+        function tallyNumber(num, element) {
+            if (element.classList.contains('used')) return;
+            const dataset = datasets[currentExampleIndex];
+            let intervalIndex = -1;
+            for(let i=0; i < dataset.intervals.length; i++){
+                const parts = dataset.intervals[i].split(/[-–]/).map(Number);
+                if(num >= parts[0] && num <= parts[1]){ intervalIndex = i; break; }
+            }
+            if(intervalIndex === -1) return;
+            const tallyCell = document.getElementById(`tally-${intervalIndex}`);
+            const freqCell = document.getElementById(`freq-${intervalIndex}`);
+            let currentTally = tallyCell.textContent;
+            if (currentTally.replace(/\s/g, '').length % 5 === 0 && currentTally !== '') { tallyCell.textContent += ' '; }
+            tallyCell.textContent += 'I';
+            freqCell.textContent = parseInt(freqCell.textContent) + 1;
+            element.classList.add('used');
+            talliedCount++;
+            updateTallyProgress();
+        }
+        function updateTallyProgress() {
+            const el = document.getElementById('tally-progress');
+            if (el) el.textContent = `Tallied ${talliedCount} of ${datasets[currentExampleIndex].data.length} numbers.`;
+        }
+        function prepareDragStep() { 
+            const refTable = document.getElementById('reference-table');
+            if(refTable && userTallyTableContent) refTable.innerHTML = userTallyTableContent;
+            datasets[currentExampleIndex].intervals.forEach((_, i) => {
+                const bar = document.getElementById(`drag-bar-${i}`);
+                if (bar) makeBarDraggable(bar);
+            });
+        }
+        function makeBarDraggable(bar) {
+            const dragContainer = document.getElementById('drag-container');
+            const label = bar.querySelector('.bar-label');
+            const maxFreq = datasets[currentExampleIndex].maxFrequency;
+            const handleDrag = (clientY) => {
+                const rect = dragContainer.getBoundingClientRect();
+                let newHeight = rect.bottom - clientY;
+                if (newHeight < 0) newHeight = 0;
+                if (newHeight > rect.height) newHeight = rect.height;
+                const heightPercent = (newHeight / rect.height) * 100;
+                const snappedFreq = Math.round((heightPercent / 100) * maxFreq);
+                const snappedPercent = (snappedFreq / maxFreq) * 100;
+                bar.style.height = `${snappedPercent}%`;
+                label.textContent = snappedFreq;
+            };
+            const onMouseMove = (e) => handleDrag(e.clientY);
+            const onTouchMove = (e) => handleDrag(e.touches[0].clientY);
+            const onMouseUp = () => document.removeEventListener('mousemove', onMouseMove);
+            const onTouchEnd = () => document.removeEventListener('touchmove', onTouchMove);
+            bar.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp, { once: true });
+            });
+            bar.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                document.addEventListener('touchmove', onTouchMove);
+                document.addEventListener('touchend', onTouchEnd, { once: true });
+            });
+        }
+        function initializeAnalysisStep() {
+            const dataset = datasets[currentExampleIndex];
+            const modalSelect = document.getElementById('modal-select');
+            modalSelect.onchange = () => {
+                if(modalSelect.value === dataset.modalClass) { modalSelect.style.borderColor = 'green'; } 
+                else { modalSelect.style.borderColor = 'red'; }
+            };
+        }
+        function selectShape(selectedEl, shape) {
+            document.querySelectorAll('.shape-option').forEach(opt => opt.classList.remove('selected'));
+            selectedEl.classList.add('selected');
+            if (shape === datasets[currentExampleIndex].shape) { selectedEl.style.borderColor = 'green'; } 
+            else { selectedEl.style.borderColor = 'red'; }
+        }
+        function checkFinalAnswer() {
+             const answerInput = document.getElementById('answer-input');
+             const feedback = document.getElementById('final-answer-feedback');
+             const dataset = datasets[currentExampleIndex];
+             if (parseInt(answerInput.value) === dataset.calculationQuestion.answer) {
+                 feedback.textContent = "Correct!";
+                 feedback.className = 'ml-2 text-base text-green-600 font-bold';
+             } else {
+                 feedback.textContent = "Try again.";
+                 feedback.className = 'ml-2 text-base text-red-600 font-bold';
+             }
+        }
+        window.onload = () => {
+             document.getElementById('introduction-container').classList.remove('hidden');
+             document.getElementById('lesson-container').classList.add('hidden');
         };
     </script>
 </body>
 </html>
-
 
