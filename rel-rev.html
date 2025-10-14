@@ -231,23 +231,27 @@
             
             <!-- NEW 7A. TREND LABELING INTRODUCTION (The explanation slide) -->
             <div id="trend-label-intro-container" class="activity-screen hidden h-full">
-                <h2 class="text-xl font-bold mb-4 text-gray-700">7. Introduction: Independent & Dependent Variables</h2>
+                <h2 class="text-xl font-bold mb-4 text-gray-700">7. Independent & Dependent Variables: The Magic Question</h2>
                 
                 <div class="bg-green-50 p-6 rounded-xl border-4 border-green-300 mb-6 shadow-xl text-left min-h-[300px]">
-                    <p class="text-gray-700 mb-4">To label scatter plot axes correctly, you must follow the standard rule for graphing bivariate data. Here's the breakdown:</p>
+                    <p class="text-gray-700 mb-4">You got the definition right, but applying it to real-world scenarios is tricky! To label scatter plot axes, ask this **Magic Question** about the two variables:</p>
                     
-                    <h3 class="text-lg font-bold text-green-700 mb-2">The Standard Rule for Labeling Axes</h3>
-                    <ul class="list-disc list-inside space-y-2 mb-4 ml-4 text-gray-800">
+                    <h3 class="text-lg font-bold text-green-700 mb-2 mt-4 text-center p-2 bg-green-200 rounded-lg">"Does Variable A change because of Variable B?"</h3>
+                    
+                    <ul class="list-disc list-inside space-y-3 mb-4 ml-4 text-gray-800">
                         <li>
-                            <span class="font-bold text-green-800">X-Axis (Independent Variable):</span> This is the **cause** or **explaining** variable. It is the variable that happens regardless of the other one. We plot it on the **horizontal** axis.
+                            <span class="font-bold text-green-800">The Independent Variable (X-Axis):</span> This is the **cause** or **explaining** variable. It is the variable that happens regardless of the other one. It goes on the **horizontal axis** (the "input").
                         </li>
                         <li>
-                            <span class="font-bold text-green-800">Y-Axis (Dependent Variable):</span> This is the **effect** or the variable that is **affected by** the independent variable. It is the outcome we measure. We plot it on the **vertical** axis.
+                            <span class="font-bold text-green-800">The Dependent Variable (Y-Axis):</span> This is the **effect** or the variable that **depends on** or is **affected by** the independent variable. It goes on the **vertical axis** (the "output").
                         </li>
                     </ul>
                     
-                    <div class="hint-box bg-green-100 border-green-500 text-green-800 mt-4">
-                        <strong class="text-base">In a Nutshell:</strong> Think of it as a sentence: "The **Effect** depends on the **Cause**." The Cause is always the X-Axis.
+                    <h4 class="font-bold text-gray-700 mt-4 mb-2">Worked Example: Fertilizer Use and Corn Yield</h4>
+                    <p class="text-sm italic text-gray-600">Ask: "Does the Corn Yield change because of the Fertilizer Use?"</p>
+                    <p class="text-sm ml-4 mb-2">**Answer:** Yes! More fertilizer (A) causes the corn yield (B) to change.</p>
+                    <div class="text-center font-semibold text-sm bg-green-200 p-1 rounded-md">
+                        <span class="font-bold">X-Axis:</span> Fertilizer Use (Cause) | <span class="font-bold">Y-Axis:</span> Corn Yield (Effect)
                     </div>
                 </div>
 
@@ -372,40 +376,40 @@
             { scenario: "The number of people employed in a city and the number of houses being built.", correct: "Positive", plotType: "positive", options: ["Positive", "Negative", "None"] },
         ];
 
-        // NEW 7. Trend Labeling Data
+        // NEW 7. Trend Labeling Data - FIXED: renamed 'correctLabel' to 'correct' for consistency
         const allTrendLabelQuestions = [
             { 
                 scenario: "The number of times a person brushes their teeth (X-axis) and the number of cavities they have (Y-axis).", 
                 correctTrend: "Negative", plotType: "negative", 
-                correctLabel: "Times Brushing (X) / Number of Cavities (Y)", 
+                correct: "Times Brushing (X) / Number of Cavities (Y)", // FIX
                 distractorLabel: "Number of Cavities (X) / Times Brushing (Y)",
                 xLabel: "Times Brushing", yLabel: "Number of Cavities"
             },
             { 
                 scenario: "The daily outside temperature (X-axis) and the daily ice cream sales (Y-axis).", 
                 correctTrend: "Positive", plotType: "positive", 
-                correctLabel: "Temperature (X) / Ice Cream Sales (Y)", 
+                correct: "Temperature (X) / Ice Cream Sales (Y)", // FIX
                 distractorLabel: "Ice Cream Sales (X) / Temperature (Y)",
                 xLabel: "Temperature", yLabel: "Ice Cream Sales"
             },
             { 
                 scenario: "The weight of a car (X-axis) and the car's fuel efficiency (Y-axis).", 
                 correctTrend: "Negative", plotType: "negative", 
-                correctLabel: "Car Weight (X) / Fuel Efficiency (Y)", 
+                correct: "Car Weight (X) / Fuel Efficiency (Y)", // FIX
                 distractorLabel: "Fuel Efficiency (X) / Car Weight (Y)",
                 xLabel: "Car Weight", yLabel: "Fuel Efficiency"
             },
             { 
                 scenario: "The number of hours spent training for a race (X-axis) and the race finish time (Y-axis).", 
                 correctTrend: "Negative", plotType: "negative", 
-                correctLabel: "Training Hours (X) / Race Finish Time (Y)", 
+                correct: "Training Hours (X) / Race Finish Time (Y)", // FIX
                 distractorLabel: "Race Finish Time (X) / Training Hours (Y)",
                 xLabel: "Training Hours", yLabel: "Race Finish Time"
             },
             { 
                 scenario: "A child's age (X-axis) and the time it takes them to run 50 meters (Y-axis).", 
                 correctTrend: "Negative", plotType: "negative", 
-                correctLabel: "Child's Age (X) / Run Time (Y)", 
+                correct: "Child's Age (X) / Run Time (Y)", // FIX
                 distractorLabel: "Run Time (X) / Child's Age (Y)",
                 xLabel: "Child's Age", yLabel: "Run Time"
             },
@@ -632,6 +636,7 @@
             const currentQ = state.questions[state.current];
             const feedbackEl = document.getElementById(state.feedbackEl);
             
+            // Check if selected answer matches the 'correct' property, which is now standardized.
             let isCorrect = selectedAnswer === currentQ.correct;
             
             if (isCorrect) {
@@ -648,8 +653,8 @@
                     // For Justification, show both the correct answer (Correlation/Causation) and the correct reasoning
                     correctDisplay = `the justification: ${currentQ.correct}`;
                 } else if (quizName === 'trendLabel') {
-                    // For Labeling, show the correct X/Y label combination
-                    correctDisplay = `the label combination: ${currentQ.correctLabel}`;
+                    // FIX: Since 'correctLabel' was renamed to 'correct', we use 'currentQ.correct' here.
+                    correctDisplay = `the label combination: ${currentQ.correct}`; 
                 }
                 
                 feedbackEl.textContent = `Incorrect. The correct answer was ${correctDisplay}.`; 
@@ -812,7 +817,7 @@
                 });
 
 
-                let labelOptions = [currentQ.correctLabel, currentQ.distractorLabel];
+                let labelOptions = [currentQ.correct, currentQ.distractorLabel]; // NOTE: currentQ.correct is now the answer
                 shuffle(labelOptions).forEach(label => {
                     const button = document.createElement('button');
                     button.onclick = () => checkAnswer(quizName, label);
