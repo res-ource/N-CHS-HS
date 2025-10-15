@@ -367,6 +367,7 @@
         const flowState = { activity: 'welcome' };
 
         // --- ALL QUIZ & LESSON DATA ---
+        // NEW: Expanded vocabulary to include Strong/Weak correlation
         const allVocabQuestions = [ 
             { term: "Correlation", definition: "A mutual relationship or connection between two or more things.", correct: "Correlation", options: ["Causation", "Correlation", "Hypothesis", "Constant"] }, 
             { term: "Causation", definition: "The relationship where one variable directly causes a change in another.", correct: "Causation", options: ["Trend", "Relationship", "Causation", "Coincidence"] }, 
@@ -380,6 +381,7 @@
         const allCausationQuestions = [ { scenario: "Eating spoiled food and getting sick.", correct: "Causation" }, { scenario: "The number of firefighters at a fire and the damage caused by the fire.", correct: "Correlation" }, { scenario: "A rise in temperature and a rise in ice cream consumption.", correct: "Correlation" }, { scenario: "Flipping a light switch and the light turning on.", correct: "Causation" }, { scenario: "The number of hours you exercise and the amount of calories you burn.", correct: "Causation" }, ];
         const allCausationJustifyQuestions = [ { scenario: "The number of ice cream cones sold and the number of violent crimes.", answer: "Correlation", correct: "A hidden variable, the summer heat, drives both up." }, { scenario: "A power surge and a computer breaking.", answer: "Causation", correct: "The power surge directly delivers too much electricity, physically breaking the components." }, { scenario: "Smoking cigarettes and developing lung cancer.", answer: "Causation", correct: "The chemicals in the smoke directly damage lung cells." }, { scenario: "The size of a child's foot and their reading level.", answer: "Correlation", correct: "Both variables increase over time due to the hidden variable of age." }, { scenario: "The amount of rain and the number of traffic accidents.", answer: "Causation", correct: "Rain makes roads slicker and visibility poor, directly causing accidents." } ];
         
+        // UPDATED: Pre-defined plot data for clearer visualizations, now including strong/weak versions
         const plotTemplates = {
             StrongPositive: [ {x:10,y:15},{x:15,y:25},{x:25,y:20},{x:30,y:35},{x:40,y:45},{x:45,y:40},{x:50,y:60},{x:60,y:55},{x:70,y:70},{x:75,y:80},{x:85,y:75},{x:90,y:85} ],
             WeakPositive: [ {x:12,y:30},{x:20,y:15},{x:28,y:40},{x:35,y:55},{x:40,y:25},{x:48,y:60},{x:55,y:40},{x:60,y:75},{x:65,y:50},{x:75,y:85},{x:80,y:65},{x:90,y:80} ],
@@ -422,7 +424,14 @@
         ];
         const allDataAnalysisQuestions = [ { scenario: "A mechanic records a car's age in years and its resale value.", xLabel: "Car Age (Years)", yLabel: "Resale Value ($)", xKey: "age", yKey: "value", correct: "Negative", data: [ { age: 1, value: 25000 }, { age: 2, value: 22000 }, { age: 3, value: 19500 }, { age: 5, value: 15000 }, { age: 8, value: 10000 }, { age: 10, value: 6000 } ] }, { scenario: "A researcher recorded the number of minutes people spent on a treadmill and the calories they burned.", xLabel: "Minutes on Treadmill", yLabel: "Calories Burned", xKey: "mins", yKey: "cals", correct: "Positive", data: [ { mins: 10, cals: 105 }, { mins: 20, cals: 215 }, { mins: 30, cals: 310 }, { mins: 15, cals: 160 }, { mins: 45, cals: 455 }, { mins: 25, cals: 255 } ] } ];
         const allTrendLabelQuestions = [ { scenario: "Height of a plant and the amount of fertilizer used.", correct: "X: Fertilizer Used, Y: Plant Height", relationship: "Positive", options: ["X: Fertilizer Used, Y: Plant Height", "X: Plant Height, Y: Fertilizer Used", "X: Soil Type, Y: Plant Height"] }, { scenario: "The amount of time a candle burns and its height.", correct: "X: Time, Y: Candle Height", relationship: "Negative", options: ["X: Candle Height, Y: Time", "X: Time, Y: Candle Height", "X: Wax Type, Y: Candle Height"] }, { scenario: "The number of hours spent exercising and the calories burned.", correct: "X: Hours Exercising, Y: Calories Burned", relationship: "Positive", options: ["X: Calories Burned, Y: Hours Exercising", "X: Hours Exercising, Y: Calories Burned", "X: Type of Exercise, Y: Calories Burned"] }, { scenario: "The amount of sleep a student gets and their test score.", correct: "X: Hours of Sleep, Y: Test Score", relationship: "Positive", options: ["X: Test Score, Y: Hours of Sleep", "X: Hours of Sleep, Y: Test Score", "X: Teacher's Name, Y: Test Score"] }, { scenario: "The speed a car is traveling and the time it takes to stop.", correct: "X: Car Speed, Y: Stopping Time", relationship: "Positive", options: ["X: Stopping Time, Y: Car Speed", "X: Car Speed, Y: Stopping Time", "X: Tire Pressure, Y: Car Speed"] } ];
-        const allWorksheetQuestions = [ { scenario: "The number of hours a person has driven and the number of miles driven.", correct: "Positive" }, { scenario: "The number of siblings a student has and the grade they have in math class.", correct: "None" }, { scenario: "The age of a car and the value of the car.", correct: "Negative" }, { scenario: "The number of weeks a CD has been out and the total sales.", correct: "Negative" }, { scenario: "The number of years a person went to school and their income.", correct: "Positive" }, ];
+        const allWorksheetQuestions = [ 
+            { scenario: "The number of hours a person has driven and the number of miles driven.", correct: "Positive" }, 
+            { scenario: "The number of siblings a student has and the grade they have in math class.", correct: "None" }, 
+            { scenario: "The age of a car and the value of the car.", correct: "Negative" }, 
+            // FIX: Clarified the scenario to refer to weekly sales, not total sales.
+            { scenario: "The number of weeks a CD has been out and its sales *for that week*.", correct: "Negative" }, 
+            { scenario: "The number of years a person went to school and their income.", correct: "Positive" },
+        ];
 
         const quizState = {
             vocab: { questions: [], current: 0, score: 0, all: allVocabQuestions, lessonIndex: 0, isDefinitionRevealed: false, scoreDisplayEl: 'vocab-score-display', counterEl: 'vocab-counter', feedbackEl: 'vocab-feedback', optionsEl: 'vocab-options' },
@@ -726,7 +735,7 @@
                         const div = document.createElement('div');
                         div.className = 'data-point';
                         div.style.left = `${point.x}%`;
-                        // BUG FIX: Invert the Y-axis for correct plotting
+                        // BUG FIX: Invert the Y-axis calculation for correct visual plotting.
                         div.style.top = `${100 - point.y}%`;
                         vizEl.appendChild(div);
                     });
@@ -797,4 +806,6 @@
     </script>
 </body>
 </html>
+
+
 
