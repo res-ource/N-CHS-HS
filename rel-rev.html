@@ -43,15 +43,27 @@
             box-shadow: 0 0 2px rgba(0,0,0,0.3);
             border: 1px solid rgba(255, 255, 255, 0.5);
             transition: all 0.5s ease-out; /* Smooth movement */
+            /* Default state for initial random plot */
+            background-color: #9ca3af; 
+            top: calc(10% + 80% * var(--r2));
+            left: calc(10% + 80% * var(--r1));
         }
-        /* Trend visualization classes */
-        .positive-trend .data-point { background-color: #10b981; }
-        .negative-trend .data-point { background-color: #f97316; }
-        .none-trend .data-point { background-color: #64748b; }
-        /* CSS variables used for scatter simulation */
-        .positive-trend .data-point { top: calc(80% - 60% * (var(--i) / 15) + 10% * var(--r1)); left: calc(10% + 70% * (var(--i) / 15) + 5% * var(--r2)); }
-        .negative-trend .data-point { top: calc(20% + 60% * (var(--i) / 15) + 10% * var(--r1)); left: calc(10% + 70% * (var(--i) / 15) + 5% * var(--r2)); }
-        .none-trend .data-point { top: calc(10% + 70% * var(--r1)); left: calc(10% + 70% * var(--r2)); }
+        /* Trend visualization classes override the default state */
+        .positive-trend .data-point {
+            background-color: #10b981;
+            top: calc(80% - 60% * (var(--i) / 15) + 10% * var(--r1));
+            left: calc(10% + 70% * (var(--i) / 15) + 5% * var(--r2));
+        }
+        .negative-trend .data-point {
+            background-color: #f97316;
+            top: calc(20% + 60% * (var(--i) / 15) + 10% * var(--r1));
+            left: calc(10% + 70% * (var(--i) / 15) + 5% * var(--r2));
+        }
+        .none-trend .data-point {
+            background-color: #64748b;
+            top: calc(10% + 70% * var(--r1));
+            left: calc(10% + 70% * var(--r2));
+        }
         
         .hint-box {
             padding: 10px;
@@ -100,13 +112,10 @@
                 <h1 id="activity-title" class="text-2xl font-extrabold text-gray-800 sm:text-3xl">Review Station</h1>
                 <p id="activity-subtitle" class="text-gray-500 text-sm">Welcome!</p>
             </div>
-            <span id="timer" class="flex items-center text-red-600 font-semibold text-xl">0:00</span>
+            <!-- REMOVED TIMER -->
         </div>
 
-        <!-- PERSISTENT CONTEXT BANNER (Idea 3) -->
-        <div id="context-banner" class="hidden p-3 bg-indigo-50 text-indigo-800 font-medium text-sm text-center border-b border-indigo-200">
-            <span id="banner-text"></span>
-        </div>
+        <!-- REMOVED PERSISTENT CONTEXT BANNER -->
 
         <!-- Main Content Area -->
         <div class="p-6 sm:p-8 pt-4 content-card relative">
@@ -114,20 +123,10 @@
             <!-- 0. WELCOME SCREEN -->
             <div id="welcome-screen" class="activity-screen flex flex-col items-center justify-center h-full text-center">
                 <p class="text-3xl font-bold text-gray-700 mb-4">Start Your Relationship Review!</p>
-                <p class="text-gray-600 mb-6">Enter your name to personalize your study session:</p>
-                
-                <!-- NEW NAME INPUT -->
-                <input
-                    type="text"
-                    id="studentNameInput"
-                    placeholder="Your Name (e.g., Jane Doe)"
-                    class="w-full max-w-xs p-3 mb-6 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm text-center"
-                    onkeypress="if(event.key === 'Enter') startReview()"
-                >
-                <button onclick="startReview()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-xl transition duration-150 transform hover:scale-105">
+                <p class="text-gray-600 mb-8">You will cover Vocabulary, Correlation vs. Causation, and Scatter Plot Trends across 10 stations.</p>
+                <button id="start-review-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-xl transition duration-150 transform hover:scale-105">
                     Start Review →
                 </button>
-                <p id="name-error" class="text-red-500 mt-2 hidden">Please enter your name.</p>
             </div>
 
             <!-- 1. VOCAB LESSON CONTAINER (Flashcards) -->
@@ -388,14 +387,12 @@
     <script>
         // --- Setup and Data ---
         const QUIZ_LENGTH = 5; 
-        let startTime;
-        let timerInterval;
-        let studentName = 'Student'; // Global state for the student's name
-
+        // Timer removed, no need for startTime or timerInterval
+        // studentName and related logic removed
+        
         // Master Flow State
         const flowState = {
-            activity: 'welcome', 
-            // Current Flow: welcome -> lesson -> vocab -> vocab-scenario -> causation -> causation-justify -> trend -> data-analysis -> trend-label-intro -> trendLabel -> worksheetValidation -> complete
+            activity: 'welcome', // Start immediately at the welcome screen
         };
 
         // Utility to generate a consistent set of random points for scatter plots
@@ -569,23 +566,9 @@
             worksheetValidation: { questions: [], current: 0, score: 0, all: allWorksheetQuestions, scoreDisplayEl: 'worksheet-score-display', counterEl: 'worksheet-counter', feedbackEl: 'worksheet-feedback', optionsEl: 'worksheet-options' },
         };
 
-        // --- Timer Functions (RESTORED) ---
-        const timerEl = document.getElementById('timer');
-
-        function startTimer() {
-            startTime = Date.now();
-            timerInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                const minutes = Math.floor(elapsed / 60);
-                const seconds = elapsed % 60;
-                timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
-        }
-
-        function stopTimer() {
-            clearInterval(timerInterval);
-        }
-
+        // --- Timer Functions (Removed) ---
+        // (No startTimer or stopTimer functions anymore)
+        
         // --- Utility Functions ---
         function shuffle(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -601,27 +584,9 @@
             });
         }
         
-        // --- Start Review Function ---
+        // --- Start Review Function (Simplified) ---
         function startReview() {
-            const inputEl = document.getElementById('studentNameInput');
-            const name = inputEl.value.trim();
-            const errorEl = document.getElementById('name-error');
-
-            if (name === "") {
-                errorEl.classList.remove('hidden');
-                inputEl.classList.add('border-red-500');
-                return;
-            }
-
-            errorEl.classList.add('hidden');
-            inputEl.classList.remove('border-red-500');
-            
-            // Store and display the name
-            studentName = name.charAt(0).toUpperCase() + name.slice(1);
-            document.getElementById('banner-text').textContent = `Welcome, ${studentName}! This review is based on your uploaded Scatter Plot & Correlation Worksheets.`;
-            document.getElementById('context-banner').classList.remove('hidden');
-
-            // Start the flow
+            // No name check needed, just start the flow.
             advanceFlow();
         }
 
@@ -632,7 +597,6 @@
 
             if (flowState.activity === 'welcome') {
                 flowState.activity = 'lesson';
-                startTimer();
                 showLessonScreen();
             } else if (flowState.activity === 'lesson') {
                 flowState.activity = 'vocab';
@@ -667,12 +631,11 @@
             }
         }
 
-        // --- Screen Setup Functions (RESTORED) ---
+        // --- Screen Setup Functions ---
 
         function displayLessonCard() {
             const state = quizState.vocab;
             const currentCard = state.all[state.lessonIndex];
-            const cardEl = document.getElementById('lesson-card');
 
             document.getElementById('lesson-counter').textContent = `Card ${state.lessonIndex + 1}/${state.all.length}`;
             document.getElementById('lesson-term').textContent = currentCard.term;
@@ -797,16 +760,14 @@
         }
 
         function showCompleteScreen() {
-            stopTimer();
+            // Timer functionality removed, no need to stop or calculate time.
+
             document.getElementById('complete-screen').classList.remove('hidden');
             document.getElementById('activity-title').textContent = 'Review Complete!';
             document.getElementById('activity-subtitle').textContent = 'Check your results.';
 
-            // Calculate final time
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const minutes = Math.floor(elapsed / 60);
-            const seconds = elapsed % 60;
-            document.getElementById('final-time').textContent = `Total Time: ${minutes} minutes and ${seconds} seconds`;
+            // Since timer is removed, display total time as 0:00 or remove element entirely
+            document.getElementById('final-time').remove(); // Removing the final time element
 
             // Display final scores (All 8 modules)
             document.getElementById('final-score-vocab').textContent = quizState.vocab.score;
@@ -835,22 +796,36 @@
                 feedbackEl.classList.remove('text-red-500');
                 feedbackEl.classList.add('text-green-600');
                 
-                // Special visual for Data Analysis
+                // Special visual for Data Analysis and Trend
                 if (quizName === 'dataAnalysis' || quizName === 'trend') {
-                    const vizEl = document.getElementById(quizName === 'dataAnalysis' ? 'data-analysis-visualization' : 'plot-visualization');
-                    vizEl.innerHTML = '';
-                    if (quizName === 'dataAnalysis') {
-                        vizEl.appendChild(generatePlotFromData(currentQ));
-                    } else { // trend quiz uses simulated plots
-                         const trendClass = currentQ.correct === 'Positive' ? 'positive-trend' : 
+                    try {
+                        const vizEl = document.getElementById(quizName === 'dataAnalysis' ? 'data-analysis-visualization' : 'plot-visualization');
+                        vizEl.innerHTML = ''; // Clear previous content
+
+                        if (quizName === 'dataAnalysis') {
+                            // Plot actual data from worksheet (Station 7)
+                            vizEl.appendChild(generatePlotFromData(currentQ));
+                        } else { 
+                            // Plot simulated trend (Station 6)
+                            const trendClass = currentQ.correct === 'Positive' ? 'positive-trend' : 
                                                currentQ.correct === 'Negative' ? 'negative-trend' : 
                                                'none-trend';
-                        vizEl.className = `plot-box ${trendClass}`;
-                        vizEl.innerHTML = generateDataPoints(15).map(p => 
-                            `<div class="data-point" style="--i:${p.i}; --r1:${p.r1}; --r2:${p.r2};"></div>`
-                        ).join('');
+                            
+                            // *** BUG FIX: Ensure the correct class is set for CSS variables to work ***
+                            // We replace the entire class list to ensure only one trend class is active
+                            // Also re-adding mb-8 to prevent layout shift.
+                            vizEl.className = `plot-box mb-8 ${trendClass}`;
+                            
+                            vizEl.innerHTML = generateDataPoints(15).map(p => 
+                                `<div class="data-point" style="--i:${p.i}; --r1:${p.r1}; --r2:${p.r2};"></div>`
+                            ).join('');
+                        }
+                        vizEl.classList.remove('justify-center', 'items-center');
+
+                    } catch (e) {
+                        console.error(`Visualization Error in ${quizName}:`, e);
+                        // If it fails, at least it won't crash the whole app flow.
                     }
-                    vizEl.classList.remove('justify-center', 'items-center');
                 }
 
             } else {
@@ -998,10 +973,12 @@
             else if (quizName === 'trend') {
                 document.getElementById('trend-scenario-text').textContent = currentQ.scenario;
                 
-                // Clear and hide visualization until answered
+                // Show a generic random plot immediately for better UX
                 const vizEl = document.getElementById('plot-visualization');
-                vizEl.innerHTML = '<p class="text-gray-500 italic">Visualize the scatter plot for this data...</p>';
-                vizEl.classList.add('justify-center', 'items-center');
+                vizEl.className = 'plot-box mb-8'; // Reset to base class
+                vizEl.innerHTML = generateDataPoints(15).map(p => 
+                    `<div class="data-point" style="--r1:${p.r1}; --r2:${p.r2}; --i:${p.i};"></div>`
+                ).join('');
 
                 shuffle([...trendOptions]).forEach(option => {
                     const button = document.createElement('button');
@@ -1039,7 +1016,10 @@
             // Initial setup to show welcome screen
             hideAllScreens();
             document.getElementById('welcome-screen').classList.remove('hidden');
+            document.getElementById('start-review-btn').onclick = startReview;
         };
     </script>
 </body>
 </html>
+
+
