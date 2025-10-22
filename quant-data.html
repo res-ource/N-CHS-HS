@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scatterplots & Correlation</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Class to hide/show steps */
+        .step {
+            display: none;
+        }
+        .step.active {
+            display: block;
+        }
+        /* Styles for drag-and-drop activity */
+        .draggable {
+            touch-action: none;
+            user-select: none;
+            cursor: grab;
+        }
+        .drop-zone {
+            min-height: 160px; /* Taller for graphs */
+            border: 2px dashed #cbd5e1;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .draggable.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+            background-color: #e0e7ff;
+        }
+        .drag-over {
+            background-color: #eef2ff;
+            border-color: #4f46e5;
+        }
+        /* Styling for the draggable numbers */
+        .corr-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 5rem; /* w-20 */
+            height: 3rem; /* h-12 */
+            margin: 0.5rem; /* m-2 */
+            background-color: white; /* bg-white */
+            border: 1px solid #d1d5db; /* border border-gray-300 */
+            border-radius: 0.375rem; /* rounded-md */
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 500; /* font-medium */
+            color: #374151; /* text-gray-700 */
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); /* shadow-sm */
+        }
+        /* Styling for the drop zone targets */
+        .drop-target {
+            width: 150px;
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+            border: 2px dashed #9ca3af;
+            border-radius: 0.375rem;
+            background-color: #f9fafb;
+        }
+        .drop-target .graph-canvas {
+            border: 1px solid #d1d5db;
+            background-color: white;
+        }
+        .drop-target.drag-over {
+            background-color: #eef2ff;
+            border-color: #4f46e5;
+        }
+        /* Styles for Desmos Simulator */
+        .desmos-sim {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background-color: #f9fafb;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .desmos-sim-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .desmos-sim-inputs textarea {
+            min-height: 150px;
+            font-family: monospace;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+            padding: 0.5rem;
+        }
+        .desmos-sim-output {
+            border-left: 1px solid #e5e7eb;
+            padding-left: 1rem;
+        }
+        .desmos-sim-results {
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #111827;
+            background-color: white;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+        }
+        /* NEW: Styles for scaffolded parts */
+        .practice-part {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        .part-hidden {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .desmos-sim {
+                grid-template-columns: 1fr;
+            }
+            .desmos-sim-output {
+                border-left: none;
+                padding-left: 0;
+                border-top: 1px solid #e5e7eb;
+                padding-top: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen py-12">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-3xl">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-indigo-700">Quantitative Data Lesson</h1>
+            <p class="text-xl text-gray-600 mt-2">Scatterplots, Correlation & Line of Best Fit</p>
+        </header>
+
+        <main class="bg-white rounded-lg shadow-xl p-6 md:p-10">
+            <!-- Steps 1-8 (Same as before) -->
+            <!-- Step 1: Introduction -->
+            <div id="step-1" class="step active prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 1: Welcome!</h2>
+                <p>Welcome to this week's lesson! We will be concluding our work on quantitative data by tying several concepts together.</p>
+                <p>In this lesson, you will learn about:</p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li><strong>Reasoning:</strong> How to describe relationships (Positive, Negative, No Relation).</li>
+                    <li><strong>Scatterplots:</strong> How to visualize relationships between two variables.</li>
+                    <li><strong>Correlation Coefficients:</strong> How to measure the strength of a relationship with a number.</li>
+                    <li><strong>Line of Best Fit:</strong> How to model a linear relationship with a line.</li>
+                </ul>
+                <p class="mt-4">Click "Next" to get started!</p>
+            </div>
+
+            <!-- Step 2: Reasoning -->
+            <div id="step-2" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 2: Reasoning & Relationships</h2>
+                <p>The first step in analyzing relationships is learning to describe them. When we look at two variables, we are trying to **decide** if they have a relationship, and if so, what kind.</p>
+                <p>We can usually describe this relationship in one of three ways:</p>
+                <ol class="list-decimal pl-5 space-y-2">
+                    <li><strong>Positive Relation:</strong> As one variable increases, the other variable also tends to increase. (Example: Hours spent studying and test scores).</li>
+                    <li><strong>Negative Relation:</strong> As one variable increases, the other variable tends to decrease. (Example: Hours spent playing video games and test scores).</li>
+                    <li><strong>No Relation:</strong> The two variables seem to be unrelated. (Example: Shoe size and test scores).</li>
+                </ol>
+                <p class="mt-4">This initial "decision" is what we will visualize next.</p>
+            </div>
+
+            <!-- Step 3: Scatterplots -->
+            <div id="step-3" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 3: Visualizing Data: Scatterplots</h2>
+                <p>A <strong>Scatterplot</strong> is a graph used to visualize the relationship between two quantitative variables. Each dot on the graph represents one observation (or individual).</p>
+                <p>This graph makes it easy to see the patterns you just learned about:</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div>
+                        <canvas id="plot-positive" width="150" height="150" class="mx-auto border bg-white rounded-md shadow-sm"></canvas>
+                        <p class="mt-2 font-medium">Positive Relation</p>
+                    </div>
+                    <div>
+                        <canvas id="plot-negative" width="150" height="150" class="mx-auto border bg-white rounded-md shadow-sm"></canvas>
+                        <p class="mt-2 font-medium">Negative Relation</p>
+                    </div>
+                    <div>
+                        <canvas id="plot-none" width="150" height="150" class="mx-auto border bg-white rounded-md shadow-sm"></canvas>
+                        <p class="mt-2 font-medium">No Relation</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Correlation Coefficients -->
+            <div id="step-4" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 4: Measuring Strength: Correlation Coefficients</h2>
+                <p>While a scatterplot gives us a visual idea of the relationship, we also need a number to describe its <strong>strength</strong>. This is called the <strong>Correlation Coefficient</strong>, (often written as <strong>`r`</strong>).</p>
+                
+                <p>The correlation coefficient `r` is always a number between <strong>-1 and +1</strong>.</p>
+                
+                <ul class="list-disc pl-5 space-y-2">
+                    <li><strong>`r` close to +1:</strong> Strong positive correlation. (Dots are tightly packed in a positive slope).</li>
+                    <li><strong>`r` close to -1:</strong> Strong negative correlation. (Dots are tightly packed in a negative slope).</li>
+                    <li><strong>`r` close to 0:</strong> Weak or no correlation. (Dots are spread out, with no clear pattern).</li>
+                </ul>
+
+                <p>For example, a value of `r = 0.8` is a strong positive relationship. A value of `r = -0.2` is a very weak negative relationship.</p>
+            </div>
+            
+            <!-- Step 5: Correlation Activity -->
+            <div id="step-5" class="step space-y-6">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 5: Activity - Match the Correlation</h2>
+                <p class="text-gray-700">Many students find this tricky, so let's practice! Drag the correlation coefficients (r-values) from the top box to match them with the correct graph below.</p>
+                
+                <!-- Draggable numbers -->
+                <div id="draggable-container" class="drop-zone bg-gray-50 p-4 min-h-[5rem] flex flex-wrap justify-center items-center">
+                    <div id="corr-1" class="corr-number draggable" draggable="true" data-value="0.9">r = 0.9</div>
+                    <div id="corr-2" class="corr-number draggable" draggable="true" data-value="-0.7">r = -0.7</div>
+                    <div id="corr-3" class="corr-number draggable" draggable="true" data-value="0.1">r = 0.1</div>
+                </div>
+                
+                <div class="text-center my-2 text-gray-400">&darr; &darr; &darr;</div>
+
+                <!-- Drop targets -->
+                <div class="flex flex-wrap justify-around gap-4">
+                    <div class="drop-target" data-value="0.1">
+                        <canvas id="graph-weak" width="120" height="120" class="graph-canvas"></canvas>
+                        <span class="text-sm text-gray-600">Drop 'r' value here</span>
+                    </div>
+                    <div class="drop-target" data-value="0.9">
+                        <canvas id="graph-strong" width="120" height="120" class="graph-canvas"></canvas>
+                        <span class="text-sm text-gray-600">Drop 'r' value here</span>
+                    </div>
+                    <div class="drop-target" data-value="-0.7">
+                        <canvas id="graph-negative" width="120" height="120" class="graph-canvas"></canvas>
+                        <span class="text-sm text-gray-600">Drop 'r' value here</span>
+                    </div>
+                </div>
+
+                <button id="check-corr-btn" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-md font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition">Check My Answers</button>
+                <div id="corr-feedback" class="text-sm mt-1 text-center font-medium"></div>
+            </div>
+
+            <!-- Step 6: Line of Best Fit -->
+            <div id="step-6" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 6: The Line of Best Fit</h2>
+                <p>This topic is a continuation of our work with scatterplots. When a relationship looks linear (like a line), we can draw a <strong>Line of Best Fit</strong>.</p>
+                <p>This is a single line that goes through the **middle of the scatter plot** and best represents the data's trend. It acts as a summary or a model of the relationship.</p>
+                
+                <div class="w-full text-center">
+                     <canvas id="plot-lobf" width="300" height="300" class="mx-auto border bg-white rounded-md shadow-sm"></canvas>
+                     <p class="mt-2 font-medium">A scatterplot with its Line of Best Fit.</p>
+                </div>
+            </div>
+
+            <!-- Step 7: Types of Lines -->
+            <div id="step-7" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 7: Identifying Types of Lines</h2>
+                <p>By looking at the Line of Best Fit, we can quickly describe the relationship:</p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>A <strong>steep, positive line</strong> (like ` / `) indicates a strong positive correlation. Small changes in one variable are linked to large changes in the other.</li>
+                    <li>A <strong>steep, negative line</strong> (like ` \ `) indicates a strong negative correlation.</li>
+                    <li>A <strong>flat line</strong> (like ` — `) indicates little or no correlation. Changes in one variable don't predict changes in the other.</li>
+                </ul>
+                <p>The steepness of the line tells you the strength, and its direction (up or down) tells you the type (positive or negative) of the relationship.</p>
+            </div>
+
+            <!-- Step 8: Instructional Tools -->
+            <div id="step-8" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 8: How to Find the Line</h2>
+                <p>You don't have to guess where the "middle" of the data is! We use technology to calculate the *exact* Line of Best Fit for us.</p>
+                <p>Your instructor has sent activities and notes for this. The main tools you will use are:</p>
+                <ol class="list-decimal pl-5 space-y-2">
+                    <li><strong>Desmos (Preferred):</strong> This is a free, online graphing tool that shows the line and its equation beautifully.</li>
+                    <li><strong>Graphing Calculators:</strong> If computer systems are down, you can also find the line using your calculator.</li>
+                </ol>
+                <p class="mt-4">The plan is to show you both methods, but Desmos is the preferred way to demonstrate how the line fits the data. In the next steps, you'll use a simulator based on this idea.</p>
+            </div>
+
+            <!-- NEW/REBUILT STEPS START HERE -->
+
+            <!-- Step 9: "You Do" Intro -->
+            <div id="step-9" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 9: Practice Problems ("You Do")</h2>
+                <p>Time to put all the concepts together! The next three steps are practice problems.</p>
+                <p>In each problem, you will be guided through a 3-part process:</p>
+                <ol class="list-decimal pl-5 space-y-2">
+                    <li><strong>Part 1: Analyze the Scatterplot</strong> (Visual Trend).</li>
+                    <li><strong>Part 2: Interpret the Correlation `r`</strong> (Numerical Strength).</li>
+                    <li><strong>Part 3: Interpret the Line of Best Fit `m`</strong> (Meaning of the Slope).</li>
+                </ol>
+                <p class="mt-4">Click "Plot Data" to begin each problem. The "Next" button will unlock once you correctly complete all three parts.</p>
+            </div>
+
+            <!-- Step 10: Practice Problem 1 -->
+            <div id="step-10" class="step space-y-6">
+                <h2 class="text-2xl font-semibold text-gray-800">Practice Problem 1: Ice Cream Sales</h2>
+                <p class="text-gray-700">A food truck owner tracks the daily temperature and their ice cream sales. Enter their data into the simulator.</p>
+                
+                <!-- Data for the problem -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="x-data-10" class="block text-sm font-medium text-gray-700">x-values (Temperature)</label>
+                        <textarea id="x-data-10" class="mt-1 block w-full h-32" readonly>68
+72
+75
+80
+82
+85</textarea>
+                    </div>
+                    <div>
+                        <label for="y-data-10" class="block text-sm font-medium text-gray-700">y-values (Sales)</label>
+                        <textarea id="y-data-10" class="mt-1 block w-full h-32" readonly>250
+310
+350
+420
+435
+500</textarea>
+                    </div>
+                </div>
+
+
+                <!-- Desmos Simulator -->
+                <div class="desmos-sim">
+                    <div class="desmos-sim-inputs">
+                        <div>
+                            <label for="x-input-10" class="block text-sm font-medium text-gray-700">x-values (Temperature)</label>
+                            <textarea id="x-input-10" class="mt-1 block w-full" rows="6"></textarea>
+                        </div>
+                        <div>
+                            <label for="y-input-10" class="block text-sm font-medium text-gray-700">y-values (Sales)</label>
+                            <textarea id="y-input-10" class="mt-1 block w-full" rows="6"></textarea>
+                        </div>
+                        <p class="text-xs text-gray-500 text-center -mt-2 mb-2">Type, paste, or auto-fill the data.</p>
+                        <button id="load-btn-10" class="w-full bg-gray-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-gray-700">Auto-fill Data from Table</button>
+                        <button id="calc-btn-10" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-blue-700 mt-2">1. Plot Data</button>
+                    </div>
+                    <div class="desmos-sim-output">
+                        <canvas id="plot-canvas-10" class="w-full bg-white border border-gray-300 rounded-md" height="200"></canvas>
+                        <div id="results-10" class="desmos-sim-results mt-4">
+                            <p>STATISTICS</p>
+                            <p id="r-line-10" class="part-hidden">r = <span id="r-val-10" class="font-bold text-indigo-600"></span></p>
+                            <p>PARAMETERS</p>
+                            <p id="m-line-10" class="part-hidden">m = <span id="m-val-10" class="font-bold text-indigo-600"></span></p>
+                            <p id="b-line-10" class="part-hidden">b = <span id="b-val-10" class="font-bold text-indigo-600"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interpretation Questions -->
+                <div id="part-1-10" class="practice-part part-hidden">
+                    <h3 class="text-lg font-medium text-gray-700">Part 1: Analyze the Scatterplot</h3>
+                    <p class="text-sm text-gray-600">Based on the scatterplot alone, what is the visual trend?</p>
+                    <fieldset class="mt-2">
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="part1-10" value="Positive" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">Positive</span></label>
+                            <label class="flex items-center"><input type="radio" name="part1-10" value="Negative" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">Negative</span></label>
+                            <label class="flex items-center"><input type="radio" name="part1-10" value="No Trend" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">No Trend</span></label>
+                        </div>
+                    </fieldset>
+                    <button id="check-part-1-10" class="mt-3 bg-indigo-600 text-white py-2 px-4 rounded-md text-sm font-semibold hover:bg-indigo-700">Check Part 1</button>
+                    <div id="feedback-part-1-10" class="text-sm mt-2"></div>
+                </div>
+
+                <div id="part-2-10" class="practice-part part-hidden">
+                    <h3 class="text-lg font-medium text-gray-700">Part 2: Interpret the Correlation (r)</h3>
+                    <p class="text-sm text-gray-600">The correlation is `r = 0.998`. How would you describe this?</p>
+                    <fieldset class="mt-2">
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="part2-10" value="Strong Positive" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">Strong Positive</span></label>
+                            <label class="flex items-center"><input type="radio" name="part2-10" value="Weak Positive" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">Weak Positive</span></label>
+                            <label class="flex items-center"><input type="radio" name="part2-10" value="Strong Negative" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">Strong Negative</span></label>
+                        </div>
+                    </fieldset>
+                    <button id="check-part-2-10" class="mt-3 bg-indigo-600 text-white py-2 px-4 rounded-md text-sm font-semibold hover:bg-indigo-700">Check Part 2</button>
+                    <div id="feedback-part-2-10" class="text-sm mt-2"></div>
+                </div>
+                
+                <div id="part-3-10" class="practice-part part-hidden">
+                    <h3 class="text-lg font-medium text-gray-700">Part 3: Interpret the Line</h3>
+                    <p class="text-sm text-gray-600">The line is drawn and the slope is `m = 14.5`. What does this mean?</p>
+                    <fieldset class="mt-2">
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="part3-10" value="Correct" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">For every 1°F increase, sales increase by about $14.50.</span></label>
+                            <label class="flex items-center"><input type="radio" name="part3-10" value="Incorrect 1" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">For every $1 increase, temperature increases 14.5°.</span></label>
+                            <label class="flex items-center"><input type="radio" name="part3-10" value="Incorrect 2" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">There is no relationship between temperature and sales.</span></label>
+                        </div>
+                    </fieldset>
+                    <button id="check-part-3-10" class="mt-3 bg-indigo-600 text-white py-2 px-4 rounded-md text-sm font-semibold hover:bg-indigo-700">Check Part 3</button>
+                    <div id="feedback-part-3-10" class="text-sm mt-2"></div>
+                </div>
+            </div>
+
+            <!-- Step 11: Practice Problem 2 -->
+            <div id="step-11" class="step space-y-6">
+                <h2 class="text-2xl font-semibold text-gray-800">Practice Problem 2: TV & Grades</h2>
+                <p class="text-gray-700">A teacher asks 5 students to track their hours of TV watched per week and their final grade. Enter their data.</p>
+                
+                <!-- Data for the problem -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="x-data-11" class="block text-sm font-medium text-gray-700">x-values (TV Hours)</label>
+                        <textarea id="x-data-11" class="mt-1 block w-full h-32" readonly>1
+5
+8
+10
+15</textarea>
+                    </div>
+                    <div>
+                        <label for="y-data-11" class="block text-sm font-medium text-gray-700">y-values (Grade)</label>
+                        <textarea id="y-data-11" class="mt-1 block w-full h-32" readonly>92
+85
+70
+75
+60</textarea>
+                    </div>
+                </div>
+
+                <!-- Desmos Simulator -->
+                <div class="desmos-sim">
+                    <div class="desmos-sim-inputs">
+                        <div>
+                            <label for="x-input-11" class="block text-sm font-medium text-gray-700">x-values (TV Hours)</label>
+                            <textarea id="x-input-11" class="mt-1 block w-full" rows="6"></textarea>
+                        </div>
+                        <div>
+                            <label for="y-input-11" class="block text-sm font-medium text-gray-700">y-values (Grade)</label>
+                            <textarea id="y-input-11" class="mt-1 block w-full" rows="6"></textarea>
+                        </div>
+                        <p class="text-xs text-gray-500 text-center -mt-2 mb-2">Type, paste, or auto-fill the data.</p>
+                        <button id="load-btn-11" class="w-full bg-gray-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-gray-700">Auto-fill Data from Table</button>
+                        <button id="calc-btn-11" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-blue-700 mt-2">1. Plot Data</button>
+                    </div>
+                    <div class="desmos-sim-output">
+                        <canvas id="plot-canvas-11" class="w-full bg-white border border-gray-300 rounded-md" height="200"></canvas>
+                        <div id="results-11" class="desmos-sim-results mt-4">
+                            <p>STATISTICS</p>
+                            <p id="r-line-11" class="part-hidden">r = <span id="r-val-11" class="font-bold text-indigo-600"></span></p>
+                            <p>PARAMETERS</p>
+                            <p id="m-line-11" class="part-hidden">m = <span id="m-val-11" class="font-bold text-indigo-600"></span></p>
+                            <p id="b-line-11" class="part-hidden">b = <span id="b-val-11" class="font-bold text-indigo-600"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interpretation Questions -->
+                <div id="part-1-11" class="practice-part part-hidden">
+                    <h3 class="text-lg font-medium text-gray-700">Part 1: Analyze the Scatterplot</h3>
+                    <p class="text-sm text-gray-600">Based on the scatterplot alone, what is the visual trend?</p>
+                    <fieldset class="mt-2">
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="part1-11" value="Positive" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">Positive</span></label>
+                            <label class="flex items-center"><input type="radio" name="part1-11" value="Negative" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">Negative</span></label>
+                            <label class="flex items-center"><input type="radio" name="part1-11" value="No Trend" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">No Trend</span></label>
+                        </div>
+                    </fieldset>
+                    <button id="check-part-1-11" class="mt-3 bg-indigo-600 text-white py-2 px-4 rounded-md text-sm font-semibold hover:bg-indigo-700">Check Part 1</button>
+                    <div id="feedback-part-1-11" class="text-sm mt-2"></div>
+                </div>
+
+                <div id="part-2-11" class="practice-part part-hidden">
+                    <h3 class="text-lg font-medium text-gray-700">Part 2: Interpret the Correlation (r)</h3>
+                    <p class="text-sm text-gray-600">The correlation is `r = -0.929`. How would you describe this?</p>
+                    <fieldset class="mt-2">
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="part2-11" value="Strong Positive" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">Strong Positive</span></label>
+                            <label class="flex items-center"><input type="radio" name="part2-11" value="Weak Negative" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">Weak Negative</span></label>
+                            <label class="flex items-center"><input type="radio" name="part2-11" value="Strong Negative" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">Strong Negative</span></label>
+                        </div>
+                    </fieldset>
+                    <button id="check-part-2-11" class="mt-3 bg-indigo-600 text-white py-2 px-4 rounded-md text-sm font-semibold hover:bg-indigo-700">Check Part 2</button>
+                    <div id="feedback-part-2-11" class="text-sm mt-2"></div>
+                </div>
+                
+                <div id="part-3-11" class="practice-part part-hidden">
+                    <h3 class="text-lg font-medium text-gray-700">Part 3: Interpret the Line</h3>
+                    <p class="text-sm text-gray-600">The line is drawn and the slope is `m = -2.2`. What does this mean?</p>
+                    <fieldset class="mt-2">
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="part3-11" value="Incorrect 1" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">For every 1 hour of TV, the grade increases by 2.2 points.</span></label>
+                            <label class="flex items-center"><input type="radio" name="part3-11" value="Correct" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">For every 1 hour of TV, the grade decreases by about 2.2 points.</span></label>
+                            <label class="flex items-center"><input type="radio" name="part3-11" value="Incorrect 2" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">Watching TV has no effect on grades.</span></label>
+                        </div>
+                    </fieldset>
+                    <button id="check-part-3-11" class="mt-3 bg-indigo-600 text-white py-2 px-4 rounded-md text-sm font-semibold hover:bg-indigo-700">Check Part 3</button>
+                    <div id="feedback-part-3-11" class="text-sm mt-2"></div>
+                </div>
+            </div>
+
+            <!-- Step 12: Practice Problem 3 -->
+            <div id="step-12" class="step space-y-6">
+                <h2 class="text-2xl font-semibold text-gray-800">Practice Problem 3: Shoe Size</h2>
+                <p class="text-gray-700">A student wonders if shoe size is related to test scores. They collect data from their friends.</p>
+                
+                <!-- Data for the problem -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="x-data-12" class="block text-sm font-medium text-gray-700">x-values (Shoe Size)</label>
+                        <textarea id="x-data-12" class="mt-1 block w-full h-32" readonly>7
+8
+9
+9
+10
+12</textarea>
+                    </div>
+                    <div>
+                        <label for="y-data-12" class="block text-sm font-medium text-gray-700">y-values (Test Score)</label>
+                        <textarea id="y-data-12" class="mt-1 block w-full h-32" readonly>81
+90
+77
+85
+80
+79</textarea>
+                    </div>
+                </div>
+
+                <!-- Desmos Simulator -->
+                <div class="desmos-sim">
+                    <div class="desmos-sim-inputs">
+                        <div>
+                            <label for="x-input-12" class="block text-sm font-medium text-gray-700">x-values (Shoe Size)</label>
+                            <textarea id="x-input-12" class="mt-1 block w-full" rows="6"></textarea>
+                        </div>
+                        <div>
+                            <label for="y-input-12" class="block text-sm font-medium text-gray-700">y-values (Test Score)</label>
+                            <textarea id="y-input-12" class="mt-1 block w-full" rows="6"></textarea>
+                        </div>
+                        <p class="text-xs text-gray-500 text-center -mt-2 mb-2">Type, paste, or auto-fill the data.</p>
+                        <button id="load-btn-12" class="w-full bg-gray-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-gray-700">Auto-fill Data from Table</button>
+                        <button id="calc-btn-12" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-blue-700 mt-2">1. Plot Data</button>
+                    </div>
+                    <div class="desmos-sim-output">
+                        <canvas id="plot-canvas-12" class="w-full bg-white border border-gray-300 rounded-md" height="200"></canvas>
+                        <div id="results-12" class="desmos-sim-results mt-4">
+                            <p>STATISTICS</p>
+                            <p id="r-line-12" class="part-hidden">r = <span id="r-val-12" class="font-bold text-indigo-600"></span></p>
+                            <p>PARAMETERS</p>
+                            <p id="m-line-12" class="part-hidden">m = <span id="m-val-12" class="font-bold text-indigo-600"></span></p>
+                            <p id="b-line-12" class="part-hidden">b = <span id="b-val-12" class="font-bold text-indigo-600"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interpretation Questions -->
+                <div id="part-1-12" class="practice-part part-hidden">
+                    <h3 class="text-lg font-medium text-gray-700">Part 1: Analyze the Scatterplot</h3>
+                    <p class="text-sm text-gray-600">Based on the scatterplot alone, what is the visual trend?</p>
+                    <fieldset class="mt-2">
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="part1-12" value="Positive" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">Positive</span></label>
+                            <label class="flex items-center"><input type="radio" name="part1-12" value="Negative" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">Negative</span></label>
+                            <label class="flex items-center"><input type="radio" name="part1-12" value="No Trend" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">No Trend</span></label>
+                        </div>
+                    </fieldset>
+                    <button id="check-part-1-12" class="mt-3 bg-indigo-600 text-white py-2 px-4 rounded-md text-sm font-semibold hover:bg-indigo-700">Check Part 1</button>
+                    <div id="feedback-part-1-12" class="text-sm mt-2"></div>
+                </div>
+
+                <div id="part-2-12" class="practice-part part-hidden">
+                    <h3 class="text-lg font-medium text-gray-700">Part 2: Interpret the Correlation (r)</h3>
+                    <p class="text-sm text-gray-600">The correlation is `r = -0.063`. How would you describe this?</p>
+                    <fieldset class="mt-2">
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="part2-12" value="Strong Positive" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">Strong Positive</span></label>
+                            <label class="flex items-center"><input type="radio" name="part2-12" value="Strong Negative" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">Strong Negative</span></label>
+                            <label class="flex items-center"><input type="radio" name="part2-12" value="No Correlation" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">No Correlation</span></label>
+                        </div>
+                    </fieldset>
+                    <button id="check-part-2-12" class="mt-3 bg-indigo-600 text-white py-2 px-4 rounded-md text-sm font-semibold hover:bg-indigo-700">Check Part 2</button>
+                    <div id="feedback-part-2-12" class="text-sm mt-2"></div>
+                </div>
+                
+                <div id="part-3-12" class="practice-part part-hidden">
+                    <h3 class="text-lg font-medium text-gray-700">Part 3: Interpret the Line</h3>
+                    <p class="text-sm text-gray-600">The line is drawn and the slope is `m = -0.21`. What does this mean?</p>
+                    <fieldset class="mt-2">
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="part3-12" value="Incorrect 1" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">Bigger shoes cause lower grades.</span></label>
+                            <label class="flex items-center"><input type="radio" name="part3-12" value="Incorrect 2" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">Bigger shoes cause higher grades.</span></label>
+                            <label class="flex items-center"><input type="radio" name="part3-12" value="Correct" class="h-4 w-4 text-indigo-600"><span class="ml-3 text-sm">There is no real relationship between shoe size and grades.</span></label>
+                        </div>
+                    </fieldset>
+                    <button id="check-part-3-12" class="mt-3 bg-indigo-600 text-white py-2 px-4 rounded-md text-sm font-semibold hover:bg-indigo-700">Check Part 3</button>
+                    <div id="feedback-part-3-12" class="text-sm mt-2"></div>
+                </div>
+            </div>
+
+            <!-- Step 13: Review -->
+            <div id="step-13" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 13: Review</h2>
+                <p>Great job! Let's do a quick review of everything you learned:</p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li><strong>Reasoning:</strong> We first decide if a relationship is likely Positive, Negative, or None.</li>
+                    <li><strong>Scatterplots:</strong> We visualize the data to see the pattern.</li>
+                    <li><strong>Correlation (r):</strong> We use a number from -1 to +1 to measure the strength and direction of the linear relationship.</li>
+                    <li><strong>Line of Best Fit:</strong> We use technology (like Desmos) to find the single line that best models the data.</li>
+                    <li><strong>Interpretation:</strong> We use the `r` value and the line's slope (`m`) to describe the relationship (e.g., "strong positive," "weak negative," "no correlation").</li>
+                </ul>
+            </div>
+
+            <!-- Step 14: Conclusion -->
+            <div id="step-14" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 14: Congratulations!</h2>
+                
+                <!-- New Tally Element -->
+                <div class="my-6 p-4 bg-indigo-50 border border-indigo-200 rounded-lg text-center">
+                    <h3 class="text-lg font-medium text-indigo-800">Your Final Tally</h3>
+                    <p class="text-2xl font-bold text-indigo-600 mt-2" id="final-tally">0 / 9</p>
+                    <p class="text-sm text-gray-600">(Total correct answers from all practice problems)</p>
+                </div>
+                
+                <p>You have successfully completed the lesson and tied all the concepts together:</p>
+                <p class="font-medium">You have now concluded your work on quantitative data!</p>
+            </div>
+            
+            <!-- Navigation -->
+            <footer class="mt-8 pt-6 border-t border-gray-200">
+                <div class="flex justify-between items-center">
+                    <button id="prev-btn" class="bg-gray-200 text-gray-700 py-2 px-6 rounded-md font-medium hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition disabled:opacity-50" disabled>Previous</button>
+                    <div class="text-sm text-gray-600" id="step-counter">Step 1 of 14</div>
+                    <button id="next-btn" class="bg-indigo-600 text-white py-2 px-6 rounded-md font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition">Next</button>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 14; // Updated total steps
+
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const stepCounter = document.getElementById('step-counter');
+
+        // Store activity completion
+        let correlationActivityCompleted = false;
+
+        // NEW: Store practice problem solutions and completion
+        const practiceProblems = {
+            10: {
+                solution: { part1: "Positive", part2: "Strong Positive", part3: "Correct" },
+                completed: { part1: false, part2: false, part3: false },
+                data: {
+                    x: [68, 72, 75, 80, 82, 85],
+                    y: [250, 310, 350, 420, 435, 500]
+                },
+                stats: null // Will be calculated
+            },
+            11: {
+                solution: { part1: "Negative", part2: "Strong Negative", part3: "Correct" },
+                completed: { part1: false, part2: false, part3: false },
+                data: {
+                    x: [1, 5, 8, 10, 15],
+                    y: [92, 85, 70, 75, 60]
+                },
+                stats: null
+            },
+            12: {
+                solution: { part1: "No Trend", part2: "No Correlation", part3: "Correct" },
+                completed: { part1: false, part2: false, part3: false },
+                data: {
+                    x: [7, 8, 9, 9, 10, 12],
+                    y: [81, 90, 77, 85, 80, 79]
+                },
+                stats: null
+            }
+        };
+
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            const activeStep = document.getElementById(`step-${step}`);
+            if (activeStep) {
+                activeStep.classList.add('active');
+            }
+            currentStep = step;
+            updateNavigation();
+            
+            // Draw example plots when their steps are shown
+            if (step === 3) {
+                drawScatterPlot('plot-positive', 'positive');
+                drawScatterPlot('plot-negative', 'negative');
+                drawScatterPlot('plot-none', 'none');
+            }
+            // Draw activity plots
+            if (step === 5) {
+                drawScatterPlot('graph-weak', 'none'); // 'none' type is good for '0.1'
+                drawScatterPlot('graph-strong', 'strong-positive');
+                drawScatterPlot('graph-negative', 'negative');
+            }
+            if (step === 6) {
+                drawScatterPlot('plot-lobf', 'lobf');
+            }
+
+            // NEW: Calculate and display final tally on Step 14
+            if (step === 14) {
+                calculateFinalTally();
+            }
+        }
+
+        // NEW: Function to calculate and display the final tally
+        function calculateFinalTally() {
+            let correctItems = 0;
+            const totalItems = 9; // 3 problems * 3 parts each
+
+            [10, 11, 12].forEach(stepNum => {
+                const problem = practiceProblems[stepNum];
+                if (problem.completed.part1) correctItems++;
+                if (problem.completed.part2) correctItems++;
+                if (problem.completed.part3) correctItems++;
+            });
+
+            const tallyElement = document.getElementById('final-tally');
+            if (tallyElement) {
+                tallyElement.textContent = `${correctItems} / ${totalItems}`;
+            }
+        }
+
+        function updateNavigation() {
+            stepCounter.textContent = `Step ${currentStep} of ${totalSteps}`;
+            prevBtn.disabled = currentStep === 1;
+            
+            // Logic for enabling/disabling next button
+            if (currentStep === 5) {
+                nextBtn.disabled = !correlationActivityCompleted;
+            } else if (practiceProblems[currentStep]) {
+                const parts = practiceProblems[currentStep].completed;
+                nextBtn.disabled = !(parts.part1 && parts.part2 && parts.part3);
+            } else {
+                nextBtn.disabled = currentStep === totalSteps;
+            }
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentStep > 1) {
+                showStep(currentStep - 1);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < totalSteps) {
+                showStep(currentStep + 1);
+            }
+        });
+
+        // --- Scatter Plot Drawing Logic ---
+        function drawScatterPlot(canvasId, type) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+            const padding = 20;
+            ctx.clearRect(0, 0, w, h);
+            ctx.fillStyle = '#3b82f6'; // blue-500
+
+            const rand = (min, max) => Math.random() * (max - min) + min;
+
+            for (let i = 0; i < 30; i++) {
+                let x, y;
+                switch (type) {
+                    case 'positive':
+                    case 'strong-positive':
+                        x = rand(padding, w - padding);
+                        y = h - x + rand(-padding, padding); 
+                        break;
+                    case 'negative':
+                        x = rand(padding, w - padding);
+                        y = x + rand(-padding, padding); 
+                        break;
+                    case 'lobf': 
+                        x = rand(padding, w - padding);
+                        y = h - x + rand(-padding * 2, padding * 2); 
+                        break;
+                    case 'none':
+                    default:
+                        x = rand(padding, w - padding);
+                        y = rand(padding, h - padding);
+                        break;
+                }
+                ctx.beginPath();
+                ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            if (type === 'lobf') {
+                ctx.strokeStyle = '#ef4444'; // red-500
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(padding, h - padding);
+                ctx.lineTo(w - padding, padding);
+                ctx.stroke();
+            }
+        }
+
+        // --- Drag and Drop Logic ---
+        function initCorrelationDragDrop() {
+            const draggables = document.querySelectorAll('#step-5 .draggable');
+            const dropZones = document.querySelectorAll('#step-5 .drop-target');
+            let draggedItem = null;
+
+            draggables.forEach(draggable => {
+                draggable.addEventListener('dragstart', (e) => {
+                    draggedItem = e.target;
+                    setTimeout(() => e.target.classList.add('dragging'), 0);
+                });
+                draggable.addEventListener('dragend', (e) => {
+                    e.target.classList.remove('dragging');
+                    draggedItem = null;
+                });
+            });
+
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const alreadyHasDraggable = zone.querySelector('.draggable');
+                    if (!alreadyHasDraggable) { 
+                        zone.classList.add('drag-over');
+                    }
+                });
+                zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('drag-over');
+                    const alreadyHasDraggable = zone.querySelector('.draggable');
+                    if (draggedItem && !alreadyHasDraggable) { 
+                        zone.appendChild(draggedItem);
+                    }
+                });
+            });
+            
+            const originalContainer = document.getElementById('draggable-container');
+            originalContainer.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                originalContainer.classList.add('drag-over');
+            });
+            originalContainer.addEventListener('dragleave', () => originalContainer.classList.remove('drag-over'));
+            originalContainer.addEventListener('drop', (e) => {
+                e.preventDefault();
+                originalContainer.classList.remove('drag-over');
+                if (draggedItem) {
+                    originalContainer.appendChild(draggedItem);
+                }
+            });
+        }
+        
+        // --- Check Correlation Activity ---
+        document.getElementById('check-corr-btn').addEventListener('click', () => {
+            const dropTargets = document.querySelectorAll('#step-5 .drop-target');
+            let correctCount = 0;
+            const feedback = document.getElementById('corr-feedback');
+            
+            dropTargets.forEach(target => {
+                const correctValue = target.getAttribute('data-value');
+                const droppedItem = target.querySelector('.draggable');
+                if (droppedItem && droppedItem.getAttribute('data-value') === correctValue) {
+                    correctCount++;
+                    target.style.borderColor = '#10b981';
+                    target.style.backgroundColor = '#d1fae5';
+                } else {
+                    target.style.borderColor = '#ef4444';
+                    target.style.backgroundColor = '#fee2e2';
+                }
+            });
+            
+            if (correctCount === 3) {
+                feedback.textContent = "Great job! All matches are correct.";
+                feedback.className = "text-sm mt-1 text-center font-medium text-green-600";
+                correlationActivityCompleted = true;
+                updateNavigation(); 
+            } else {
+                feedback.textContent = `You have ${correctCount} out of 3 correct. Try again!`;
+                feedback.className = "text-sm mt-1 text-center font-medium text-red-600";
+                correlationActivityCompleted = false;
+            }
+        });
+
+        // --- NEW: Linear Regression Calculator ---
+        function calculateLinearRegression(x, y) {
+            const n = x.length;
+            if (n === 0) return { m: 0, b: 0, r: 0 };
+            let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0, sumYY = 0;
+            for (let i = 0; i < n; i++) {
+                sumX += x[i];
+                sumY += y[i];
+                sumXY += x[i] * y[i];
+                sumXX += x[i] * x[i];
+                sumYY += y[i] * y[i];
+            }
+            const m = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            const b = (sumY - m * sumX) / n;
+            const r = (n * sumXY - sumX * sumY) / Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY));
+            return { m, b, r };
+        }
+
+        // NEW: Function to parse input from textareas
+        function parseInput(textareaId) {
+            const text = document.getElementById(textareaId).value;
+            return text.split('\n')
+                       .map(s => s.trim())
+                       .filter(s => s.length > 0)
+                       .map(s => parseFloat(s));
+        }
+
+        // --- NEW: Redesigned Practice Problem Scaffolding ---
+        function setupDesmosSim(step) {
+            const problem = practiceProblems[step];
+            const calcBtn = document.getElementById(`calc-btn-${step}`);
+            const loadBtn = document.getElementById(`load-btn-${step}`); // Get the new load button
+
+            // NEW: Add listener for the load button
+            loadBtn.addEventListener('click', (e) => {
+                e.preventDefault(); // Prevent any default button behavior
+                // MODIFIED: Read from the new read-only textareas
+                const xData = document.getElementById(`x-data-${step}`).value;
+                const yData = document.getElementById(`y-data-${step}`).value;
+                document.getElementById(`x-input-${step}`).value = xData;
+                document.getElementById(`y-input-${step}`).value = yData;
+            });
+            
+            // --- Part 1: Plotting ---
+            calcBtn.addEventListener('click', () => {
+                // NEW: Parse data from textareas
+                const x = parseInput(`x-input-${step}`);
+                const y = parseInput(`y-input-${step}`);
+
+                if (x.length !== y.length || x.length === 0) {
+                    // Using a simple message box instead of alert()
+                    const feedback = document.getElementById(`feedback-part-1-${step}`) || document.getElementById(`part-1-${step}`);
+                    if (feedback) {
+                        const feedbackMsg = document.getElementById(`feedback-part-1-${step}`) || feedback.appendChild(document.createElement('div'));
+                        feedbackMsg.id = `feedback-part-1-${step}`;
+                        feedbackMsg.textContent = "Error: Please enter data. Make sure you have the same number of x and y values.";
+                        feedbackMsg.className = "text-sm mt-2 text-red-600 font-medium";
+                    }
+                    return;
+                }
+                
+                // Store the parsed data and stats
+                problem.parsedData = { x, y };
+                problem.stats = calculateLinearRegression(x, y);
+                
+                // Draw *only* the scatterplot
+                drawDataPlot(`plot-canvas-${step}`, problem.parsedData.x, problem.parsedData.y);
+                
+                // Show Part 1
+                document.getElementById(`part-1-${step}`).classList.remove('part-hidden');
+                calcBtn.disabled = true;
+                calcBtn.textContent = "Data Plotted";
+            });
+            
+            // --- Part 2: Correlation ---
+            document.getElementById(`check-part-1-${step}`).addEventListener('click', () => {
+                const feedback = document.getElementById(`feedback-part-1-${step}`);
+                const userChoice = document.querySelector(`input[name="part1-${step}"]:checked`);
+                
+                if (userChoice && userChoice.value === problem.solution.part1) {
+                    feedback.textContent = "Correct! The points clearly go up from left to right.";
+                    if (problem.solution.part1 === "Negative") feedback.textContent = "Correct! The points clearly go down from left to right.";
+                    if (problem.solution.part1 === "No Trend") feedback.textContent = "Correct! The points are just a cloud with no clear direction.";
+                    feedback.className = "text-sm mt-2 text-green-600 font-medium";
+                    problem.completed.part1 = true;
+                    
+                    // Reveal Part 2
+                    document.getElementById(`part-2-${step}`).classList.remove('part-hidden');
+                    // Reveal 'r' value
+                    document.getElementById(`r-val-${step}`).textContent = problem.stats.r.toFixed(3);
+                    document.getElementById(`r-line-${step}`).classList.remove('part-hidden');
+                } else {
+                    feedback.textContent = "Not quite. Look again at the general direction of the dots.";
+                    feedback.className = "text-sm mt-2 text-red-600 font-medium";
+                }
+            });
+
+            // --- Part 3: Line of Best Fit ---
+            document.getElementById(`check-part-2-${step}`).addEventListener('click', () => {
+                const feedback = document.getElementById(`feedback-part-2-${step}`);
+                const userChoice = document.querySelector(`input[name="part2-${step}"]:checked`);
+                
+                if (userChoice && userChoice.value === problem.solution.part2) {
+                    feedback.textContent = "Excellent! The `r` value is very close to " + (problem.solution.part2.includes("Positive") ? "+1." : "-1.");
+                    if (problem.solution.part2 === "No Correlation") feedback.textContent = "Excellent! The `r` value is very close to 0.";
+                    feedback.className = "text-sm mt-2 text-green-600 font-medium";
+                    problem.completed.part2 = true;
+
+                    // Reveal Part 3
+                    document.getElementById(`part-3-${step}`).classList.remove('part-hidden');
+                    // Reveal 'm' and 'b'
+                    document.getElementById(`m-val-${step}`).textContent = problem.stats.m.toFixed(3);
+                    document.getElementById(`b-val-${step}`).textContent = problem.stats.b.toFixed(3);
+                    document.getElementById(`m-line-${step}`).classList.remove('part-hidden');
+                    document.getElementById(`b-line-${step}`).classList.remove('part-hidden');
+                    
+                    // NOW draw the line
+                    drawDataPlot(`plot-canvas-${step}`, problem.parsedData.x, problem.parsedData.y, problem.stats.m, problem.stats.b);
+                } else {
+                    feedback.textContent = "Not quite. Remember, values close to 1 or -1 are 'Strong', while values close to 0 are 'Weak' or 'None'.";
+                    feedback.className = "text-sm mt-2 text-red-600 font-medium";
+                }
+            });
+
+            // --- Final Check ---
+            document.getElementById(`check-part-3-${step}`).addEventListener('click', () => {
+                const feedback = document.getElementById(`feedback-part-3-${step}`);
+                const userChoice = document.querySelector(`input[name="part3-${step}"]:checked`);
+                
+                if (userChoice && userChoice.value === problem.solution.part3) {
+                    feedback.textContent = "Perfect! You've correctly interpreted what the slope means in this context.";
+                    feedback.className = "text-sm mt-2 text-green-600 font-medium";
+                    problem.completed.part3 = true;
+                    updateNavigation(); // Check if all parts are done to unlock "Next"
+                } else {
+                    feedback.textContent = "That's not the right interpretation. Remember the slope 'm' is the change in 'y' for every 1-unit change in 'x'.";
+                    feedback.className = "text-sm mt-2 text-red-600 font-medium";
+                }
+            });
+        }
+
+        function drawDataPlot(canvasId, x, y, m, b) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+            const padding = 20;
+            ctx.clearRect(0, 0, w, h);
+            
+            const minX = Math.min(...x);
+            const maxX = Math.max(...x);
+            const minY = Math.min(...y);
+            const maxY = Math.max(...y);
+            
+            // Add padding to range
+            const rangeX = (maxX - minX) * 1.2 || 1;
+            const rangeY = (maxY - minY) * 1.2 || 1;
+            const plotMinX = minX - (rangeX * 0.1);
+            const plotMinY = minY - (rangeY * 0.1);
+            
+            const scaleX = (val) => padding + (val - plotMinX) / rangeX * (w - 2 * padding);
+            const scaleY = (val) => h - padding - (val - plotMinY) / rangeY * (h - 2 * padding);
+            
+            // Draw points
+            ctx.fillStyle = '#3b82f6'; // blue-500
+            for (let i = 0; i < x.length; i++) {
+                ctx.beginPath();
+                ctx.arc(scaleX(x[i]), scaleY(y[i]), 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Draw line of best fit (if m and b are provided)
+            if (m !== undefined && b !== undefined) {
+                ctx.strokeStyle = '#ef4444'; // red-500
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                const y1 = m * plotMinX + b; // Use padded min/max for line
+                const y2 = m * (plotMinX + rangeX) + b;
+                ctx.moveTo(scaleX(plotMinX), scaleY(y1));
+                ctx.lineTo(scaleX(plotMinX + rangeX), scaleY(y2));
+                ctx.stroke();
+            }
+        }
+
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            showStep(currentStep);
+            initCorrelationDragDrop();
+            // NEW: Setup all practice problems
+            setupDesmosSim(10);
+            setupDesmosSim(11);
+            setupDesmosSim(12);
+        });
+
+    </script>
+</body>
+</html>
+
