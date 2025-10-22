@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics Lesson</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .step {
+            display: none;
+        }
+        .step.active {
+            display: block;
+        }
+        .draggable {
+            touch-action: none;
+            user-select: none;
+            cursor: grab;
+        }
+        .drop-zone {
+            min-height: 60px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 0.5rem;
+        }
+        .draggable.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+            background-color: #e0e7ff;
+        }
+        .drag-over {
+            background-color: #eef2ff;
+            border-color: #4f46e5;
+        }
+        .data-item {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 4rem; /* w-16 */
+            height: 4rem; /* h-16 */
+            margin: 0.5rem; /* m-2 */
+            background-color: white; /* bg-white */
+            border: 1px solid #d1d5db; /* border border-gray-300 */
+            border-radius: 0.375rem; /* rounded-md */
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 500; /* font-medium */
+            color: #374151; /* text-gray-700 */
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); /* shadow-sm */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-3xl">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-indigo-700">Statistics Lesson</h1>
+            <p class="text-xl text-gray-600 mt-2">A Step-by-Step Guide</p>
+        </header>
+
+        <main class="bg-white rounded-lg shadow-xl p-6 md:p-10">
+            <!-- Step 1: Introduction -->
+            <div id="step-1" class="step active prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 1: Welcome!</h2>
+                <p>Welcome to this interactive lesson on the <strong>5-Number Summary</strong> and <strong>Box Plots</strong>!</p>
+                <p>In this lesson, you will learn:</p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>What the 5-Number Summary is.</li>
+                    <li>How to find the <strong>Minimum</strong>, <strong>Quartile 1 (Q1)</strong>, <strong>Median (Q2)</strong>, <strong>Quartile 3 (Q3)</strong>, and <strong>Maximum</strong>.</li>
+                    <li>How to use these values to build a Box Plot.</li>
+                    <li>How to analyze the <strong>shape</strong> of a data set (Symmetric, Skewed Left, or Skewed Right).</li>
+                </ul>
+                <p class="mt-4">Click "Next" to get started!</p>
+            </div>
+
+            <!-- Step 2: What is the 5-Number Summary? -->
+            <div id="step-2" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 2: What is the 5-Number Summary?</h2>
+                <p>The 5-Number Summary is a set of five values that divide a data set into four equal parts. It gives you a great snapshot of your data's spread and center.</p>
+                <p>The five numbers are:</p>
+                <ol class="list-decimal pl-5 space-y-2">
+                    <li><strong>Minimum (Min):</strong> The smallest value in the data set.</li>
+                    <li><strong>Quartile 1 (Q1):</strong> The 25th percentile. This is the median of the *lower half* of the data.</li>
+                    <li><strong>Median (Q2):</strong> The 50th percentile. This is the middle value of the entire data set.</li>
+                    <li><strong>Quartile 3 (Q3):</strong> The 75th percentile. This is the median of the *upper half* of the data.</li>
+                    <li><strong>Maximum (Max):</strong> The largest value in the data set.</li>
+                </ol>
+            </div>
+
+            <!-- Step 3: Step 1 - Sort the Data -->
+            <div id="step-3" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 3: How to Find It (Part 1)</h2>
+                <h3 class="text-xl font-medium text-gray-700">Task 1: Sort the Data</h3>
+                <p>You cannot find the 5-Number Summary without first sorting your data.</p>
+                <p><strong>Rule:</strong> Always arrange your data set in order from <strong>smallest to largest</strong> (ascending order).</p>
+                
+                <p class="font-medium">Example:</p>
+                <p><strong>Unsorted Data:</strong></p>
+                <div class="bg-gray-100 p-3 rounded-md">
+                    <p class="text-lg font-mono text-center">8, 3, 5, 1, 9, 6, 2</p>
+                </div>
+                
+                <p class="mt-4 font-medium"><strong>Sorted Data:</strong></p>
+                <div class="bg-indigo-50 p-3 rounded-md border border-indigo-200">
+                    <p class="text-lg font-mono text-center">1, 2, 3, 5, 6, 8, 9</p>
+                </div>
+            </div>
+
+            <!-- Step 4: Min and Max -->
+            <div id="step-4" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 4: How to Find It (Part 2)</h2>
+                <h3 class="text-xl font-medium text-gray-700">Task 2: Find the Minimum and Maximum</h3>
+                <p>This is the easiest part! Once your data is sorted:</p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>The <strong>Minimum</strong> is the first number in your list.</li>
+                    <li>The <strong>Maximum</strong> is the last number in your list.</li>
+                </ul>
+                <p class="font-medium">Example:</p>
+                <p><strong>Sorted Data:</strong></p>
+                <div class="bg-gray-100 p-3 rounded-md">
+                    <p class="text-lg font-mono text-center"><span class="font-bold text-red-600">1</span>, 2, 3, 5, 6, 8, <span class="font-bold text-blue-600">9</span></p>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                    <div class="bg-red-50 p-3 rounded-md border border-red-200"><strong>Minimum:</strong> <span class="font-bold text-red-600">1</span></div>
+                    <div class="bg-blue-50 p-3 rounded-md border border-blue-200"><strong>Maximum:</strong> <span class="font-bold text-blue-600">9</span></div>
+                </div>
+            </div>
+
+            <!-- Step 5: Median -->
+            <div id="step-5" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 5: How to Find It (Part 3)</h2>
+                <h3 class="text-xl font-medium text-gray-700">Task 3: Find the Median (Q2)</h3>
+                <p>The <strong>Median</strong> is the value right in the middle of the sorted data.</p>
+                <p><strong>Sorted Data:</strong></p>
+                <div class="bg-gray-100 p-3 rounded-md">
+                    <p class="text-lg font-mono text-center">1, 2, 3, <span class="font-bold text-indigo-600 bg-indigo-100 p-1 rounded">5</span>, 6, 8, 9</p>
+                </div>
+                <p class="mt-4">In this set, the number <strong>5</strong> is in the middle. There are three numbers before it and three numbers after it.</p>
+                <div class="bg-indigo-50 p-3 rounded-md border border-indigo-200"><strong>Median (Q2):</strong> <span class="font-bold text-indigo-600">5</span></div>
+                <hr class="my-4">
+                <p class="font-medium">What if there's an even number of data points?</p>
+                <p>If there are two middle numbers, you find the average (mean) of them.</p>
+                <p><strong>Example (Even Set):</strong> 1, 2, <span class="font-bold text-green-600">4, 6</span>, 8, 9</p>
+                <p>The middle numbers are 4 and 6.
+                <br> (4 + 6) / 2 = 10 / 2 = <strong>5</strong>.
+                <br>The Median for this set would be <strong>5</strong>.
+                </p>
+            </div>
+
+            <!-- Step 6: Q1 and Q3 -->
+            <div id="step-6" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 6: How to Find It (Part 4)</h2>
+                <h3 class="text-xl font-medium text-gray-700">Task 4: Find Q1 and Q3</h3>
+                <p>Now you just find the median of the lower and upper halves of the data.</p>
+                <p><strong>Sorted Data:</strong></p>
+                <div class="bg-gray-100 p-3 rounded-md">
+                    <p class="text-lg font-mono text-center">[ <span class="text-red-600">1, <strong>2</strong>, 3</span> ] , <span class="font-bold text-indigo-600">5</span> , [ <span class="text-blue-600">6, <strong>8</strong>, 9</span> ]</p>
+                </div>
+                <ul class="list-disc pl-5 space-y-2 mt-4">
+                    <li><strong>Quartile 1 (Q1):</strong> This is the median of the <strong>lower half</strong> (the numbers before the median 5). The lower half is [1, 2, 3]. The middle number is <strong>2</strong>.</li>
+                    <li><strong>Quartile 3 (Q3):</strong> This is the median of the <strong>upper half</strong> (the numbers after the median 5). The upper half is [6, 8, 9]. The middle number is <strong>8</strong>.</li>
+                </ul>
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                    <div class="bg-red-50 p-3 rounded-md border border-red-200"><strong>Q1:</strong> <span class="font-bold text-red-600">2</span></div>
+                    <div class="bg-blue-50 p-3 rounded-md border border-blue-200"><strong>Q3:</strong> <span class="font-bold text-blue-600">8</span></div>
+                </div>
+                <p class="mt-2 text-sm text-gray-600">(Note: When the data set is odd, you do *not* include the median when finding Q1 and Q3.)</p>
+            </div>
+
+            <!-- Step 7: Summary of Summary -->
+            <div id="step-7" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 7: The Final 5-Number Summary</h2>
+                <p>Let's review what we found for our data set: [1, 2, 3, 5, 6, 8, 9]</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full table-auto border border-collapse">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="border p-2">Minimum</th>
+                                <th class="border p-2">Q1</th>
+                                <th class="border p-2">Median (Q2)</th>
+                                <th class="border p-2">Q3</th>
+                                <th class="border p-2">Maximum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="text-center font-medium text-lg">
+                                <td class="border p-2">1</td>
+                                <td class="border p-2">2</td>
+                                <td class="border p-2">5</td>
+                                <td class="border p-2">8</td>
+                                <td class="border p-2">9</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="mt-4">That's it! This summary is the "recipe" for building a Box Plot.</p>
+            </div>
+
+            <!-- Step 8: What is a Box Plot? -->
+            <div id="step-8" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 8: What is a Box Plot?</h2>
+                <p>A <strong>Box Plot</strong> (or Box-and-Whisker Plot) is a visual representation of the 5-Number Summary. It's extremely useful for seeing the data's spread and shape at a glance.</p>
+                
+                <p>Here is what one looks like, built from our example summary [1, 2, 5, 8, 9]:</p>
+                
+                <div class="w-full p-4">
+                    <canvas id="example-plot-1"></canvas>
+                </div>
+                
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>The <strong>"box"</strong> is drawn from <strong>Q1</strong> to <strong>Q3</strong>.</li>
+                    <li>A <strong>line inside the box</strong> marks the <strong>Median</strong>.</li>
+                    <li>The <strong>"whiskers"</strong> (lines) extend from the box out to the <strong>Minimum</strong> and <strong>Maximum</strong>.</li>
+                </ul>
+            </div>
+
+            <!-- Step 9: How to Read a Box Plot -->
+            <div id="step-9" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 9: Analyzing the Shape (Symmetry)</h2>
+                <p>A Box Plot makes it easy to see if your data is <strong>symmetric</strong> or <strong>skewed</strong>.</p>
+                
+                <h3 class="text-lg font-medium">Symmetric</h3>
+                <p>The median is in the middle of the box, and the whiskers are about the same length. The data is evenly spread.</p>
+                <div class="w-full p-4"><canvas id="example-plot-symmetric"></canvas></div>
+
+            </div>
+            
+            <!-- Step 10: Skewed -->
+            <div id="step-10" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 10: Analyzing the Shape (Skew)</h2>
+
+                <h3 class="text-lg font-medium">Skewed Left</h3>
+                <p>The median is closer to the right (Q3). The <strong>left whisker is longer</strong>, meaning the data has a "tail" of low values.</p>
+                <div class="w-full p-4"><canvas id="example-plot-skew-left"></canvas></div>
+                
+                <h3 class="text-lg font-medium mt-4">Skewed Right</h3>
+                <p>The median is closer to the left (Q1). The <strong>right whisker is longer</strong>, meaning the data has a "tail" of high values.</p>
+                <div class="w-full p-4"><canvas id="example-plot-skew-right"></canvas></div>
+            </div>
+
+            <!-- Step 11: "You Do" Intro -->
+            <div id="step-11" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 11: Practice Problems ("You Do")</h2>
+                <p>Time to put all the concepts together! The next four steps are practice problems.</p>
+                <p>In each problem, you will need to complete all three tasks:</p>
+                <ol class="list-decimal pl-5 space-y-2">
+                    <li><strong>Part 1:</strong> Sort the data set by dragging the numbers.</li>
+                    <li><strong>Part 2:</strong> Calculate the 5-Number Summary and enter your values.</li>
+                    <li><strong>Part 3:</strong> Analyze the shape of the data.</li>
+                </ol>
+                <p class="mt-4">Click "Check My Answer" at the bottom of each step to get feedback. The "Next" button will unlock once you get all parts correct.</p>
+            </div>
+
+            <!-- Step 12: Practice Problem 1 -->
+            <div id="step-12" class="step space-y-6">
+                <h2 class="text-2xl font-semibold text-gray-800">Practice Problem 1</h2>
+                
+                <!-- Part 1: Sort -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700">Part 1: Sort the Data</h3>
+                    <p class="text-sm text-gray-500">Drag the numbers from the top box to the bottom box in ascending order.</p>
+                    <div id="unsorted-container-12" class="drop-zone bg-gray-50 p-2 min-h-[5rem] flex flex-wrap justify-center">
+                        <!-- Draggable items will be injected by JS -->
+                    </div>
+                    <div class="text-center my-2 text-gray-400">&darr; &darr; &darr;</div>
+                    <div id="sorted-container-12" class="drop-zone p-2 min-h-[5rem] flex flex-wrap justify-center"></div>
+                    <div id="sort-feedback-12" class="text-sm mt-1"></div>
+                </div>
+
+                <!-- Part 2: 5-Number Summary -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700">Part 2: Calculate the 5-Number Summary</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <div>
+                            <label for="min-12" class="block text-sm font-medium text-gray-600">Minimum</label>
+                            <input type="number" id="min-12" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="q1-12" class="block text-sm font-medium text-gray-600">Q1</label>
+                            <input type="number" id="q1-12" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="median-12" class="block text-sm font-medium text-gray-600">Median</label>
+                            <input type="number" id="median-12" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="q3-12" class="block text-sm font-medium text-gray-600">Q3</label>
+                            <input type="number" id="q3-12" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="max-12" class="block text-sm font-medium text-gray-600">Maximum</label>
+                            <input type="number" id="max-12" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <div id="summary-feedback-12" class="text-sm mt-1"></div>
+                </div>
+                
+                <!-- Box Plot Visualization -->
+                <div id="plot-container-12" class="hidden w-full p-4 border rounded-md bg-gray-50">
+                    <canvas id="plot-canvas-12"></canvas>
+                </div>
+
+                <!-- Part 3: Analyze Shape -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700">Part 3: Analyze the Shape</h3>
+                    <fieldset class="mt-2">
+                        <legend class="sr-only">Data Shape</legend>
+                        <div class="space-y-2">
+                            <label class="relative flex items-center p-3 rounded-md border border-gray-300 hover:bg-gray-50">
+                                <input type="radio" name="shape-12" value="Skewed Left" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-3 text-sm text-gray-700">Skewed Left</span>
+                            </label>
+                            <label class="relative flex items-center p-3 rounded-md border border-gray-300 hover:bg-gray-50">
+                                <input type="radio" name="shape-12" value="Symmetric" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-3 text-sm text-gray-700">Symmetric</span>
+                            </label>
+                            <label class="relative flex items-center p-3 rounded-md border border-gray-300 hover:bg-gray-50">
+                                <input type="radio" name="shape-12" value="Skewed Right" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-3 text-sm text-gray-700">Skewed Right</span>
+                            </label>
+                        </div>
+                    </fieldset>
+                    <div id="shape-feedback-12" class="text-sm mt-1"></div>
+                </div>
+                
+                <button id="check-btn-12" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-md font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition">Check My Answer</button>
+            </div>
+
+            <!-- Step 13: Practice Problem 2 -->
+            <div id="step-13" class="step space-y-6">
+                <h2 class="text-2xl font-semibold text-gray-800">Practice Problem 2</h2>
+                
+                <!-- Part 1: Sort -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700">Part 1: Sort the Data</h3>
+                    <p class="text-sm text-gray-500">Drag the numbers from the top box to the bottom box in ascending order.</p>
+                    <div id="unsorted-container-13" class="drop-zone bg-gray-50 p-2 min-h-[5rem] flex flex-wrap justify-center">
+                        <!-- Draggable items will be injected by JS -->
+                    </div>
+                    <div class="text-center my-2 text-gray-400">&darr; &darr; &darr;</div>
+                    <div id="sorted-container-13" class="drop-zone p-2 min-h-[5rem] flex flex-wrap justify-center"></div>
+                    <div id="sort-feedback-13" class="text-sm mt-1"></div>
+                </div>
+
+                <!-- Part 2: 5-Number Summary -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700">Part 2: Calculate the 5-Number Summary</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <div>
+                            <label for="min-13" class="block text-sm font-medium text-gray-600">Minimum</label>
+                            <input type="number" id="min-13" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="q1-13" class="block text-sm font-medium text-gray-600">Q1</label>
+                            <input type="number" id="q1-13" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="median-13" class="block text-sm font-medium text-gray-600">Median</label>
+                            <input type="number" id="median-13" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="q3-13" class="block text-sm font-medium text-gray-600">Q3</label>
+                            <input type="number" id="q3-13" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="max-13" class="block text-sm font-medium text-gray-600">Maximum</label>
+                            <input type="number" id="max-13" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <div id="summary-feedback-13" class="text-sm mt-1"></div>
+                </div>
+                
+                <!-- Box Plot Visualization -->
+                <div id="plot-container-13" class="hidden w-full p-4 border rounded-md bg-gray-50">
+                    <canvas id="plot-canvas-13"></canvas>
+                </div>
+
+                <!-- Part 3: Analyze Shape -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700">Part 3: Analyze the Shape</h3>
+                    <fieldset class="mt-2">
+                        <legend class="sr-only">Data Shape</legend>
+                        <div class="space-y-2">
+                            <label class="relative flex items-center p-3 rounded-md border border-gray-300 hover:bg-gray-50">
+                                <input type="radio" name="shape-13" value="Skewed Left" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-3 text-sm text-gray-700">Skewed Left</span>
+                            </label>
+                            <label class="relative flex items-center p-3 rounded-md border border-gray-300 hover:bg-gray-50">
+                                <input type="radio" name="shape-13" value="Symmetric" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-3 text-sm text-gray-700">Symmetric</span>
+                            </label>
+                            <label class="relative flex items-center p-3 rounded-md border border-gray-300 hover:bg-gray-50">
+                                <input type="radio" name="shape-13" value="Skewed Right" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-3 text-sm text-gray-700">Skewed Right</span>
+                            </label>
+                        </div>
+                    </fieldset>
+                    <div id="shape-feedback-13" class="text-sm mt-1"></div>
+                </div>
+                
+                <button id="check-btn-13" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-md font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition">Check My Answer</button>
+            </div>
+
+            <!-- Step 14: Practice Problem 3 -->
+            <div id="step-14" class="step space-y-6">
+                <h2 class="text-2xl font-semibold text-gray-800">Practice Problem 3</h2>
+                
+                <!-- Part 1: Sort -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700">Part 1: Sort the Data</h3>
+                    <p class="text-sm text-gray-500">Drag the numbers from the top box to the bottom box in ascending order.</p>
+                    <div id="unsorted-container-14" class="drop-zone bg-gray-50 p-2 min-h-[5rem] flex flex-wrap justify-center">
+                        <!-- Draggable items will be injected by JS -->
+                    </div>
+                    <div class="text-center my-2 text-gray-400">&darr; &darr; &darr;</div>
+                    <div id="sorted-container-14" class="drop-zone p-2 min-h-[5rem] flex flex-wrap justify-center"></div>
+                    <div id="sort-feedback-14" class="text-sm mt-1"></div>
+                </div>
+
+                <!-- Part 2: 5-Number Summary -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700">Part 2: Calculate the 5-Number Summary</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <div>
+                            <label for="min-14" class="block text-sm font-medium text-gray-600">Minimum</label>
+                            <input type="number" id="min-14" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="q1-14" class="block text-sm font-medium text-gray-600">Q1</label>
+                            <input type="number" id="q1-14" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="median-14" class="block text-sm font-medium text-gray-600">Median</label>
+                            <input type="number" id="median-14" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="q3-14" class="block text-sm font-medium text-gray-600">Q3</label>
+                            <input type="number" id="q3-14" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="max-14" class="block text-sm font-medium text-gray-600">Maximum</label>
+                            <input type="number" id="max-14" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <div id="summary-feedback-14" class="text-sm mt-1"></div>
+                </div>
+                
+                <!-- Box Plot Visualization -->
+                <div id="plot-container-14" class="hidden w-full p-4 border rounded-md bg-gray-50">
+                    <canvas id="plot-canvas-14"></canvas>
+                </div>
+
+                <!-- Part 3: Analyze Shape -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700">Part 3: Analyze the Shape</h3>
+                    <fieldset class="mt-2">
+                        <legend class="sr-only">Data Shape</legend>
+                        <div class="space-y-2">
+                            <label class="relative flex items-center p-3 rounded-md border border-gray-300 hover:bg-gray-50">
+                                <input type="radio" name="shape-14" value="Skewed Left" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-3 text-sm text-gray-700">Skewed Left</span>
+                            </label>
+                            <label class="relative flex items-center p-3 rounded-md border border-gray-300 hover:bg-gray-50">
+                                <input type="radio" name="shape-14" value="Symmetric" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-3 text-sm text-gray-700">Symmetric</span>
+                            </label>
+                            <label class="relative flex items-center p-3 rounded-md border border-gray-300 hover:bg-gray-50">
+                                <input type="radio" name="shape-14" value="Skewed Right" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-3 text-sm text-gray-700">Skewed Right</span>
+                            </label>
+                        </div>
+                    </fieldset>
+                    <div id="shape-feedback-14" class="text-sm mt-1"></div>
+                </div>
+                
+                <button id="check-btn-14" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-md font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition">Check My Answer</button>
+            </div>
+            
+            <!-- Step 15: Practice Problem 4 -->
+            <div id="step-15" class="step space-y-6">
+                <h2 class="text-2xl font-semibold text-gray-800">Practice Problem 4</h2>
+                
+                <!-- Part 1: Sort -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700">Part 1: Sort the Data</h3>
+                    <p class="text-sm text-gray-500">Drag the numbers from the top box to the bottom box in ascending order.</p>
+                    <div id="unsorted-container-15" class="drop-zone bg-gray-50 p-2 min-h-[5rem] flex flex-wrap justify-center">
+                        <!-- Draggable items will be injected by JS -->
+                    </div>
+                    <div class="text-center my-2 text-gray-400">&darr; &darr; &darr;</div>
+                    <div id="sorted-container-15" class="drop-zone p-2 min-h-[5rem] flex flex-wrap justify-center"></div>
+                    <div id="sort-feedback-15" class="text-sm mt-1"></div>
+                </div>
+
+                <!-- Part 2: 5-Number Summary -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700">Part 2: Calculate the 5-Number Summary</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <div>
+                            <label for="min-15" class="block text-sm font-medium text-gray-600">Minimum</label>
+                            <input type="number" id="min-15" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="q1-15" class="block text-sm font-medium text-gray-600">Q1</label>
+                            <input type="number" id="q1-15" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="median-15" class="block text-sm font-medium text-gray-600">Median</label>
+                            <input type="number" id="median-15" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="q3-15" class="block text-sm font-medium text-gray-600">Q3</label>
+                            <input type="number" id="q3-15" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="max-15" class="block text-sm font-medium text-gray-600">Maximum</label>
+                            <input type="number" id="max-15" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <div id="summary-feedback-15" class="text-sm mt-1"></div>
+                </div>
+                
+                <!-- Box Plot Visualization -->
+                <div id="plot-container-15" class="hidden w-full p-4 border rounded-md bg-gray-50">
+                    <canvas id="plot-canvas-15"></canvas>
+                </div>
+
+                <!-- Part 3: Analyze Shape -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700">Part 3: Analyze the Shape</h3>
+                    <fieldset class="mt-2">
+                        <legend class="sr-only">Data Shape</legend>
+                        <div class="space-y-2">
+                            <label class="relative flex items-center p-3 rounded-md border border-gray-300 hover:bg-gray-50">
+                                <input type="radio" name="shape-15" value="Skewed Left" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-3 text-sm text-gray-700">Skewed Left</span>
+                            </label>
+                            <label class="relative flex items-center p-3 rounded-md border border-gray-300 hover:bg-gray-50">
+                                <input type="radio" name="shape-15" value="Symmetric" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-3 text-sm text-gray-700">Symmetric</span>
+                            </label>
+                            <label class="relative flex items-center p-3 rounded-md border border-gray-300 hover:bg-gray-50">
+                                <input type="radio" name="shape-15" value="Skewed Right" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                <span class="ml-3 text-sm text-gray-700">Skewed Right</span>
+                            </label>
+                        </div>
+                    </fieldset>
+                    <div id="shape-feedback-15" class="text-sm mt-1"></div>
+                </div>
+                
+                <button id="check-btn-15" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-md font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition">Check My Answer</button>
+            </div>
+
+            <!-- Step 16: Review -->
+            <div id="step-16" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 16: Review</h2>
+                <p>Great job! Let's do a quick review of what you learned:</p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li><strong>Sort Data:</strong> Always arrange data from smallest to largest first.</li>
+                    <li><strong>5-Number Summary:</strong>
+                        <ul>
+                            <li><strong>Min:</strong> Smallest value.</li>
+                            <li><strong>Max:</strong> Largest value.</li>
+                            <li><strong>Median (Q2):</strong> The middle value of the whole set.</li>
+                            <li><strong>Q1:</strong> The median of the lower half.</li>
+                            <li><strong>Q3:</strong> The median of the upper half.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Box Plot:</strong> A visual of the 5-Number Summary. The box spans Q1 to Q3, with a line for the median and whiskers for Min/Max.</li>
+                    <li><strong>Shape:</strong>
+                        <ul>
+                            <li><strong>Symmetric:</strong> Median is centered, whiskers are even.</li>
+                            <li><strong>Skewed Left:</strong> Long whisker on the left.</li>
+                            <li><strong>Skewed Right:</strong> Long whisker on the right.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Step 17: Conclusion -->
+            <div id="step-17" class="step prose max-w-none">
+                <h2 class="text-2xl font-semibold text-gray-800">Step 17: Congratulations!</h2>
+                
+                <!-- New Tally Element -->
+                <div class="my-6 p-4 bg-indigo-50 border border-indigo-200 rounded-lg text-center">
+                    <h3 class="text-lg font-medium text-indigo-800">Your Final Tally</h3>
+                    <p class="text-2xl font-bold text-indigo-600 mt-2" id="final-tally">0 / 12</p>
+                    <p class="text-sm text-gray-600">(Total correct answers from all practice problems)</p>
+                </div>
+                
+                <p>You have successfully completed the lesson on the 5-Number Summary and Box Plots.</p>
+                <p>You now have the skills to find the key values in a data set, build a box plot, and analyze its shape. These are fundamental skills in statistics!</p>
+                <p class="font-medium">Thank you for learning!</p>
+            </div>
+
+            <!-- Navigation -->
+            <footer class="mt-8 pt-6 border-t border-gray-200">
+                <div class="flex justify-between items-center">
+                    <button id="prev-btn" class="bg-gray-200 text-gray-700 py-2 px-6 rounded-md font-medium hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition disabled:opacity-50" disabled>Previous</button>
+                    <div class="text-sm text-gray-600" id="step-counter">Step 1 of 17</div>
+                    <button id="next-btn" class="bg-indigo-600 text-white py-2 px-6 rounded-md font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition disabled:opacity-50">Next</to>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 17;
+
+        // Data for practice problems
+        const practiceProblems = {
+            12: {
+                data: [19, 28, 25, 27, 29, 31, 35, 19, 22],
+                solution: {
+                    sorted: [19, 19, 22, 25, 27, 28, 29, 31, 35],
+                    summary: { min: 19, q1: 20.5, median: 27, q3: 30, max: 35 },
+                    shape: "Skewed Left"
+                },
+                completedParts: { sort: false, summary: false, shape: false }
+            },
+            13: {
+                data: [5, 15, 10, 20, 25, 5, 30],
+                solution: {
+                    sorted: [5, 5, 10, 15, 20, 25, 30],
+                    summary: { min: 5, q1: 5, median: 15, q3: 25, max: 30 },
+                    shape: "Symmetric"
+                },
+                completedParts: { sort: false, summary: false, shape: false }
+            },
+            14: {
+                data: [70, 72, 76, 78, 80, 82, 84, 100],
+                solution: {
+                    sorted: [70, 72, 76, 78, 80, 82, 84, 100],
+                    summary: { min: 70, q1: 74, median: 79, q3: 83, max: 100 },
+                    shape: "Skewed Right"
+                },
+                completedParts: { sort: false, summary: false, shape: false }
+            },
+            15: {
+                data: [1, 10, 11, 12, 12, 14, 15, 16, 20],
+                solution: {
+                    sorted: [1, 10, 11, 12, 12, 14, 15, 16, 20],
+                    summary: { min: 1, q1: 10.5, median: 12, q3: 15.5, max: 20 },
+                    shape: "Skewed Left"
+                },
+                completedParts: { sort: false, summary: false, shape: false }
+            }
+        };
+
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const stepCounter = document.getElementById('step-counter');
+
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById(`step-${step}`).classList.add('active');
+            currentStep = step;
+            updateNavigation();
+            
+            // Draw example plots when their steps are shown
+            if (step === 8) {
+                drawBoxPlot(null, { min: 1, q1: 2, median: 5, q3: 8, max: 9 }, 'example-plot-1', 'Example Plot: [1, 2, 5, 8, 9]');
+            } else if (step === 9) {
+                drawBoxPlot(null, { min: 10, q1: 20, median: 25, q3: 30, max: 40 }, 'example-plot-symmetric', 'Symmetric: [10, 20, 25, 30, 40]');
+            } else if (step === 10) {
+                drawBoxPlot(null, { min: 5, q1: 20, median: 25, q3: 28, max: 30 }, 'example-plot-skew-left', 'Skewed Left: [5, 20, 25, 28, 30]');
+                drawBoxPlot(null, { min: 10, q1: 12, median: 15, q3: 25, max: 40 }, 'example-plot-skew-right', 'Skewed Right: [10, 12, 15, 25, 40]');
+            }
+            
+            // NEW: Calculate and display final tally on Step 17
+            if (step === 17) {
+                calculateFinalTally();
+            }
+        }
+
+        // NEW: Function to calculate and display the final tally
+        function calculateFinalTally() {
+            let correctItems = 0;
+            const totalItems = 12; // 4 problems * 3 parts each
+
+            [12, 13, 14, 15].forEach(stepNum => {
+                const problem = practiceProblems[stepNum];
+                if (problem.completedParts.sort) correctItems++;
+                if (problem.completedParts.summary) correctItems++;
+                if (problem.completedParts.shape) correctItems++;
+            });
+
+            const tallyElement = document.getElementById('final-tally');
+            if (tallyElement) {
+                tallyElement.textContent = `${correctItems} / ${totalItems}`;
+            }
+        }
+
+        function updateNavigation() {
+            stepCounter.textContent = `Step ${currentStep} of ${totalSteps}`;
+            prevBtn.disabled = currentStep === 1;
+            
+            // Logic for enabling/disabling next button
+            if (practiceProblems[currentStep]) {
+                const parts = practiceProblems[currentStep].completedParts;
+                nextBtn.disabled = !(parts.sort && parts.summary && parts.shape);
+            } else {
+                nextBtn.disabled = currentStep === totalSteps;
+            }
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentStep > 1) {
+                showStep(currentStep - 1);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < totalSteps) {
+                showStep(currentStep + 1);
+            }
+        });
+        
+        // --- Drag and Drop Logic ---
+        function initDragAndDrop(step) {
+            const problem = practiceProblems[step];
+            if (!problem) return;
+
+            const unsortedContainer = document.getElementById(`unsorted-container-${step}`);
+            const sortedContainer = document.getElementById(`sorted-container-${step}`);
+            
+            // Clear containers
+            unsortedContainer.innerHTML = '';
+            sortedContainer.innerHTML = '';
+            
+            // Create draggable items
+            problem.data.forEach((num, index) => {
+                const item = document.createElement('div');
+                item.id = `item-${step}-${index}`;
+                item.className = 'data-item draggable';
+                item.draggable = true;
+                item.textContent = num;
+                unsortedContainer.appendChild(item);
+            });
+
+            const draggables = document.querySelectorAll(`#step-${step} .draggable`);
+            const dropZones = document.querySelectorAll(`#step-${step} .drop-zone`);
+            let draggedItem = null;
+
+            draggables.forEach(draggable => {
+                draggable.addEventListener('dragstart', (e) => {
+                    draggedItem = e.target;
+                    setTimeout(() => e.target.classList.add('dragging'), 0);
+                });
+
+                draggable.addEventListener('dragend', (e) => {
+                    e.target.classList.remove('dragging');
+                    draggedItem = null;
+                });
+            });
+
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('drag-over');
+                });
+
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('drag-over');
+                });
+
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('drag-over');
+                    if (draggedItem) {
+                        zone.appendChild(draggedItem);
+                    }
+                });
+            });
+        }
+        
+        // --- Check Answer Logic ---
+        function checkAnswer(step) {
+            const problem = practiceProblems[step];
+            if (!problem) return;
+
+            let allCorrect = true;
+
+            // --- Part 1: Check Sorting ---
+            const sortedContainer = document.getElementById(`sorted-container-${step}`);
+            const sortFeedback = document.getElementById(`sort-feedback-${step}`);
+            const userSorted = Array.from(sortedContainer.children).map(item => parseFloat(item.textContent));
+            
+            const isSorted = userSorted.length === problem.solution.sorted.length && 
+                             userSorted.every((val, index) => val === problem.solution.sorted[index]);
+            
+            if (isSorted) {
+                sortFeedback.textContent = "Part 1: Sorting is correct! The correct plot is now shown below.";
+                sortFeedback.className = "text-sm mt-1 text-green-600 font-medium";
+                problem.completedParts.sort = true;
+
+                // NEW LOGIC: Show the *correct* plot as soon as sorting is correct
+                document.getElementById(`plot-container-${step}`).classList.remove('hidden');
+                drawBoxPlot(step, problem.solution.summary, `plot-canvas-${step}`, `Correct Box Plot`);
+
+            } else {
+                sortFeedback.textContent = "Part 1: Sorting is incorrect. You must sort the data to see the plot.";
+                sortFeedback.className = "text-sm mt-1 text-red-600 font-medium";
+                problem.completedParts.sort = false;
+                allCorrect = false;
+
+                // NEW LOGIC: Hide the plot if sorting is incorrect
+                document.getElementById(`plot-container-${step}`).classList.add('hidden');
+            }
+
+            // --- Part 2: Check 5-Number Summary ---
+            const summaryFeedback = document.getElementById(`summary-feedback-${step}`);
+            const userSummary = {
+                min: parseFloat(document.getElementById(`min-${step}`).value),
+                q1: parseFloat(document.getElementById(`q1-${step}`).value),
+                median: parseFloat(document.getElementById(`median-${step}`).value),
+                q3: parseFloat(document.getElementById(`q3-${step}`).value),
+                max: parseFloat(document.getElementById(`max-${step}`).value)
+            };
+
+            const isSummaryCorrect = 
+                userSummary.min === problem.solution.summary.min &&
+                userSummary.q1 === problem.solution.summary.q1 &&
+                userSummary.median === problem.solution.summary.median &&
+                userSummary.q3 === problem.solution.summary.q3 &&
+                userSummary.max === problem.solution.summary.max;
+
+            if (isSummaryCorrect) {
+                summaryFeedback.textContent = "Part 2: 5-Number Summary is correct!";
+                summaryFeedback.className = "text-sm mt-1 text-green-600 font-medium";
+                problem.completedParts.summary = true;
+            } else {
+                summaryFeedback.textContent = "Part 2: 5-Number Summary is incorrect. Check your calculations.";
+                summaryFeedback.className = "text-sm mt-1 text-red-600 font-medium";
+                problem.completedParts.summary = false;
+                allCorrect = false;
+            }
+
+            // --- Part 3: Check Shape ---
+            const shapeFeedback = document.getElementById(`shape-feedback-${step}`);
+            const userShape = document.querySelector(`input[name="shape-${step}"]:checked`);
+            
+            if (userShape && userShape.value === problem.solution.shape) {
+                shapeFeedback.textContent = "Part 3: Shape analysis is correct!";
+                shapeFeedback.className = "text-sm mt-1 text-green-600 font-medium";
+                problem.completedParts.shape = true;
+            } else {
+                // NEW LOGIC: Give better feedback
+                if (!isSorted) {
+                    shapeFeedback.textContent = "Part 3: Correct the sorting (Part 1) to see the plot.";
+                } else {
+                    shapeFeedback.textContent = "Part 3: Shape analysis is incorrect. Look at the plot and try again.";
+                }
+                shapeFeedback.className = "text-sm mt-1 text-red-600 font-medium";
+                problem.completedParts.shape = false;
+                allCorrect = false;
+            }
+
+            // --- Final Check ---
+            updateNavigation();
+        }
+        
+        // --- Box Plot Drawing Logic ---
+        function drawBoxPlot(step, data, canvasId, title) {
+            // Clear previous plot
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.error(`Canvas not found: ${canvasId}`);
+                return;
+            }
+            const ctx = canvas.getContext('2d');
+            
+            const w = canvas.width = canvas.parentElement.clientWidth * 0.95; // Use 95% of container width
+            const h = canvas.height = 150; // Fixed height
+            
+            ctx.clearRect(0, 0, w, h); // Clear canvas
+
+            const padding = 40;
+            const plotY = h / 2; // Y position for the plot
+            const plotHeight = 60; // Height of the box
+            
+            const dataMin = data.min;
+            const dataMax = data.max;
+            const dataRange = dataMax - dataMin;
+            
+            // Handle case where min == max
+            if (dataRange === 0) {
+                const x = w / 2;
+                ctx.fillStyle = '#4f46e5';
+                ctx.fillRect(x - 2, plotY - plotHeight / 2, 4, plotHeight); // Draw a single vertical line
+                
+                // Draw title
+                ctx.fillStyle = '#374151';
+                ctx.font = '14px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText(title, w / 2, padding / 2);
+                
+                // Draw label
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '12px Inter';
+                ctx.fillText(dataMin, x, h - padding / 2 + 5);
+                return;
+            }
+            
+            // Function to scale data value to X coordinate
+            const scale = (val) => padding + ((val - dataMin) / dataRange) * (w - 2 * padding);
+
+            const xMin = scale(data.min);
+            const xQ1 = scale(data.q1);
+            const xMedian = scale(data.median);
+            const xQ3 = scale(data.q3);
+            const xMax = scale(data.max);
+
+            ctx.strokeStyle = '#6b7280'; // gray-500
+            ctx.lineWidth = 2;
+
+            // Draw Whiskers
+            ctx.beginPath();
+            // Left whisker
+            ctx.moveTo(xMin, plotY);
+            ctx.lineTo(xQ1, plotY);
+            // Right whisker
+            ctx.moveTo(xQ3, plotY);
+            ctx.lineTo(xMax, plotY);
+            ctx.stroke();
+
+            // Draw Min/Max vertical lines
+            ctx.beginPath();
+            ctx.moveTo(xMin, plotY - plotHeight / 4);
+            ctx.lineTo(xMin, plotY + plotHeight / 4);
+            ctx.moveTo(xMax, plotY - plotHeight / 4);
+            ctx.lineTo(xMax, plotY + plotHeight / 4);
+            ctx.stroke();
+
+            // Draw Box
+            ctx.fillStyle = '#c7d2fe'; // indigo-200
+            ctx.strokeStyle = '#4f46e5'; // indigo-600
+            ctx.beginPath();
+            ctx.rect(xQ1, plotY - plotHeight / 2, xQ3 - xQ1, plotHeight);
+            ctx.fill();
+            ctx.stroke();
+
+            // Draw Median
+            ctx.strokeStyle = '#c026d3'; // fuchsia-600
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(xMedian, plotY - plotHeight / 2);
+            ctx.lineTo(xMedian, plotY + plotHeight / 2);
+            ctx.stroke();
+
+            // Draw Labels
+            ctx.fillStyle = '#6b7280'; // gray-500
+            ctx.font = '12px Inter';
+            ctx.textAlign = 'center';
+            
+            const labels = [
+                { val: data.min, x: xMin },
+                { val: data.q1, x: xQ1 },
+                { val: data.median, x: xMedian },
+                { val: data.q3, x: xQ3 },
+                { val: data.max, x: xMax }
+            ];
+
+            // Simple de-duplication for labels that are too close
+            const labelY = h - padding / 2 + 5;
+            let lastLabelX = -Infinity;
+            labels.forEach(label => {
+                if (label.x > lastLabelX + 25) { // Only draw if 25px away from last
+                    ctx.fillText(label.val, label.x, labelY);
+                    lastLabelX = label.x;
+                }
+            });
+            
+            // Draw Title
+            ctx.fillStyle = '#374151'; // gray-700
+            ctx.font = '14px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText(title, w / 2, padding / 2);
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            showStep(currentStep);
+            
+            // Initialize all practice problems
+            [12, 13, 14, 15].forEach(step => {
+                initDragAndDrop(step);
+                document.getElementById(`check-btn-${step}`).addEventListener('click', () => checkAnswer(step));
+            });
+        });
+
+    </script>
+</body>
+</html>
+
+
