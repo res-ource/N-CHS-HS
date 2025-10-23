@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Box Plot Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            min-height: 100vh;
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10 and IE 11 */
+            user-select: none; /* Standard syntax */
+        }
+        .container-card {
+            background-color: #161b22;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+            border: 1px solid #30363d;
+        }
+        
+        /* Step 1: Drag-to-Sort Styling */
+        .data-pill {
+            cursor: grab;
+            transition: all 0.2s ease-in-out;
+        }
+        .data-pill:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+            background-color: #3b82f6; /* Blue */
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.7);
+        }
+        .drop-zone {
+            border: 2px dashed #30363d;
+            min-height: 80px;
+            transition: all 0.2s ease;
+        }
+        .drop-zone-hover {
+            border-color: #3b82f6;
+            background-color: #1c2c4c;
+        }
+        .drop-zone.error-shake {
+            animation: shake 0.5s ease-in-out;
+            border-color: #ef4444; /* Red */
+        }
+        
+        /* Step 3: Resizable Plot Styling */
+        #plot-construction-zone {
+            position: relative;
+            height: 150px;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        #plot-ruler {
+            position: relative;
+            height: 40px;
+            border-top: 2px solid #30363d;
+        }
+        .ruler-tick {
+            position: absolute;
+            bottom: 0;
+            width: 1px;
+            background-color: #4a5568;
+        }
+        .ruler-tick.major { height: 20px; }
+        .ruler-tick.mid { height: 15px; } /* Added for .5 ticks */
+        .ruler-tick.minor { height: 10px; }
+        .ruler-label {
+            position: absolute;
+            bottom: 22px;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #8b949e;
+        }
+
+        .plot-handle {
+            position: absolute;
+            top: 20px;
+            bottom: 20px;
+            width: 10px;
+            background-color: rgba(59, 130, 246, 0.7); /* Blue */
+            border: 2px solid #3b82f6;
+            border-radius: 4px;
+            cursor: ew-resize;
+            z-index: 10;
+            transform: translateX(-50%); /* Center on the line */
+        }
+        .plot-handle:hover { background-color: #3b82f6; }
+        .plot-handle.error { border-color: #ef4444; background-color: rgba(239, 68, 68, 0.7); }
+        .plot-handle.correct { border-color: #22c55e; background-color: rgba(34, 197, 94, 0.7); }
+
+        #handle-median { background-color: rgba(34, 197, 94, 0.7); border-color: #22c55e; z-index: 11; }
+        #handle-min, #handle-max { background-color: rgba(239, 68, 68, 0.7); border-color: #ef4444; }
+        #handle-q1, #handle-q3 { background-color: rgba(168, 85, 247, 0.7); border-color: #a855f7; }
+
+        .plot-box-visual {
+            position: absolute;
+            top: 20px;
+            bottom: 20px;
+            height: 110px;
+            background-color: rgba(168, 85, 247, 0.2);
+            border-left: 2px solid #a855f7;
+            border-right: 2px solid #a855f7;
+            z-index: 5;
+        }
+        .plot-whisker-visual {
+            position: absolute;
+            top: 50%;
+            height: 2px;
+            background-color: #ef4444;
+            z-index: 4;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+        }
+        .error-shake { animation: shake 0.5s ease-in-out; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div id="app" class="max-w-5xl mx-auto">
+        
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-black text-green-400">Box Plot Construction Crew</h1>
+            <p class="text-lg text-gray-400" id="step-title">Let's build a Box Plot from scratch!</p>
+        </div>
+
+        <!-- Master Step Container -->
+        <div class="container-card p-6 rounded-xl">
+            <h2 class="text-2xl font-bold mb-2 text-yellow-400" id="step-header">Step 0: Get Your Data</h2>
+            <p class="text-gray-300 mb-6" id="step-description">Choose a preset data set below, or enter your own numbers (at least 5) separated by commas.</p>
+
+            <!-- Step 0: Input -->
+            <div id="step-0-input">
+                <!-- This section is now controlled by JS -->
+                <div id="problem-data-display" class="p-4 bg-gray-800 rounded-lg text-2xl font-bold text-center text-green-400 mb-4 hidden">
+                    <!-- Data will be injected here -->
+                </div>
+                
+                <button id="startButton" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition duration-200 shadow-md">
+                    Start Building!
+                </button>
+            </div>
+
+            <!-- Step 1: Drag-to-Sort -->
+            <div id="step-1-sort" class="hidden">
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold mb-2">Unsorted Data (Drag These)</h3>
+                    <div id="unsorted-container" class="drop-zone p-4 flex flex-wrap gap-2 rounded-lg bg-gray-800">
+                        <!-- Data pills generated here -->
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Sorted Data (Drop Here in Order)</h3>
+                    <div id="sorted-container" class="drop-zone p-4 flex flex-wrap gap-2 rounded-lg">
+                        <!-- Data pills dropped here -->
+                    </div>
+                </div>
+                <button id="checkSortButton" class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition duration-200 shadow-md hidden">
+                    Check My Sorted List
+                </button>
+            </div>
+
+            <!-- Step 2: 5-Number Summary -->
+            <div id="step-2-summary" class="hidden">
+                <div class="mb-6 p-4 bg-gray-800 rounded-lg">
+                    <h3 class="text-lg font-semibold">Your Sorted Data:</h3>
+                    <p id="sorted-data-display" class="text-2xl font-bold text-green-400"></p>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+                    <input type="number" id="inputMin" placeholder="Min (Lowest)" class="p-3 rounded-lg bg-gray-700 text-red-300 border border-gray-600 focus:ring-red-500 focus:border-red-500">
+                    <input type="number" id="inputQ1" placeholder="Q1 (Lower Quartile)" class="p-3 rounded-lg bg-gray-700 text-purple-300 border border-gray-600 focus:ring-purple-500 focus:border-purple-500">
+                    <input type="number" id="inputQ2" placeholder="Median (Q2)" class="p-3 rounded-lg bg-gray-700 text-green-300 border border-gray-600 focus:ring-green-500 focus:border-green-500">
+                    <input type="number" id="inputQ3" placeholder="Q3 (Upper Quartile)" class="p-3 rounded-lg bg-gray-700 text-purple-300 border border-gray-600 focus:ring-purple-500 focus:border-purple-500">
+                    <input type="number" id="inputMax" placeholder="Max (Highest)" class="p-3 rounded-lg bg-gray-700 text-red-300 border border-gray-600 focus:ring-red-500 focus:border-red-500">
+                </div>
+                <button id="checkSummaryButton" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition duration-200 shadow-md">
+                    Check My 5-Number Summary
+                </button>
+            </div>
+
+            <!-- Step 3: Size the Plot -->
+            <div id="step-3-resize" class="hidden">
+                <!-- Reference Summary -->
+                <div class="mb-4 p-4 bg-gray-800 rounded-lg">
+                    <h3 class="text-lg font-semibold text-center mb-2">Your 5-Number Summary</h3>
+                    <div id="summary-display" class="grid grid-cols-5 text-center gap-2 text-sm md:text-base font-semibold">
+                        <!-- Summary values will be injected here -->
+                    </div>
+                </div>
+                
+                <!-- Plot Construction Zone (Re-added) -->
+                <div id="plot-construction-zone">
+                    <!-- Visual connectors -->
+                    <div id="whisker-left" class="plot-whisker-visual"></div>
+                    <div id="plot-box" class="plot-box-visual"></div>
+                    <div id="whisker-right" class="plot-whisker-visual"></div>
+                    
+                    <!-- Draggable Handles -->
+                    <div id="handle-min" class="plot-handle"></div>
+                    <div id="handle-q1" class="plot-handle"></div>
+                    <div id="handle-median" class="plot-handle"></div>
+                    <div id="handle-q3" class="plot-handle"></div>
+                    <div id="handle-max" class="plot-handle"></div>
+                </div>
+                
+                <!-- New Skew Check Section -->
+                <div id="skew-check-div" class="hidden mt-6">
+                    <h3 class="text-lg font-semibold text-center mb-3">One last step: How is this data distributed?</h3>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button data-skew="Left" class="skew-button p-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg transition duration-150 border-2 border-transparent">
+                            Skewed Left
+                        </button>
+                        <button data-skew="Symmetric" class="skew-button p-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg transition duration-150 border-2 border-transparent">
+                            Symmetric
+                        </button>
+                        <button data-skew="Right" class="skew-button p-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg transition duration-150 border-2 border-transparent">
+                            Skewed Right
+                        </button>
+                    </div>
+                    <p id="skew-feedback" class="text-center mt-3 h-6"></p> <!-- Feedback area -->
+                </div>
+
+                <!-- Ruler -->
+                <div id="plot-ruler">
+                    <!-- Ruler ticks and labels generated here -->
+                </div>
+                
+                <button id="checkPlotButton" class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition duration-200 shadow-md">
+                    Check My Plot
+                </button>
+                <button id="resetButton" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition duration-200 shadow-md hidden">
+                    Build Another Plot!
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- App State ---
+        const appState = {
+            currentStep: 0,
+            currentDataSetIndex: 0, // <-- New: Tracks current problem
+            rawData: [],
+            sortedData: [],
+            summary: {},
+            draggedElement: null,
+            activeHandle: null,
+            plotContainerWidth: 0,
+            valueRange: 0,
+            minValue: 0,
+            scale: 0,
+        };
+
+        // --- Added Preset Data Sets ---
+        const presetDataSets = [
+            { name: "Set 1", data: "50, 45, 55, 42, 58, 49, 51", skew: "Symmetric" }, // Symmetric, 40s-50s
+            { name: "Set 2", data: "15, 10, 35, 12, 18, 20", skew: "Right" },     // Right skew, 10s-30s
+            { name: "Set 3", data: "82, 90, 85, 60, 88, 91, 80", skew: "Left" },      // Left skew, 60s-90s
+            { name: "Set 4", data: "3.0, 5.0, 2.5, 4.5, 5.5, 3.5", skew: "Symmetric" }, // Decimals, symmetric
+            { name: "Set 5", data: "150, 50, 100, 110, 190, 80, 70, 200, 120", skew: "Right" }, // Large range, 50-200
+            { name: "Set 6", data: "0, -5, 3, -10, 4, -2", skew: "Left" }       // Negative numbers
+        ];
+
+        // --- DOM Elements ---
+        const stepTitle = document.getElementById('step-title');
+        const stepHeader = document.getElementById('step-header');
+        const stepDescription = document.getElementById('step-description');
+
+        const step0Div = document.getElementById('step-0-input');
+        const step1Div = document.getElementById('step-1-sort');
+        const step2Div = document.getElementById('step-2-summary');
+        const step3Div = document.getElementById('step-3-resize');
+
+        const dataInput = document.getElementById('dataInput'); // This element is removed from HTML, but we'll remove refs later
+        const startButton = document.getElementById('startButton');
+        const problemDataDisplay = document.getElementById('problem-data-display'); // <-- New
+        
+        // Step 1 Elements
+        const unsortedContainer = document.getElementById('unsorted-container');
+        const sortedContainer = document.getElementById('sorted-container');
+        const checkSortButton = document.getElementById('checkSortButton');
+
+        // Step 2 Elements
+        const sortedDataDisplay = document.getElementById('sorted-data-display');
+        const inputMin = document.getElementById('inputMin');
+        const inputQ1 = document.getElementById('inputQ1');
+        const inputQ2 = document.getElementById('inputQ2');
+        const inputQ3 = document.getElementById('inputQ3');
+        const inputMax = document.getElementById('inputMax');
+        const checkSummaryButton = document.getElementById('checkSummaryButton');
+
+        // Step 3 Elements
+        const summaryDisplay = document.getElementById('summary-display');
+        const plotConstructionZone = document.getElementById('plot-construction-zone');
+        const plotRuler = document.getElementById('plot-ruler');
+        const checkPlotButton = document.getElementById('checkPlotButton');
+        const resetButton = document.getElementById('resetButton');
+        
+        // <-- New Skew Elements -->
+        const skewCheckDiv = document.getElementById('skew-check-div');
+        const skewButtons = document.querySelectorAll('.skew-button');
+        const skewFeedback = document.getElementById('skew-feedback');
+
+        const handles = {
+            min: document.getElementById('handle-min'),
+            q1: document.getElementById('handle-q1'),
+            median: document.getElementById('handle-median'),
+            q3: document.getElementById('handle-q3'),
+            max: document.getElementById('handle-max'),
+        };
+        const visuals = {
+            whiskerLeft: document.getElementById('whisker-left'),
+            box: document.getElementById('plot-box'),
+            whiskerRight: document.getElementById('whisker-right'),
+        };
+
+
+        // --- Navigation ---
+        function renderStep() {
+            // Hide all steps
+            [step0Div, step1Div, step2Div, step3Div].forEach(div => div.classList.add('hidden'));
+            
+            switch (appState.currentStep) {
+                case 0:
+                    step0Div.classList.remove('hidden');
+
+                    if (appState.currentDataSetIndex >= presetDataSets.length) {
+                        // --- All sets completed ---
+                        stepTitle.textContent = "Lesson Complete!";
+                        stepHeader.textContent = "Congratulations!";
+                        stepDescription.textContent = "You have successfully completed all data sets! You're a Box Plot expert.";
+                        problemDataDisplay.classList.add('hidden');
+                        startButton.textContent = "Restart Lesson";
+                    } else {
+                        // --- Show current problem ---
+                        const currentSet = presetDataSets[appState.currentDataSetIndex];
+                        stepTitle.textContent = `Problem ${appState.currentDataSetIndex + 1} of ${presetDataSets.length}`;
+                        stepHeader.textContent = `Problem ${appState.currentDataSetIndex + 1}: ${currentSet.name}`;
+                        stepDescription.textContent = "Here is your new data set. Click 'Start Building' to begin.";
+                        problemDataDisplay.classList.remove('hidden');
+                        problemDataDisplay.textContent = currentSet.data;
+                        startButton.textContent = "Start Building!";
+                    }
+                    break;
+                case 1:
+                    stepTitle.textContent = "Drag the numbers into the correct order.";
+                    stepHeader.textContent = "Step 1: Sort the Data";
+                    stepDescription.textContent = "A Box Plot requires sorted data. Drag the numbers from the 'Unsorted' bin to the 'Sorted' bin, placing them in order from least to greatest.";
+                    step1Div.classList.remove('hidden');
+                    initStep1();
+                    break;
+                case 2:
+                    stepTitle.textContent = "Find the 5 key values.";
+                    stepHeader.textContent = "Step 2: Find the 5-Number Summary";
+                    stepDescription.textContent = "Using your sorted list, calculate the Minimum, Q1, Median, Q3, and Maximum. These 5 numbers are the blueprint for the plot.";
+                    step2Div.classList.remove('hidden');
+                    initStep2();
+                    break;
+                case 3:
+                    stepTitle.textContent = "Drag the plot handles to match your values!";
+                    stepHeader.textContent = "Step 3: Size the Plot";
+                    stepDescription.textContent = "Drag the 5 colored handles (Min, Q1, Median, Q3, Max) to their correct positions on the number line to build the plot to scale.";
+                    step3Div.classList.remove('hidden');
+                    // Use setTimeout to ensure container is visible and has a width
+                    setTimeout(initStep3Resize, 0);
+                    break;
+            }
+        }
+
+        // --- Step Logic ---
+
+        // Step 0: Input
+        startButton.addEventListener('click', () => {
+            if (appState.currentDataSetIndex >= presetDataSets.length) {
+                // Handle "Restart" click
+                appState.currentDataSetIndex = 0;
+                renderStep();
+                return;
+            }
+
+            // Handle "Start Building" click
+            const currentSet = presetDataSets[appState.currentDataSetIndex];
+            const rawData = currentSet.data.split(',').map(s => s.trim()).filter(s => s !== '');
+            const numbers = rawData.map(Number).filter(n => !isNaN(n));
+
+            if (numbers.length < 5) { // Should be redundant now but good safety check
+                stepDescription.textContent = "Error: This data set is invalid. Please refresh.";
+                stepDescription.classList.add('text-red-500');
+                return;
+            }
+            stepDescription.classList.remove('text-red-500');
+            appState.rawData = numbers;
+            appState.currentStep = 1;
+            renderStep();
+        });
+        
+        resetButton.addEventListener('click', () => {
+             appState.currentDataSetIndex++; // Move to next problem
+             appState.currentStep = 0;
+             renderStep();
+        });
+
+        // Step 1: Drag-to-Sort
+        function initStep1() {
+            unsortedContainer.innerHTML = '';
+            sortedContainer.innerHTML = '';
+            checkSortButton.classList.add('hidden');
+            appState.rawData.forEach((num, index) => {
+                const pill = document.createElement('div');
+                pill.id = `pill-${index}`;
+                pill.className = 'data-pill bg-gray-600 text-white font-bold p-3 rounded-lg shadow-md';
+                pill.textContent = num;
+                pill.draggable = true;
+                unsortedContainer.appendChild(pill);
+            });
+        }
+
+        // Step 1 Drag/Drop Listeners
+        document.addEventListener('dragstart', (e) => {
+            if (e.target.classList.contains('data-pill')) {
+                appState.draggedElement = e.target;
+                e.dataTransfer.setData('text/plain', e.target.id);
+                e.target.classList.add('opacity-50');
+            }
+        });
+
+        document.addEventListener('dragend', (e) => {
+            if (appState.draggedElement) {
+                appState.draggedElement.classList.remove('opacity-50');
+                appState.draggedElement = null;
+            }
+        });
+
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const dropZone = e.target.closest('.drop-zone');
+            if (dropZone) {
+                dropZone.classList.add('drop-zone-hover');
+            }
+        });
+
+        document.addEventListener('dragleave', (e) => {
+             const dropZone = e.target.closest('.drop-zone');
+            if (dropZone) {
+                dropZone.classList.remove('drop-zone-hover');
+            }
+        });
+
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const sortedDropZone = e.target.closest('#sorted-container');
+            if (sortedDropZone && appState.draggedElement) {
+                sortedDropZone.classList.remove('drop-zone-hover');
+                const afterElement = getDragAfterElement(sortedDropZone, e.clientX);
+                if (afterElement == null) {
+                    sortedDropZone.appendChild(appState.draggedElement);
+                } else {
+                    sortedDropZone.insertBefore(appState.draggedElement, afterElement);
+                }
+                if (unsortedContainer.children.length === 0) {
+                    checkSortButton.classList.remove('hidden');
+                }
+            }
+            const unsortedDropZone = e.target.closest('#unsorted-container');
+            if (unsortedDropZone && appState.draggedElement) {
+                unsortedDropZone.classList.remove('drop-zone-hover');
+                unsortedDropZone.appendChild(appState.draggedElement);
+                checkSortButton.classList.add('hidden');
+            }
+        });
+
+        function getDragAfterElement(container, x) {
+            const draggableElements = [...container.querySelectorAll('.data-pill:not(.opacity-50)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = x - box.left - box.width / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+        
+        checkSortButton.addEventListener('click', () => {
+            const studentSorted = [...sortedContainer.children].map(pill => parseFloat(pill.textContent));
+            const correctSorted = [...appState.rawData].sort((a, b) => a - b);
+            let isCorrect = studentSorted.length === correctSorted.length && 
+                            studentSorted.every((val, index) => val === correctSorted[index]);
+            
+            if (isCorrect) {
+                appState.sortedData = studentSorted;
+                appState.currentStep = 2;
+                renderStep();
+            } else {
+                sortedContainer.classList.add('error-shake');
+                setTimeout(() => sortedContainer.classList.remove('error-shake'), 500);
+                stepDescription.textContent = "Not quite right! Check your order again. The numbers aren't from least to greatest.";
+                stepDescription.classList.add('text-red-500');
+            }
+        });
+
+        // Step 2: 5-Number Summary
+        function initStep2() {
+            sortedDataDisplay.textContent = appState.sortedData.join(', ');
+            [inputMin, inputQ1, inputQ2, inputQ3, inputMax].forEach(input => {
+                input.value = '';
+                input.classList.remove('border-red-500', 'border-green-500');
+            });
+            stepDescription.classList.remove('text-red-500');
+            stepDescription.textContent = "Using your sorted list, calculate the Minimum, Q1, Median, Q3, and Maximum. These 5 numbers are the blueprint for the plot.";
+        }
+        
+        checkSummaryButton.addEventListener('click', () => {
+            appState.summary = getQuartiles(appState.sortedData);
+            let allCorrect = true;
+            allCorrect &= checkInput(inputMin, appState.summary.Min);
+            allCorrect &= checkInput(inputQ1, appState.summary.Q1);
+            allCorrect &= checkInput(inputQ2, appState.summary.Median);
+            allCorrect &= checkInput(inputQ3, appState.summary.Q3);
+            allCorrect &= checkInput(inputMax, appState.summary.Max);
+            
+            if (allCorrect) {
+                appState.currentStep = 3;
+                renderStep();
+            } else {
+                stepDescription.textContent = "Some values are incorrect. Check your calculations! (Hint: Remember how to find the median of the lower and upper halves).";
+                stepDescription.classList.add('text-red-500');
+            }
+        });
+        
+        function checkInput(inputEl, correctValue) {
+            const userValue = parseFloat(inputEl.value);
+            if (userValue === correctValue) {
+                inputEl.classList.remove('border-red-500');
+                inputEl.classList.add('border-green-500');
+                return true;
+            } else {
+                inputEl.classList.add('border-red-500');
+                inputEl.classList.remove('border-green-500');
+                return false;
+            }
+        }
+        
+        // --- Stat Helper Functions ---
+        const findMedian = (arr) => {
+            if (arr.length === 0) return 0;
+            const mid = Math.floor(arr.length / 2);
+            return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+        };
+        const getQuartiles = (sortedData) => {
+            const mid = Math.floor(sortedData.length / 2);
+            const lowerHalf = sortedData.length % 2 === 0 ? sortedData.slice(0, mid) : sortedData.slice(0, mid);
+            const upperHalf = sortedData.length % 2 === 0 ? sortedData.slice(mid) : sortedData.slice(mid + 1);
+            return {
+                Min: sortedData[0],
+                Q1: findMedian(lowerHalf),
+                Median: findMedian(sortedData),
+                Q3: findMedian(upperHalf),
+                Max: sortedData[sortedData.length - 1]
+            };
+        };
+        
+        // --- Step 3: Resize Plot ---
+        
+        function initStep3Resize() {
+            // 1. Display Summary
+            summaryDisplay.innerHTML = `
+                <div class="p-2 rounded-lg bg-red-800/50">Min: ${appState.summary.Min}</div>
+                <div class="p-2 rounded-lg bg-purple-800/50">Q1: ${appState.summary.Q1}</div>
+                <div class="p-2 rounded-lg bg-green-800/50">Median: ${appState.summary.Median}</div>
+                <div class="p-2 rounded-lg bg-purple-800/50">Q3: ${appState.summary.Q3}</div>
+                <div class="p-2 rounded-lg bg-red-800/50">Max: ${appState.summary.Max}</div>
+            `;
+            
+            // 2. Create Ruler
+            createRuler();
+            
+            // 3. Reset handles to initial positions (e.g., all at 0 or stacked)
+            Object.values(handles).forEach(handle => {
+                handle.style.left = '0px';
+                handle.classList.remove('error', 'correct');
+            });
+            // Set initial positions based on ruler, slightly offset
+            handles.min.style.left = `${valueToPx(appState.minValue + appState.valueRange * 0.1)}px`;
+            handles.q1.style.left = `${valueToPx(appState.minValue + appState.valueRange * 0.2)}px`;
+            handles.median.style.left = `${valueToPx(appState.minValue + appState.valueRange * 0.3)}px`;
+            handles.q3.style.left = `${valueToPx(appState.minValue + appState.valueRange * 0.4)}px`;
+            handles.max.style.left = `${valueToPx(appState.minValue + appState.valueRange * 0.5)}px`;
+            updatePlotVisuals();
+            
+            // 4. Hide/Show buttons
+            checkPlotButton.classList.remove('hidden');
+            resetButton.classList.add('hidden');
+            skewCheckDiv.classList.add('hidden'); // <-- Hide skew check on init
+            skewFeedback.textContent = ''; // <-- Clear feedback
+            stepDescription.classList.remove('text-red-500', 'text-green-500');
+        }
+        
+        // Updated createRuler function
+        function createRuler() {
+            plotRuler.innerHTML = '';
+            appState.plotContainerWidth = plotRuler.clientWidth;
+            if (appState.plotContainerWidth === 0) return; // Don't run if not visible
+            
+            // Add a padding to the range
+            const range = appState.summary.Max - appState.summary.Min;
+            const padding = Math.max(1, range * 0.15); 
+            appState.minValue = Math.floor(appState.summary.Min - padding);
+            const maxValue = Math.ceil(appState.summary.Max + padding);
+            appState.valueRange = maxValue - appState.minValue;
+            
+            // Handle edge case where range is 0
+            if (appState.valueRange === 0) {
+                 appState.minValue -= 1;
+                 appState.valueRange = 2;
+                 maxValue = appState.minValue + 2;
+            }
+            
+            appState.scale = appState.plotContainerWidth / appState.valueRange;
+
+            // Determine major tick interval, aiming for ~5-10 labels
+            let majorTickInterval = Math.max(1, Math.round(appState.valueRange / 8)); // Aim for 8 labels
+            // Make it a "nice" number (1, 2, 5, 10, etc.)
+            if (majorTickInterval > 2 && majorTickInterval < 5) majorTickInterval = 2;
+            else if (majorTickInterval > 5 && majorTickInterval < 10) majorTickInterval = 5;
+            else if (majorTickInterval > 10 && majorTickInterval < 20) majorTickInterval = 10;
+            else if (majorTickInterval > 20 && majorTickInterval < 50) majorTickInterval = 20;
+            else if (majorTickInterval > 50) majorTickInterval = 50;
+
+            
+            // Start loop from the first "half" tick inside the view
+            const loopStart = Math.max(appState.minValue, Math.floor(appState.minValue * 2) / 2);
+            
+            for (let v = loopStart; v <= maxValue; v += 0.5) {
+                const xPos = (v - appState.minValue) * appState.scale;
+                
+                if (xPos >= -1 && xPos <= appState.plotContainerWidth + 1) { // Allow slightly off-screen
+                    const tick = document.createElement('div');
+                    tick.className = 'ruler-tick';
+                    
+                    // Check for integer values
+                    if (v % 1 === 0) {
+                        // Check for major ticks
+                        if (v % majorTickInterval === 0) {
+                            tick.classList.add('major');
+                            const label = document.createElement('div');
+                            label.className = 'ruler-label';
+                            label.style.left = `${xPos}px`;
+                            label.textContent = v;
+                            plotRuler.appendChild(label);
+                        } else {
+                            tick.classList.add('minor');
+                        }
+                    } else {
+                        // This is a .5 tick
+                        tick.classList.add('mid');
+                    }
+                    
+                    tick.style.left = `${xPos}px`;
+                    plotRuler.appendChild(tick);
+                }
+            }
+        }
+        
+        // Map value from data space to pixel space
+        function valueToPx(value) {
+            return (value - appState.minValue) * appState.scale;
+        }
+        
+        // Map value from pixel space to data space
+        function pxToValue(px) {
+            return (px / appState.scale) + appState.minValue;
+        }
+        
+        function handleMouseDown(e) {
+            // Handle touch events as well
+            const target = e.target;
+            if (target.classList.contains('plot-handle')) {
+                e.preventDefault(); // Prevent scrolling on touch
+                appState.activeHandle = target;
+                appState.activeHandle.classList.add('opacity-50');
+                
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+                document.addEventListener('touchmove', handleMouseMove);
+                document.addEventListener('touchend', handleMouseUp);
+            }
+        }
+        
+        function handleMouseMove(e) {
+            if (!appState.activeHandle) return;
+            e.preventDefault();
+            
+            const bounds = plotConstructionZone.getBoundingClientRect();
+            let clientX = e.clientX || e.touches[0].clientX;
+            let newX = clientX - bounds.left;
+            
+            // Clamp to container
+            newX = Math.max(0, Math.min(newX, appState.plotContainerWidth));
+            
+            appState.activeHandle.style.left = `${newX}px`;
+            updatePlotVisuals();
+        }
+        
+        function handleMouseUp() {
+            if (appState.activeHandle) {
+                appState.activeHandle.classList.remove('opacity-50');
+            }
+            appState.activeHandle = null;
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+            document.removeEventListener('touchmove', handleMouseMove);
+            document.removeEventListener('touchend', handleMouseUp);
+        }
+        
+        function updatePlotVisuals() {
+            const pMin = parseFloat(handles.min.style.left) || 0;
+            const pQ1 = parseFloat(handles.q1.style.left) || 0;
+            const pMed = parseFloat(handles.median.style.left) || 0;
+            const pQ3 = parseFloat(handles.q3.style.left) || 0;
+            const pMax = parseFloat(handles.max.style.left) || 0;
+            
+            // Update whiskers and box (with bug fix for negative widths)
+            visuals.whiskerLeft.style.left = `${Math.min(pMin, pQ1)}px`;
+            visuals.whiskerLeft.style.width = `${Math.abs(pQ1 - pMin)}px`;
+            
+            visuals.box.style.left = `${Math.min(pQ1, pQ3)}px`;
+            visuals.box.style.width = `${Math.abs(pQ3 - pQ1)}px`;
+            
+            visuals.whiskerRight.style.left = `${Math.min(pQ3, pMax)}px`;
+            visuals.whiskerRight.style.width = `${Math.abs(pMax - pQ3)}px`;
+
+            // Ensure handles stay on top
+            handles.q1.style.zIndex = 10;
+            handles.median.style.zIndex = 11;
+            handles.q3.style.zIndex = 10;
+        }
+        
+        // --- New Resize Handler Function ---
+        function redrawPlotOnResize() {
+            if (appState.currentStep !== 3 || !appState.scale) return; // Don't run if not on step 3 or not init
+            
+            // 1. Get current values from handle positions using OLD scale
+            const currentValues = {
+                min: pxToValue(parseFloat(handles.min.style.left)),
+                q1: pxToValue(parseFloat(handles.q1.style.left)),
+                median: pxToValue(parseFloat(handles.median.style.left)),
+                q3: pxToValue(parseFloat(handles.q3.style.left)),
+                max: pxToValue(parseFloat(handles.max.style.left))
+            };
+
+            // 2. Recalculate ruler and scale
+            createRuler(); 
+
+            // 3. Set new handle positions using NEW scale
+            handles.min.style.left = `${valueToPx(currentValues.min)}px`;
+            handles.q1.style.left = `${valueToPx(currentValues.q1)}px`;
+            handles.median.style.left = `${valueToPx(currentValues.median)}px`;
+            handles.q3.style.left = `${valueToPx(currentValues.q3)}px`;
+            handles.max.style.left = `${valueToPx(currentValues.max)}px`;
+            
+            // 4. Redraw the visual box/whiskers
+            updatePlotVisuals();
+        }
+
+        // Add touchstart listener
+        plotConstructionZone.addEventListener('mousedown', handleMouseDown);
+        plotConstructionZone.addEventListener('touchstart', handleMouseDown);
+
+        
+        checkPlotButton.addEventListener('click', () => {
+            let allCorrect = true;
+            // Use a tolerance based on pixels, e.g., 5px
+            const tolerancePx = 5; 
+
+            // Check each handle
+            for (const [key, handle] of Object.entries(handles)) {
+                const userPx = parseFloat(handle.style.left);
+                let correctValue;
+                switch(key) {
+                    case 'min': correctValue = appState.summary.Min; break;
+                    case 'q1': correctValue = appState.summary.Q1; break;
+                    case 'median': correctValue = appState.summary.Median; break;
+                    case 'q3': correctValue = appState.summary.Q3; break;
+                    case 'max': correctValue = appState.summary.Max; break;
+                }
+                const correctPx = valueToPx(correctValue);
+
+                if (Math.abs(userPx - correctPx) <= tolerancePx) {
+                    handle.classList.remove('error');
+                    handle.classList.add('correct');
+                } else {
+                    handle.classList.add('error');
+                    handle.classList.remove('correct');
+                    allCorrect = false;
+                }
+            }
+            
+            if (allCorrect) {
+                stepDescription.textContent = "Perfect! You sized the plot correctly. Now, one last question...";
+                stepDescription.classList.add('text-green-500');
+                stepDescription.classList.remove('text-red-500');
+                checkPlotButton.classList.add('hidden');
+                resetButton.classList.add('hidden'); // Hide reset button
+                skewCheckDiv.classList.remove('hidden'); // <-- Show skew check
+                skewFeedback.textContent = ''; // <-- Clear feedback
+                skewButtons.forEach(btn => btn.classList.remove('border-green-500', 'border-red-500', 'border-2'));
+            } else {
+                stepDescription.textContent = "Not quite! One or more handles are in the wrong spot. Check your values and drag the red-bordered handles again.";
+                stepDescription.classList.add('text-red-500');
+                stepDescription.classList.remove('text-green-500');
+            }
+        });
+
+        // --- New Skew Check Listener ---
+        skewButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const correctSkew = presetDataSets[appState.currentDataSetIndex].skew;
+                const userSkew = button.dataset.skew;
+
+                // Clear all button styles
+                skewButtons.forEach(btn => btn.classList.remove('border-green-500', 'border-red-500', 'border-2'));
+
+                if (userSkew === correctSkew) {
+                    skewFeedback.textContent = "That's right! Good job identifying the distribution.";
+                    skewFeedback.className = 'text-center mt-3 h-6 text-green-500';
+                    button.classList.add('border-green-500', 'border-2');
+                    
+                    // Set up and show the "Next Problem" button
+                    if (appState.currentDataSetIndex === presetDataSets.length - 1) {
+                        resetButton.textContent = "Finish Lesson!";
+                    } else {
+                        resetButton.textContent = `Continue to Problem ${appState.currentDataSetIndex + 2}`;
+                    }
+                    resetButton.classList.remove('hidden');
+                    skewCheckDiv.classList.add('hidden');
+
+                } else {
+                    skewFeedback.textContent = "Not quite. Look at the whiskers and box. Is one side more stretched out?";
+                    skewFeedback.className = 'text-center mt-3 h-6 text-red-500';
+                    button.classList.add('border-red-500', 'border-2');
+                }
+            });
+        });
+        
+        // Initial Load
+        renderStep();
+        window.onresize = () => {
+            // --- Updated resize logic ---
+            // We call the new function instead of the old one
+            redrawPlotOnResize();
+        };
+    </script>
+</body>
+</html>
+
