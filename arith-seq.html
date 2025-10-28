@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arithmetic Sequence Lesson</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load MathJax -->
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                textmacros: {
+                    "text": ["{\\text{#1}}", 1]
+                }
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+    <style>
+        /* Custom styles for the app */
+        body, html {
+            height: 100%;
+            overflow: hidden; /* Prevent full-page scrolling */
+            font-family: 'Inter', 'sans-serif';
+        }
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f3f4f6; /* light gray bg */
+        }
+        .content-wrapper {
+            flex-grow: 1;
+            overflow-y: auto; /* Allow content to scroll */
+            padding-bottom: 90px; /* Space for the footer */
+        }
+        .main-content {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .lesson-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
+            min-height: 400px; /* Give cards a consistent min height */
+        }
+        .nav-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #ffffff;
+            border-top: 1px solid #e5e7eb;
+            padding: 16px;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+        .nav-container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-btn {
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.2s ease-in-out;
+            border: none;
+            cursor: pointer;
+        }
+        .nav-btn:disabled {
+            background-color: #d1d5db; /* gray-300 */
+            color: #6b7280; /* gray-500 */
+            cursor: not-allowed;
+        }
+        .prev-btn {
+            background-color: #e5e7eb; /* gray-200 */
+            color: #374151; /* gray-700 */
+        }
+        .prev-btn:hover:not(:disabled) {
+            background-color: #d1d5db; /* gray-300 */
+        }
+        .next-btn {
+            background-color: #2563eb; /* blue-600 */
+            color: white;
+        }
+        .next-btn:hover:not(:disabled) {
+            background-color: #1d4ed8; /* blue-700 */
+        }
+        .progress-bar-container {
+            width: 30%;
+            background-color: #e5e7eb;
+            border-radius: 99px;
+            height: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #2563eb;
+            border-radius: 99px;
+            transition: width 0.3s ease-out;
+        }
+        .check-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+        }
+        .check-btn:disabled {
+            background-color: #d1d5db;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+        .calc-btn {
+            border: none;
+            cursor: pointer;
+            font-size: 1.125rem; /* text-lg */
+            transition: background-color 0.2s;
+        }
+    </style>
+</head>
+<body class="app-container">
+
+    <!-- Main Content Area (Scrollable) -->
+    <div class="content-wrapper">
+        <div class="main-content">
+            <header class="text-center mb-6">
+                <h1 class="text-4xl font-bold text-gray-800">Arithmetic Sequences</h1>
+                <p class="text-xl text-gray-500 mt-1">An Interactive Lesson</p>
+            </header>
+
+            <!-- Card 1: Introduction -->
+            <div class="lesson-card" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">Welcome!</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    This is an interactive lesson to help you master arithmetic sequences.
+                </p>
+                <p class="text-gray-700 text-lg mb-4">
+                    You'll learn what they are, how to use their formula, and practice with some problems.
+                </p>
+                <p class="text-gray-700 text-lg">
+                    Click "Next" to get started!
+                </p>
+            </div>
+            
+            <!-- Card 2: What is a Sequence? -->
+            <div class="lesson-card" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">1. What is an Arithmetic Sequence?</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    An arithmetic sequence is a list of numbers where the **difference** between any two side-by-side terms is the same.
+                </p>
+                <p class="text-gray-700 text-lg mb-4">
+                    In simple terms, you are **adding or subtracting the same number** every time to get to the next term.
+                </p>
+                <div class="space-y-3">
+                    <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                        <p class="font-bold text-blue-800">Example (Adding):</p>
+                        <p class="text-xl font-mono text-blue-900">{ 5, 8, 11, 14, ... }</p>
+                        <p class="text-blue-700">(You add 3 each time)</p>
+                    </div>
+                    <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
+                        <p class="font-bold text-red-800">Example (Subtracting):</p>
+                        <p class="text-xl font-mono text-red-900">{ 100, 90, 80, 70, ... }</p>
+                        <p class="text-red-700">(You subtract 10 each time)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: Common Difference -->
+            <div class="lesson-card" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">1. The Common Difference $(d)$</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    That special number you add or subtract is called the **common difference**.
+                </p>
+                <p class="text-gray-700 text-lg mb-4">
+                    We use the variable $d$ to represent it.
+                </p>
+                <ul class="list-disc list-inside space-y-2 text-lg text-gray-700">
+                    <li>If the sequence is increasing, $d$ is positive.</li>
+                    <li>If the sequence is decreasing, $d$ is negative.</li>
+                </ul>
+                <p class="text-gray-700 text-lg my-4 font-semibold">
+                    To find $d$, just take any term and subtract the term that came before it.
+                </p>
+                <div class="bg-gray-100 p-4 rounded-lg font-mono text-gray-800">
+                    <p>{ 5, 8, 11, 14, ... }</p>
+                    <p>$d = 8 - 5 = 3$</p>
+                    <p>$d = 11 - 8 = 3$</p>
+                </div>
+            </div>
+
+            <!-- Card 4: Practice 1 (Find the Difference) -->
+            <div class="lesson-card" data-practice="true" id="practice-card-1">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-blue-700">Quick Check: Find the Difference</h2>
+                    <span id="p1-counter" class="text-lg font-medium text-gray-600">Problem 1 of 6</span>
+                </div>
+                
+                <p class="text-gray-700 text-lg mb-4">
+                    Is this sequence arithmetic? If so, what is the common difference $(d)$?
+                    <br>
+                    (If it is not arithmetic, type "no")
+                </p>
+                
+                <p id="p1-sequence" class="text-2xl font-bold text-gray-800 text-center my-10 h-8">
+                    <!-- Problem will be generated here -->
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 mt-10">
+                    <input type="text" id="p1-input" placeholder="Enter d or no" class="flex-grow p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button id="p1-check" class="check-btn bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-all duration-300">
+                        Check Answer
+                    </button>
+                </div>
+
+                <p id="p1-feedback" class="text-lg font-medium text-center h-6 mt-4"></p>
+            </div>
+            
+            <!-- Card 5: The Formula -->
+            <div class="lesson-card" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">2. The Formula for the $n^{th} \text{ Term}$</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    What if you need to find the 50th term? You don't want to add 3 fifty times!
+                </p>
+                <p class="text-gray-700 text-lg mb-4">
+                    Luckily, there is a formula. We use it to find any term (we call it the **$n^{th} \text{ term}$**).
+                </p>
+                <!-- Formula Display -->
+                <div class="bg-gray-800 text-white text-xl sm:text-2xl font-mono p-6 rounded-lg text-center my-4">
+                    $a_n = a_1 + d(n - 1)$
+                </div>
+            </div>
+            
+            <!-- Card 6: Formula Breakdown -->
+            <div class="lesson-card" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">2. The Formula: Breakdown</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    Let's look at what each part of $a_n = a_1 + d(n - 1)$ means.
+                </p>
+                <!-- Variable Breakdown -->
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <span class="text-2xl font-mono font-bold text-blue-600 w-16">$a_n$</span>
+                        <span class="text-lg text-gray-700">This is the term you are **looking for** (e.g., the 50th term). It's your "answer."</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-2xl font-mono font-bold text-blue-600 w-16">$a_1$</span>
+                        <span class="text-lg text-gray-700">The **first term** in the sequence.</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-2xl font-mono font-bold text-blue-600 w-16">$d$</span>
+                        <span class="text-lg text-gray-700">The **common difference** you already learned to find.</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-2xl font-mono font-bold text-blue-600 w-16">$n$</span>
+                        <span class="text-lg text-gray-700">The **term number** you want (e.g., for the 50th term, $n=50$).</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 7: Worked Example -->
+            <div class="lesson-card" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">3. Worked Example</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    Let's find the 18th term $(a_{18})$ of the sequence: { 12, 27, 42, 57, ... }
+                </p>
+                <div class="space-y-3">
+                    <p><strong>Step 1: Find the parts.</strong></p>
+                    <ul class="list-none space-y-2 bg-gray-50 p-4 rounded-lg">
+                        <li>$a_1$ (first term) = 12</li>
+                        <li>$d$ (common difference) = $27 - 12 = 15$</li>
+                        <li>$n$ (term number) = 18</li>
+                    </ul>
+                    <p><strong>Step 2: Plug them into the formula.</strong></p>
+                    <p class="font-mono bg-gray-100 p-4 rounded-lg">
+                        $a_n = a_1 + d(n - 1)$
+                        <br>
+                        $a_{18} = 12 + 15(18 - 1)$
+                    </p>
+                    <p><strong>Step 3: Solve.</strong></p>
+                    <p class="font-mono bg-gray-100 p-4 rounded-lg">
+                        $a_{18} = 12 + 15(17)$
+                        <br>
+                        $a_{18} = 12 + 255$
+                        <br>
+                        $a_{18} = 267$
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Card 8: Practice 2 (Find the nth Term) -->
+            <div class="lesson-card" data-practice="true" id="practice-card-2">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-blue-700">Quick Check: Find the $n^{th} \text{ Term}$</h2>
+                    <span id="p2-counter" class="text-lg font-medium text-gray-600">Problem 1 of 6</span>
+                </div>
+                
+                <div class="bg-gray-100 p-4 rounded-lg text-center space-y-2">
+                    <p class="text-gray-700 text-lg">Given the sequence:</p>
+                    <p id="p2-sequence" class="text-2xl font-bold text-gray-800 h-8">
+                        <!-- Problem will be generated here -->
+                    </p>
+                    <p id="p2-question" class="text-gray-700 text-lg font-semibold pt-2 h-8">
+                        <!-- Question will be generated here -->
+                    </p>
+                </div>
+                
+                <!-- Formula Reference -->
+                <div class="bg-gray-800 text-white text-lg font-mono p-4 rounded-lg text-center my-4">
+                    Formula: $a_n = a_1 + d(n - 1)$
+                </div>
+
+                <!-- Scaffolding Inputs -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-4">
+                    <div>
+                        <label for="p2-a1-input" class="block text-sm font-medium text-gray-700">First term $(a_1)$:</label>
+                        <input type="number" id="p2-a1-input" class="mt-1 p-2 w-full border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label for="p2-d-input" class="block text-sm font-medium text-gray-700">Common difference $(d)$:</label>
+                        <input type="number" id="p2-d-input" class="mt-1 p-2 w-full border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label for="p2-n-input" class="block text-sm font-medium text-gray-700">Term number $(n)$:</label>
+                        <input type="number" id="p2-n-input" class="mt-1 p-2 w-full border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                
+                <!-- Calculator -->
+                <div class="my-4">
+                    <label class="block text-sm font-medium text-gray-700">Practice the Calculation:</label>
+                    <div class="bg-gray-200 p-2 rounded-lg shadow-inner mt-1">
+                        <!-- Calculator Display -->
+                        <input type="text" id="p2-calc-display" class="w-full bg-white p-3 border border-gray-300 rounded-lg text-right font-mono text-xl" readonly placeholder="Use buttons to build formula...">
+                        
+                        <!-- Calculator Buttons -->
+                        <div class="grid grid-cols-5 gap-2 mt-2">
+                            <button id="calc-a1" class="calc-btn bg-blue-100 text-blue-700 font-bold p-3 rounded-lg hover:bg-blue-200">$a_1$</button>
+                            <button id="calc-d" class="calc-btn bg-blue-100 text-blue-700 font-bold p-3 rounded-lg hover:bg-blue-200">$d$</button>
+                            <button id="calc-n" class="calc-btn bg-blue-100 text-blue-700 font-bold p-3 rounded-lg hover:bg-blue-200">$n$</button>
+                            <button id="calc-1" class="calc-btn bg-gray-100 p-3 rounded-lg hover:bg-gray-300">1</button>
+                            <button id="calc-plus" class="calc-btn bg-gray-100 p-3 rounded-lg hover:bg-gray-300">+</button>
+                            <button id="calc-minus" class="calc-btn bg-gray-100 p-3 rounded-lg hover:bg-gray-300">-</button>
+                            <button id="calc-times" class="calc-btn bg-gray-100 p-3 rounded-lg hover:bg-gray-300">*</button>
+                            <button id="calc-open-p" class="calc-btn bg-gray-100 p-3 rounded-lg hover:bg-gray-300">(</button>
+                            <button id="calc-close-p" class="calc-btn bg-gray-100 p-3 rounded-lg hover:bg-gray-300">)</button>
+                            <button id="calc-clear" class="calc-btn bg-red-100 text-red-700 font-bold p-3 rounded-lg hover:bg-red-200">C</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Check Button -->
+                <div class="mt-6">
+                    <button id="p2-check" class="check-btn w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-all duration-300">
+                        Check Answer
+                    </button>
+                </div>
+
+                <p id="p2-feedback" class="text-lg font-medium text-center h-6 mt-4"></p>
+            </div>
+
+            <!-- Card 9: The "Fresh Take" -->
+            <div class="lesson-card border-2 border-blue-400 bg-blue-50" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">A Fresh Take: Connect to Linear Equations</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    Does the formula $a_n = a_1 + d(n - 1)$ look familiar? It's just a linear equation in disguise!
+                </p>
+                <p class="text-gray-700 text-lg mb-4">
+                    Think about the slope-intercept form $y = mx + b$.
+                </p>
+                <p class="text-gray-700 text-lg mb-4">
+                    The common difference $(d)$ is just the **slope $(m)$** of the line.
+                </p>
+                <p class="text-gray-700 text-lg mb-4">
+                    The term number $(n)$ is like the **$x$-value**, and the term's value $(a_n)$ is like the **$y$-value**.
+                </p>
+                <p class="text-gray-700 text-lg">
+                    This is why the points of an arithmetic sequence always form a straight line if you graph them!
+                </p>
+            </div>
+
+            <!-- Card 10: Practice 3 (Word Problem) -->
+            <div class="lesson-card" data-practice="true" id="practice-card-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-blue-700">Quick Check: Word Problem</h2>
+                    <span id="p3-counter" class="text-lg font-medium text-gray-600">Problem 1 of 6</span>
+                </div>
+                
+                <p id="p3-problem" class="text-gray-700 text-lg mb-4 h-24">
+                    <!-- Problem will be generated here -->
+                </p>
+                
+                <p id="p3-question" class="text-gray-700 text-lg font-semibold mb-4 h-12">
+                    <!-- Question will be generated here -->
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 mt-10">
+                    <input type="number" id="p3-input" placeholder="Enter the final answer" class="flex-grow p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button id="p3-check" class="check-btn bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-all duration-300">
+                        Check Answer
+                    </button>
+                </div>
+
+                <p id="p3-feedback" class="text-lg font-medium text-center h-6 mt-4"></p>
+            </div>
+
+            <!-- Card 11: Lesson Complete -->
+            <div class="lesson-card" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">Lesson Complete!</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    Great job! You've learned how to:
+                </p>
+                <ul class="list-disc list-inside space-y-2 text-lg text-gray-700">
+                    <li>Identify an arithmetic sequence</li>
+                    <li>Find the common difference $(d)$</li>
+                    <li>Use the formula $a_n = a_1 + d(n - 1)$ to find any term</li>
+                    <li>Apply this skill to word problems</li>
+                </ul>
+
+                <p class="text-gray-700 text-lg mt-6 font-semibold">Your Final Tally:</p>
+                <div id="final-score" class="text-center bg-blue-50 border-2 border-blue-200 p-4 rounded-lg mt-2">
+                    <!-- Score will be injected here -->
+                </div>
+
+                <p class="text-gray-700 text-lg mt-4">
+                    You can use the "Previous" button to review any part of the lesson.
+                </p>
+            </div>
+
+        </div> <!-- end .main-content -->
+    </div> <!-- end .content-wrapper -->
+
+    <!-- Navigation Footer -->
+    <footer class="nav-footer">
+        <div class="nav-container">
+            <button id="prev-btn" class="nav-btn prev-btn">Previous</button>
+            <div class="progress-bar-container">
+                <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+            </div>
+            <button id="next-btn" class="nav-btn next-btn">Next</button>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const lessonCards = document.querySelectorAll('.lesson-card');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const progressBar = document.getElementById('progress-bar');
+            let currentCard = 0;
+            const totalCards = lessonCards.length;
+            const totalProblems = 6;
+
+            let totalCorrect = 0;
+            let totalAttempts = 0;
+
+            // --- State for Practice Sections ---
+            // Practice 1 State
+            let p1_answer;
+            let p1_problemIndex = 1;
+            let p1_complete = false;
+            let p1_problemQueue = []; // <-- ADD THIS LINE
+            // Practice 2 State
+            let p2_answer;
+            let p2_a1;
+            let p2_d;
+            let p2_n;
+            let p2_problemIndex = 1;
+            let p2_complete = false;
+            // Practice 3 State
+            let p3_answer;
+            let p3_problemIndex = 1;
+            let p3_complete = false;
+
+            // --- Helper Functions ---
+            const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+            const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+            const typesetMath = (element) => {
+                if (window.MathJax && window.MathJax.typesetPromise) {
+                    window.MathJax.typesetPromise([element]).catch((err) => console.log('MathJax Typeset Error: ' + err.message));
+                }
+            };
+
+            // --- NEW UTILITY FUNCTION ---
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+            // --- END NEW FUNCTION ---
+
+            // --- UI Update Functions ---
+            function updateCardView() {
+                lessonCards.forEach((card, index) => {
+                    card.style.display = (index === currentCard) ? 'block' : 'none';
+                });
+
+                // If on the final card, update the score
+                if (currentCard === totalCards - 1) { // totalCards - 1 is the last card's index
+                    const scoreEl = document.getElementById('final-score');
+                    if (scoreEl) {
+                        scoreEl.innerHTML = `<p class="text-2xl font-bold text-gray-800">
+                            ${totalCorrect} Correct / ${totalAttempts} Total Attempts
+                            </p>`;
+                    }
+                }
+
+                // Scroll to top of content area on card change
+                document.querySelector('.content-wrapper').scrollTop = 0;
+                updateNav();
+            }
+
+            function updateNav() {
+                // Update Progress Bar
+                progressBar.style.width = `${(currentCard / (totalCards - 1)) * 100}%`;
+                
+                // Update Prev Button
+                prevBtn.disabled = (currentCard === 0);
+
+                // Update Next Button
+                const card = lessonCards[currentCard];
+                const isPractice = card.dataset.practice === 'true';
+                
+                if (isPractice) {
+                    let sectionComplete = false;
+                    if (card.id === 'practice-card-1') sectionComplete = p1_complete;
+                    else if (card.id === 'practice-card-2') sectionComplete = p2_complete;
+                    else if (card.id === 'practice-card-3') sectionComplete = p3_complete;
+                    
+                    nextBtn.disabled = !sectionComplete;
+                } else {
+                    nextBtn.disabled = (currentCard === totalCards - 1);
+                }
+            }
+
+            // --- Practice 1: Find the Difference ---
+            const p1_card = document.getElementById('practice-card-1');
+            const p1_seq = document.getElementById('p1-sequence');
+            const p1_input = document.getElementById('p1-input');
+            const p1_check = document.getElementById('p1-check');
+            const p1_feedback = document.getElementById('p1-feedback');
+            const p1_counter = document.getElementById('p1-counter');
+
+            function generateP1() {
+                p1_check.disabled = false;
+                p1_input.value = '';
+                p1_feedback.textContent = '';
+                
+                // --- NEW LOGIC ---
+                // Get the type from the shuffled queue based on the current problem index
+                // p1_problemIndex is 1-based, so we use [p1_problemIndex - 1]
+                const problemType = p1_problemQueue[p1_problemIndex - 1]; 
+                // --- END NEW LOGIC ---
+                
+                let seq = [];
+                // 50% chance of being arithmetic - This is now controlled by the queue
+                if (problemType === 'positive') {
+                    // Arithmetic, POSITIVE difference
+                    let a1 = randomInt(-20, 20);
+                    let d = randomInt(1, 10); // d is 1 to 10
+                    seq = [a1, a1 + d, a1 + d * 2, a1 + d * 3];
+                    p1_answer = d;
+                } else if (problemType === 'negative') {
+                    // Arithmetic, NEGATIVE difference
+                    let a1 = randomInt(-20, 20);
+                    let d = randomInt(-10, -1); // d is -10 to -1
+                    seq = [a1, a1 + d, a1 + d * 2, a1 + d * 3];
+                    p1_answer = d;
+                } else { // problemType === 'no'
+                    // Not arithmetic
+                    let a1 = randomInt(-20, 20);
+                    let d1 = randomInt(-10, 10);
+                    let d2 = randomInt(-10, 10);
+                    while (d1 === 0) { d1 = randomInt(-10, 10); }
+                    while (d2 === 0 || d1 === d2) { d2 = randomInt(-10, 10); }
+                    seq = [a1, a1 + d1, a1 + d1 + d2, a1 + d1 + d2 + d1];
+                    p1_answer = "no";
+                }
+                
+                p1_seq.textContent = `{ ${seq.join(', ')}, ... }`;
+            }
+
+            async function checkP1() {
+                const userAnswer = p1_input.value.trim().toLowerCase();
+                let isCorrect = false;
+
+                if (userAnswer === "") {
+                    p1_feedback.textContent = 'Please enter an answer.';
+                    p1_feedback.style.color = 'red';
+                    return;
+                }
+                totalAttempts++; // <-- ADD THIS
+
+                if (p1_answer === "no") {
+                    isCorrect = (userAnswer === "no");
+                } else {
+                    isCorrect = (parseInt(userAnswer, 10) === p1_answer);
+                }
+
+                if (isCorrect) {
+                    totalCorrect++; // <-- ADD THIS
+                    p1_feedback.textContent = 'Correct!';
+                    p1_feedback.style.color = 'green';
+                    p1_check.disabled = true; // Disable button after correct answer
+                    
+                    await sleep(1000); // Wait 1 second
+
+                    p1_problemIndex++;
+                    if (p1_problemIndex > totalProblems) {
+                        p1_feedback.textContent = 'Section Complete! Click Next to continue.';
+                        p1_complete = true;
+                        nextBtn.disabled = false;
+                    } else {
+                        p1_counter.textContent = `Problem ${p1_problemIndex} of ${totalProblems}`;
+                        generateP1();
+                    }
+                } else {
+                    p1_feedback.textContent = 'Not quite. Try again!';
+                    p1_feedback.style.color = 'red';
+                }
+            }
+
+            // --- Practice 2: Find the nth Term ---
+            // Practice 2 Selectors
+            const p2_card = document.getElementById('practice-card-2');
+            const p2_seq = document.getElementById('p2-sequence');
+            const p2_q = document.getElementById('p2-question');
+            const p2_a1_input = document.getElementById('p2-a1-input');
+            const p2_d_input = document.getElementById('p2-d-input');
+            const p2_n_input = document.getElementById('p2-n-input');
+            const p2_check = document.getElementById('p2-check');
+            const p2_feedback = document.getElementById('p2-feedback');
+            const p2_counter = document.getElementById('p2-counter');
+            const p2_calc_display = document.getElementById('p2-calc-display');
+            
+            // Calculator Buttons
+            const calc_a1 = document.getElementById('calc-a1');
+            const calc_d = document.getElementById('calc-d');
+            const calc_n = document.getElementById('calc-n');
+            const calc_1 = document.getElementById('calc-1');
+            const calc_plus = document.getElementById('calc-plus');
+            const calc_minus = document.getElementById('calc-minus');
+            const calc_times = document.getElementById('calc-times');
+            const calc_open_p = document.getElementById('calc-open-p');
+            const calc_close_p = document.getElementById('calc-close-p');
+            const calc_clear = document.getElementById('calc-clear');
+
+            function generateP2() {
+                p2_check.disabled = false;
+                let a1 = randomInt(-15, 15);
+                let n = randomInt(18, 50); // Find a later term
+                let d_p2 = randomInt(-10, 10);
+                while (d_p2 === 0) { d_p2 = randomInt(-10, 10); }
+
+                // Store correct answers
+                p2_a1 = a1;
+                p2_d = d_p2;
+                p2_n = n;
+                // The formula is a1 + d * (n - 1)
+                p2_answer = a1 + d_p2 * (n - 1);
+
+                let seq = [a1, a1 + d_p2, a1 + d_p2 * 2, a1 + d_p2 * 3];
+                p2_seq.textContent = `{ ${seq.join(', ')}, ... }`;
+                p2_q.innerHTML = `What is the ${n}th $\text{ term } (a_{${n}})$?`;
+                typesetMath(p2_q);
+                
+                // Clear all inputs
+                p2_a1_input.value = '';
+                p2_d_input.value = '';
+                p2_n_input.value = '';
+                p2_calc_display.value = '';
+                p2_feedback.textContent = '';
+            }
+
+            async function checkP2() {
+                const user_a1 = parseInt(p2_a1_input.value, 10);
+                const user_d = parseInt(p2_d_input.value, 10);
+                const user_n = parseInt(p2_n_input.value, 10);
+                let expression = p2_calc_display.value.trim();
+
+                // Check for empty fields
+                if (isNaN(user_a1) || isNaN(user_d) || isNaN(user_n)) {
+                    p2_feedback.textContent = 'Please fill in a1, d, and n.';
+                    p2_feedback.style.color = 'red';
+                    return;
+                }
+                totalAttempts++; // <-- ADD THIS
+
+                let stepsCorrect = true;
+                let feedbackMsg = [];
+                
+                // Check steps
+                if (user_a1 !== p2_a1) {
+                    stepsCorrect = false;
+                    feedbackMsg.push('check your $(a_1)$');
+                }
+                if (user_d !== p2_d) {
+                    stepsCorrect = false;
+                    feedbackMsg.push('check your $(d)$');
+                }
+                if (user_n !== p2_n) {
+                    stepsCorrect = false;
+                    feedbackMsg.push('check your $(n)$');
+                }
+
+                if (!stepsCorrect) {
+                    p2_feedback.innerHTML = `Not quite. Please ${feedbackMsg.join(' and ')}.`;
+                    p2_feedback.style.color = 'red';
+                    typesetMath(p2_feedback);
+                    return;
+                }
+                
+                // Steps are correct, now check final calculation
+                if (expression === '') {
+                    p2_feedback.innerHTML = 'Your $(a_1)$, $(d)$, and $(n)$ are correct! Now use the calculator to find the answer.';
+                    p2_feedback.style.color = 'blue';
+                    typesetMath(p2_feedback);
+                    return;
+                }
+                
+                let userResult;
+                try {
+                    // SAFE EVALUATION FIX:
+                    // Automatically add multiplication signs where implied
+                    // e.g., 9(18-1) becomes 9 * (18-1)
+                    // Also handles )( -> ) * ( and )9 -> ) * 9
+                    let safeExpression = expression
+                        .replace(/(\d)\(/g, '$1 * (') // 9( -> 9 * (
+                        .replace(/\)\(/g, ') * (')   // )( -> ) * (
+                        .replace(/\)(\d)/g, ') * $1') // )9 -> ) * 9
+                        .replace(/\s/g, '');          // Remove all whitespace
+
+                    userResult = new Function('return ' + safeExpression)();
+                } catch (e) {
+                    p2_feedback.textContent = 'Check your calculator syntax. Use the buttons.';
+                    p2_feedback.style.color = 'red';
+                    return;
+                }
+
+                if (userResult === p2_answer) {
+                    totalCorrect++; // <-- ADD THIS
+                    p2_feedback.textContent = 'Correct!';
+                    p2_feedback.style.color = 'green';
+                    p2_check.disabled = true;
+
+                    await sleep(1000);
+                    
+                    p2_problemIndex++;
+                    if (p2_problemIndex > totalProblems) {
+                        p2_feedback.textContent = 'Section Complete! Click Next to continue.';
+                        p2_complete = true;
+                        nextBtn.disabled = false;
+                    } else {
+                        p2_counter.textContent = `Problem ${p2_problemIndex} of ${totalProblems}`;
+                        generateP2();
+                    }
+                } else {
+                    p2_feedback.innerHTML = 'Your $(a_1)$, $(d)$, and $(n)$ are correct, but your calculation is not. Try again.';
+                    p2_feedback.style.color = 'red';
+                    typesetMath(p2_feedback);
+                }
+            }
+            
+            // --- Practice 3: Word Problem ---
+            const p3_card = document.getElementById('practice-card-3');
+            const p3_problem = document.getElementById('p3-problem');
+            const p3_question = document.getElementById('p3-question');
+            const p3_input = document.getElementById('p3-input');
+            const p3_check = document.getElementById('p3-check');
+            const p3_feedback = document.getElementById('p3-feedback');
+            const p3_counter = document.getElementById('p3-counter');
+            
+            const wordProblems = [
+                {
+                    setup: (a1, d, n) => `Karen's New Year's resolution is to work out. On the first day, she burns ${a1} calories. She decides to increase her workout, burning ${d} more calories each day than the day before.`,
+                    question: (a1, d, n) => `How many calories will Karen burn on the ${n}th day?`,
+                    a1: () => randomInt(200, 350),
+                    d: () => randomInt(5, 25),
+                    n: () => randomInt(20, 40)
+                },
+                {
+                    setup: (a1, d, n) => `A theater has ${a1} seats in the first row. Each row behind it has ${d} more seats than the row in front of it.`,
+                    question: (a1, d, n) => `How many seats are in the ${n}th row?`,
+                    a1: () => randomInt(10, 20),
+                    d: () => randomInt(2, 6),
+                    n: () => randomInt(15, 30)
+                },
+                {
+                    setup: (a1, d, n) => `You start a new savings plan. On day 1, you save $${a1}. To be ambitious, you decide to save $${d} more each day than you did the previous day.`,
+                    question: (a1, d, n) => `How much money will you save on the ${n}th day?`,
+                    a1: () => randomInt(1, 5),
+                    d: () => randomInt(1, 3),
+                    n: () => randomInt(30, 60)
+                },
+                {
+                    setup: (a1, d, n) => `A stack of logs has ${a1} logs in the bottom layer. Each layer on top has ${d} fewer logs than the one below it.`,
+                    question: (a1, d, n) => `How many logs are on the ${n}th layer?`,
+                    a1: () => randomInt(30, 50),
+                    d: () => randomInt(-4, -1), // d must be negative
+                    n: () => randomInt(8, 12)
+                }
+            ];
+
+            function generateP3() {
+                p3_check.disabled = false;
+                p3_input.value = '';
+                p3_feedback.textContent = '';
+                
+                const problemTemplate = wordProblems[randomInt(0, wordProblems.length - 1)];
+                const a1 = problemTemplate.a1();
+                const d = problemTemplate.d();
+                const n = problemTemplate.n();
+                
+                p3_answer = a1 + d * (n - 1);
+                
+                p3_problem.textContent = problemTemplate.setup(a1, d, n);
+                p3_question.textContent = problemTemplate.question(a1, d, n);
+            }
+
+            async function checkP3() {
+                const userAnswer = parseInt(p3_input.value, 10);
+                
+                if (isNaN(userAnswer)) {
+                    p3_feedback.textContent = 'Please enter a number.';
+                    p3_feedback.style.color = 'red';
+                    return;
+                }
+                totalAttempts++; // <-- ADD THIS
+                
+                if (userAnswer === p3_answer) {
+                    totalCorrect++; // <-- ADD THIS
+                    p3_feedback.textContent = 'Correct!';
+                    p3_feedback.style.color = 'green';
+                    p3_check.disabled = true;
+
+                    await sleep(1000);
+                    
+                    p3_problemIndex++;
+                    if (p3_problemIndex > totalProblems) {
+                        p3_feedback.textContent = 'Section Complete! Click Next to continue.';
+                        p3_complete = true;
+                        nextBtn.disabled = false;
+                    } else {
+                        p3_counter.textContent = `Problem ${p3_problemIndex} of ${totalProblems}`;
+                        generateP3();
+                    }
+                } else {
+                    p3_feedback.textContent = 'Not quite. Try again!';
+                    p3_feedback.style.color = 'red';
+                }
+            }
+
+
+            // --- Main Navigation ---
+            prevBtn.addEventListener('click', () => {
+                if (currentCard > 0) {
+                    currentCard--;
+                    updateCardView();
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (currentCard < totalCards - 1) {
+                    currentCard++;
+                    updateCardView();
+                }
+            });
+
+            // --- Initialization ---
+            window.onload = () => {
+                // Add event listeners
+                p1_check.addEventListener('click', checkP1);
+                p2_check.addEventListener('click', checkP2);
+                p3_check.addEventListener('click', checkP3);
+                
+                // Add Calculator button listeners
+                calc_a1.addEventListener('click', () => { 
+                    if (p2_a1_input.value !== '') p2_calc_display.value += p2_a1_input.value; 
+                });
+                calc_d.addEventListener('click', () => { 
+                    let val = p2_d_input.value;
+                    if (val !== '') {
+                        // Add parenthesis for negative numbers to avoid "12 + -5 * ..."
+                        if (val < 0) {
+                            p2_calc_display.value += `(${val})`;
+                        } else {
+                            p2_calc_display.value += val;
+                        }
+                    }
+                });
+                calc_n.addEventListener('click', () => { 
+                    if (p2_n_input.value !== '') p2_calc_display.value += p2_n_input.value; 
+                });
+                calc_1.addEventListener('click', () => { p2_calc_display.value += '1'; });
+                calc_plus.addEventListener('click', () => { p2_calc_display.value += ' + '; });
+                calc_minus.addEventListener('click', () => { p2_calc_display.value += ' - '; });
+                calc_times.addEventListener('click', () => { p2_calc_display.value += ' * '; });
+                calc_open_p.addEventListener('click', () => { p2_calc_display.value += '('; });
+                calc_close_p.addEventListener('click', () => { p2_calc_display.value += ')'; });
+                calc_clear.addEventListener('click', () => { p2_calc_display.value = ''; });
+
+                // --- P1: Create and shuffle the problem queue ---
+                p1_problemQueue = ['positive', 'positive', 'negative', 'negative', 'no', 'no'];
+                shuffleArray(p1_problemQueue);
+                // ------------------------------------------------
+
+                // Generate all problems in the background
+                generateP1();
+                generateP2();
+                generateP3();
+                
+                // Set initial view
+                updateCardView();
+            };
+        });
+    </script>
+</body>
+</html>
+
+
+
