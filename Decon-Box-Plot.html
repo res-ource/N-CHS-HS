@@ -1,0 +1,1717 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Box Plot Lesson</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Using Inter font */
+        body {
+            font-family: "Inter", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Hide all cards by default */
+        .lesson-card {
+            display: none;
+        }
+
+        /* Show only the active card */
+        .lesson-card.active {
+            display: block;
+        }
+
+        /* Simple dot styles */
+        .data-dot {
+            fill: #3b82f6;
+            /* blue-500 */
+            transition: cx 0.5s ease-in-out;
+            cursor: move;
+        }
+
+        /* Style for the plot elements */
+        .plot-line {
+            stroke: #1f2937;
+            /* gray-800 */
+            stroke-width: 2;
+        }
+
+        .plot-box {
+            fill: none;
+            stroke: #1f2937;
+            /* gray-800 */
+            stroke-width: 2;
+            transition: all 0.5s ease-in-out;
+        }
+
+        .plot-axis {
+            stroke: #6b7280;
+            /* gray-500 */
+            stroke-width: 1;
+        }
+
+        .axis-label,
+        .plot-label {
+            font-size: 14px;
+            fill: #374151;
+            /* gray-700 */
+            font-family: "Inter", sans-serif;
+            text-anchor: middle;
+            user-select: none;
+        }
+        
+        .section-label {
+            font-size: 11px;
+            fill: #4b5563; /* gray-600 */
+            font-family: "Inter", sans-serif;
+            text-anchor: middle;
+            user-select: none;
+            transition: x 0.5s ease-in-out;
+        }
+
+        .svg-plot {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            overflow: visible;
+        }
+
+        /* Styles for drag-and-drop game */
+        .label-target {
+            font-size: 14px;
+            fill: #3b82f6;
+            /* blue-500 */
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .label-target.filled {
+            fill: #1f2937;
+            /* gray-800 */
+            cursor: default;
+        }
+
+        .bank-word {
+            transition: all 0.2s ease;
+        }
+
+        .bank-word.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Quiz answer styling */
+        .quiz-option {
+            border: 2px solid #e5e7eb; /* gray-200 */
+            transition: all 0.2s ease;
+        }
+
+        .quiz-option.selected {
+            border-color: #3b82f6; /* blue-500 */
+            background-color: #eff6ff; /* blue-50 */
+        }
+
+        .feedback-correct {
+            color: #166534; /* green-800 */
+            background-color: #dcfce7; /* green-100 */
+            border-left: 4px solid #22c55e; /* green-500 */
+        }
+        
+        .feedback-incorrect {
+            color: #991b1b; /* red-800 */
+            background-color: #fee2e2; /* red-100 */
+            border-left: 4px solid #ef4444; /* red-500 */
+        }
+
+        /* Stem-and-leaf plot style */
+        .stem-leaf {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f9fafb; /* gray-50 */
+            border: 1px solid #e5e7eb; /* gray-200 */
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            line-height: 1.6;
+            white-space: pre;
+            text-align: left;
+            max-width: 200px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body class="h-full bg-gray-100 flex items-start justify-center p-4">
+
+    <!-- Main lesson container -->
+    <div class="w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden my-8">
+        
+        <!-- Header / Progress Bar -->
+        <div class="p-6 border-b border-gray-200">
+            <h1 class="text-xl font-bold text-center text-gray-800 mb-4">Deconstructing the Box Plot</h1>
+            <div class="flex items-center">
+                <!-- UPDATED: Total steps -->
+                <div id="progress-text" class="text-sm font-medium text-blue-700 mr-4">Step 1 of 12</div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 8.33%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card container -->
+        <div id="card-container" class="p-6 md:p-8">
+
+            <!-- Card 1: Introduction -->
+            <div id="card-1" class="lesson-card active">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">What does 25% *really* mean?</h2>
+                <p class="text-lg text-gray-700 mb-4">
+                    The most confusing part of a box plot is that each of the 4 sections represents **25% of the data**... even when they have different lengths!
+                </p>
+                <p class="text-gray-600 mb-6">
+                    This lesson will show you *why* this is true. We'll build an interactive plot with <strong>12 data points</strong>, which means each section will contain exactly <strong>3 points (25% of 12)</strong>.
+                </p>
+                
+                <svg class="svg-plot border border-gray-200 rounded-lg p-4" viewBox="0 0 400 100">
+                    <title>A box plot with each of its four sections labeled 25%</title>
+                    <!-- Axis -->
+                    <line x1="0" y1="60" x2="400" y2="60" class="plot-axis"></line>
+                    <!-- Whisker 1 -->
+                    <line x1="20" y1="50" x2="100" y2="50" class="plot-line"></line>
+                    <line x1="20" y1="40" x2="20" y2="60" class="plot-line"></line>
+                    <!-- Box 1 -->
+                    <rect x="100" y="30" width="100" height="40" class="plot-box" fill="#eff6ff"></rect>
+                    <!-- Box 2 -->
+                    <rect x="200" y="30" width="100" height="40" class="plot-box" fill="#eff6ff"></rect>
+                    <!-- Whisker 2 -->
+                    <line x1="300" y1="50" x2="380" y2="50" class="plot-line"></line>
+                    <line x1="380" y1="40" x2="380" y2="60" class="plot-line"></line>
+                    <!-- Median Line -->
+                    <line x1="200" y1="30" x2="200" y2="70" class="plot-line"></line>
+                    
+                    <!-- 25% Labels -->
+                    <g class="plot-label" style="font-size: 16px; font-weight: 600; fill: #2563eb;">
+                        <text x="60" y="25">25%</text>
+                        <text x="150" y="25">25%</text>
+                        <text x="250" y="25">25%</text>
+                        <text x="340" y="25">25%</text>
+                    </g>
+                </svg>
+            </div>
+
+            <!-- Card 2: The 5-Number Summary -->
+            <div id="card-2" class="lesson-card">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Find the 5-Number Summary</h2>
+                <p class="text-gray-700 mb-4">First, we find 5 key points that split the data.</p>
+                <ul class="list-disc list-outside text-gray-600 pl-5 mb-4 space-y-1">
+                    <li>The <strong>Minimum</strong> (lowest value).</li>
+                    <li>The <strong>Median</strong> (the middle value, 50% of data is below it).</li>
+                    <li>The <strong>Maximum</strong> (highest value).</li>
+                    <li><strong>Q1</strong> & <strong>Q3</strong> (the medians of the lower and upper halves).</li>
+                </ul>
+                <!-- SVG: 5-Number Summary -->
+                <svg class="svg-plot" viewBox="0 0 400 100">
+                    <!-- Axis -->
+                    <line x1="0" y1="60" x2="400" y2="60" class="plot-axis"></line>
+                    <!-- Points -->
+                    <g class="plot-label">
+                        <circle cx="20" cy="60" r="3" fill="#1f2937"></circle>
+                        <text x="20" y="80">5</text>
+                        <text x="20" y="50">Minimum</text>
+                        
+                        <circle cx="100" cy="60" r="3" fill="#1f2937"></circle>
+                        <text x="100" y="80">8</text>
+                        <text x="100" y="50">Q1</text>
+                        
+                        <circle cx="200" cy="60" r="3" fill="#1f2937"></circle>
+                        <text x="200" y="80">12</text>
+                        <text x="200" y="50">Median</text>
+                        
+                        <circle cx="300" cy="60" r="3" fill="#1f2937"></circle>
+                        <text x="300" y="80">18</text>
+                        <text x="300" y="50">Q3</text>
+                        
+                        <circle cx="380" cy="60" r="3" fill="#1f2937"></circle>
+                        <text x="380" y="80">25</text>
+                        <text x="380" y="50">Maximum</text>
+                    </g>
+                </svg>
+            </div>
+
+            <!-- Card 3: The 4 Sections -->
+            <div id="card-3" class="lesson-card">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Create the 4 Sections</h2>
+                <p class="text-gray-700 mb-4">These 5 points create the 4 sections of a box plot: two "whiskers" and two "boxes".</p>
+                <!-- SVG: The 4 sections -->
+                <svg class="svg-plot" viewBox="0 0 400 100">
+                    <!-- Axis -->
+                    <line x1="0" y1="60" x2="400" y2="60" class="plot-axis"></line>
+                    <!-- Whisker 1 -->
+                    <line x1="20" y1="50" x2="100" y2="50" class="plot-line"></line>
+                    <line x1="20" y1="40" x2="20" y2="60" class="plot-line"></line>
+                    <!-- Box 1 -->
+                    <rect x="100" y="30" width="100" height="40" class="plot-box"></rect>
+                    <!-- Box 2 -->
+                    <rect x="200" y="30" width="100" height="40" class="plot-box"></rect>
+                    <!-- Whisker 2 -->
+                    <line x1="300" y1="50" x2="380" y2="50" class="plot-line"></line>
+                    <line x1="380" y1="40" x2="380" y2="60" class="plot-line"></line>
+                    <!-- Median Line -->
+                    <line x1="200" y1="30" x2="200" y2="70" class="plot-line"></line>
+                    
+                    <!-- Labels -->
+                    <g class="plot-label" style="font-size: 12px; font-weight: 500;">
+                        <text x="60" y="25">Whisker 1</text>
+                        <text x="150" y="25">Box 1</text>
+                        <text x="250" y="25">Box 2</text>
+                        <text x="340" y="25">Whisker 2</text>
+                    </g>
+                </svg>
+            </div>
+
+            <!-- Card 4: The 25% Rule -->
+            <div id="card-4" class="lesson-card">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">The 25% Rule</h2>
+                <p class="text-gray-700 mb-4">Because the 5-number summary splits the data into 4 <strong>equal groups</strong>, each section must contain exactly <strong>25% of the data points</strong>.</p>
+                <!-- SVG: The 25% rule -->
+                <svg class="svg-plot" viewBox="0 0 400 100">
+                    <!-- Axis -->
+                    <line x1="0" y1="60" x2="400" y2="60" class="plot-axis"></line>
+                    <!-- Whisker 1 -->
+                    <line x1="20" y1="50" x2="100" y2="50" class="plot-line"></line>
+                    <line x1="20" y1="40" x2="20" y2="60" class="plot-line"></line>
+                    <!-- Box 1 -->
+                    <rect x="100" y="30" width="100" height="40" class="plot-box"></rect>
+                    <!-- Box 2 -->
+                    <rect x="200" y="30" width="100" height="40" class="plot-box"></rect>
+                    <!-- Whisker 2 -->
+                    <line x1="300" y1="50" x2="380" y2="50" class="plot-line"></line>
+                    <line x1="380" y1="40" x2="380" y2="60" class="plot-line"></line>
+                    <!-- Median Line -->
+                    <line x1="200" y1="30" x2="200" y2="70" class="plot-line"></line>
+                    
+                    <!-- 25% Labels -->
+                    <g class="plot-label" style="font-size: 14px; font-weight: 600; fill: #0ea5e9;">
+                        <text x="60" y="25">25%</text>
+                        <text x="150" y="25">25%</text>
+                        <text x="250" y="25">25%</text>
+                        <text x="340" y="25">25%</text>
+                    </g>
+                </svg>
+            </div>
+
+            <!-- Card 5: Interactive Plot -->
+            <div id="card-5" class="lesson-card">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">The "Aha!" Moment</h2>
+                <p class="text-gray-700 mb-4">Watch the plot. A <span class="font-bold text-red-600">long</span> section just means its 3 points (25%) are <span class="font-bold text-red-600">spread out</span>. A <span class="font-bold text-blue-600">short</span> section means its 3 points (25%) are <span class="font-bold text-blue-600">bunched up</span>.</p>
+                <p class="text-gray-600 mb-4">Use the buttons to see this in action. The <strong>number of dots</strong> in each section never changes!</p>
+                
+                <!-- Interactive SVG -->
+                <svg id="interactive-plot" class="svg-plot" viewBox="0 0 500 150">
+                    <!-- Axis -->
+                    <line x1="0" y1="100" x2="500" y2="100" class="plot-axis"></line>
+                    
+                    <!-- Plot Elements -->
+                    <g id="plot-elements">
+                        <!-- Boxes and Whiskers will be drawn by JS -->
+                    </g>
+                    
+                    <!-- Data Dots -->
+                    <g id="data-dots">
+                        <!-- Dots will be drawn by JS -->
+                    </g>
+                    
+                    <!-- Section Labels -->
+                    <g id="section-labels">
+                        <!-- Labels will be drawn by JS -->
+                    </g>
+                </svg>
+                
+                <!-- Control Buttons -->
+                <div class="grid grid-cols-4 gap-2 mt-4">
+                    <!-- Section 1 -->
+                    <div>
+                        <p class="text-center font-medium text-sm mb-1">Whisker 1</p>
+                        <button onclick="adjustSpread(1, 'bunch')" class="w-full bg-blue-500 text-white p-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition">Bunch</button>
+                        <button onclick="adjustSpread(1, 'spread')" class="w-full bg-red-500 text-white p-2 rounded-lg text-sm font-medium mt-1 hover:bg-red-600 transition">Spread</button>
+                    </div>
+                    <!-- Section 2 -->
+                    <div>
+                        <p class="text-center font-medium text-sm mb-1">Box 1</p>
+                        <button onclick="adjustSpread(2, 'bunch')" class="w-full bg-blue-500 text-white p-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition">Bunch</button>
+                        <button onclick="adjustSpread(2, 'spread')" class="w-full bg-red-500 text-white p-2 rounded-lg text-sm font-medium mt-1 hover:bg-red-600 transition">Spread</button>
+                    </div>
+                    <!-- Section 3 -->
+                    <div>
+                        <p class="text-center font-medium text-sm mb-1">Box 2</p>
+                        <button onclick="adjustSpread(3, 'bunch')" class="w-full bg-blue-500 text-white p-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition">Bunch</button>
+                        <button onclick="adjustSpread(3, 'spread')" class="w-full bg-red-500 text-white p-2 rounded-lg text-sm font-medium mt-1 hover:bg-red-600 transition">Spread</button>
+                    </div>
+                    <!-- Section 4 -->
+                    <div>
+                        <p class="text-center font-medium text-sm mb-1">Whisker 2</p>
+                        <button onclick="adjustSpread(4, 'bunch')" class="w-full bg-blue-500 text-white p-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition">Bunch</button>
+                        <button onclick="adjustSpread(4, 'spread')" class="w-full bg-red-500 text-white p-2 rounded-lg text-sm font-medium mt-1 hover:bg-red-600 transition">Spread</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 6: Guided Practice (Terminology) -->
+            <div id="card-6" class="lesson-card">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Guided Practice: Terminology</h2>
+                <p class="text-gray-700 mb-4">Click a word from the bank, then click the <strong>[ ? ]</strong> on the plot to label it.</p>
+                <!-- SVG: Labeling game -->
+                <svg id="label-plot-1" class="svg-plot" viewBox="0 0 400 120">
+                    <!-- Axis -->
+                    <line x1="0" y1="60" x2="400" y2="60" class="plot-axis"></line>
+                    <!-- Whisker 1 -->
+                    <line x1="20" y1="50" x2="100" y2="50" class="plot-line"></line>
+                    <line x1="20" y1="40" x2="20" y2="60" class="plot-line"></line>
+                    <!-- Box 1 -->
+                    <rect x="100" y="30" width="100" height="40" class="plot-box"></rect>
+                    <!-- Box 2 -->
+                    <rect x="200" y="30" width="100" height="40" class="plot-box"></rect>
+                    <!-- Whisker 2 -->
+                    <line x1="300" y1="50" x2="380" y2="50" class="plot-line"></line>
+                    <line x1="380" y1="40" x2="380" y2="60" class="plot-line"></line>
+                    <!-- Median Line -->
+                    <line x1="200" y1="30" x2="200" y2="70" class="plot-line"></line>
+                    
+                    <!-- Labels -->
+                    <g class="plot-label">
+                        <text id="label-min" onclick="labelPlot('min')" x="20" y="90" class="label-target">[ ? ]</text>
+                        <text id="label-q1" onclick="labelPlot('q1')" x="100" y="90" class="label-target">[ ? ]</text>
+                        <text id="label-med" onclick="labelPlot('med')" x="200" y="90" class="label-target">[ ? ]</text>
+                        <text id="label-q3" onclick="labelPlot('q3')" x="300" y="90" class="label-target">[ ? ]</text>
+                        <text id="label-max" onclick="labelPlot('max')" x="380" y="90" class="label-target">[ ? ]</text>
+                    </g>
+                </svg>
+                <!-- Word Bank -->
+                <div class="flex flex-wrap justify-center gap-2 mt-4" id="word-bank-1">
+                    <!-- REORDERED BUTTONS RANDOMLY -->
+                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="med">Median</button>
+                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="max">Maximum</button>
+                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="q1">Q1</button>
+                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="min">Minimum</button>
+                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="q3">Q3</button>
+                </div>
+                <button onclick="resetLabels('bank-1')" class="mt-4 w-full bg-gray-600 text-white p-2 rounded-lg font-medium hover:bg-gray-700 transition">Reset</button>
+            </div>
+            
+            <!-- Card 7: Guided Practice (Percentages Below) -->
+            <div id="card-7" class="lesson-card">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Guided Practice: Percentages</h2>
+                <p class="text-gray-700 mb-4">Now, label the plot with the <strong>total percentage of data at or below</strong> that point.</p>
+                <!-- SVG: Labeling game -->
+                <svg id="label-plot-2" class="svg-plot" viewBox="0 0 400 120">
+                    <!-- Plot (same as above) -->
+                    <line x1="0" y1="60" x2="400" y2="60" class="plot-axis"></line>
+                    <line x1="20" y1="50" x2="100" y2="50" class="plot-line"></line>
+                    <line x1="20" y1="40" x2="20" y2="60" class="plot-line"></line>
+                    <rect x="100" y="30" width="100" height="40" class="plot-box"></rect>
+                    <rect x="200" y="30" width="100" height="40" class="plot-box"></rect>
+                    <line x1="300" y1="50" x2="380" y2="50" class="plot-line"></line>
+                    <line x1="380" y1="40" x2="380" y2="60" class="plot-line"></line>
+                    <line x1="200" y1="30" x2="200" y2="70" class="plot-line"></line>
+                    
+                    <!-- Labels -->
+                    <g class="plot-label">
+                        <text id="label-0" onclick="labelPlot('0')" x="20" y="90" class="label-target">[ ? ]</text>
+                        <text id="label-25" onclick="labelPlot('25')" x="100" y="90" class="label-target">[ ? ]</text>
+                        <text id="label-50" onclick="labelPlot('50')" x="200" y="90" class="label-target">[ ? ]</text>
+                        <text id="label-75" onclick="labelPlot('75')" x="300" y="90" class_name="label-target">[ ? ]</text>
+                        <text id="label-100" onclick="labelPlot('100')" x="380" y="90" class="label-target">[ ? ]</text>
+                    </g>
+                </svg>
+                <!-- Word Bank -->
+                <div class="flex flex-wrap justify-center gap-2 mt-4" id="word-bank-2">
+                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="50">50%</button>
+                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="100">100%</button>
+                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="25">25%</button>
+                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="0">0%</button>
+                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="75">75%</button>
+                </div>
+                <button onclick="resetLabels('bank-2')" class="mt-4 w-full bg-gray-600 text-white p-2 rounded-lg font-medium hover:bg-gray-700 transition">Reset</button>
+            </div>
+            
+            <!-- Card 8: Guided Practice (Section Percentages) -->
+            <div id="card-8" class="lesson-card">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Guided Practice: Section 25%</h2>
+                <p class="text-gray-700 mb-4">Finally, label the <strong>percentage in each section</strong>. (Hint: It's the same for all of them!)</p>
+                <!-- SVG: Labeling game -->
+                <svg id="label-plot-3" class="svg-plot" viewBox="0 0 400 120">
+                    <!-- Plot (same as above) -->
+                    <line x1="0" y1="60" x2="400" y2="60" class="plot-axis"></line>
+                    <line x1="20" y1="50" x2="100" y2="50" class="plot-line"></line>
+                    <line x1="20" y1="40" x2="20" y2="60" class="plot-line"></line>
+                    <rect x="100" y="30" width="100" height="40" class="plot-box"></rect>
+                    <rect x="200" y="30" width="100" height="40" class="plot-box"></rect>
+                    <line x1="300" y1="50" x2="380" y2="50" class="plot-line"></line>
+                    <line x1="380" y1="40" x2="380" y2="60" class="plot-line"></line>
+                    <line x1="200" y1="30" x2="200" y2="70" class="plot-line"></line>
+                    
+                    <!-- Labels -->
+                    <g class="plot-label">
+                        <text id="label-sec1" onclick="labelPlot('sec1')" x="60" y="25" class="label-target">[ ? ]</text>
+                        <text id="label-sec2" onclick="labelPlot('sec2')" x="150" y="25" class="label-target">[ ? ]</text>
+                        <text id="label-sec3" onclick="labelPlot('sec3')" x="250" y="25" class="label-target">[ ? ]</text>
+                        <text id="label-sec4" onclick="labelPlot('sec4')" x="340" y="25" class="label-target">[ ? ]</text>
+                    </g>
+                </svg>
+                <!-- Word Bank -->
+                <div class="flex flex-wrap justify-center gap-2 mt-4" id="word-bank-3">
+                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="50">50%</button>
+                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="25">25%</button>
+                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="75">75%</button>
+                </div>
+                <button onclick="resetLabels('bank-3')" class="mt-4 w-full bg-gray-600 text-white p-2 rounded-lg font-medium hover:bg-gray-700 transition">Reset</button>
+            </div>
+
+            <!-- Card 9: Skew Explanation -->
+            <div id="card-9" class="lesson-card">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Analyzing Shape: Skew</h2>
+                <p class="text-gray-700 mb-4">The shape of the plot also tells you about the data's **skew** and the relationship between the **Mean** (average) and **Median** (middle).</p>
+                
+                <div class="space-y-6">
+                    <!-- Symmetrical -->
+                    <div>
+                        <h3 class="font-semibold text-lg text-gray-800">1. Symmetrical (No Skew)</h3>
+                        <p class="text-gray-600 mb-2">Whiskers are a similar length, and the median is in the middle of the box. The data is balanced.</p>
+                        <p class="text-gray-800 font-medium">Relationship: <strong>Mean $\approx$ Median</strong> (Mean is about equal to the Median)</p>
+                        <svg class="svg-plot" viewBox="0 0 200 60">
+                            <line x1="10" y1="40" x2="190" y2="40" class="plot-axis"></line>
+                            <line x1="20" y1="35" x2="50" y2="35" class="plot-line"></line>
+                            <line x1="20" y1="30" x2="20" y2="40" class="plot-line"></line>
+                            <rect x="50" y="20" width="100" height="30" class="plot-box"></rect>
+                            <line x1="150" y1="35" x2="180" y2="35" class="plot-line"></line>
+                            <line x1="180" y1="30" x2="180" y2="40" class="plot-line"></line>
+                            <line x1="100" y1="20" x2="100" y2="50" class="plot-line"></line>
+                        </svg>
+                    </div>
+                    
+                    <!-- Right Skew -->
+                    <div>
+                        <h3 class="font-semibold text-lg text-gray-800">2. Right-Skewed (Skewed Right)</h3>
+                        <p class="text-gray-600 mb-2">The data is bunched on the left. The right whisker is long, showing high-value outliers. These outliers pull the mean *up*.</p>
+                        <p class="text-gray-800 font-medium">Relationship: <strong>Mean > Median</strong> (Mean is greater than the Median)</p>
+                        <svg class="svg-plot" viewBox="0 0 200 60">
+                            <line x1="10" y1="40" x2="190" y2="40" class="plot-axis"></line>
+                            <line x1="20" y1="35" x2="40" y2="35" class="plot-line"></line>
+                            <line x1="20" y1="30" x2="20" y2="40" class="plot-line"></line>
+                            <rect x="40" y="20" width="50" height="30" class="plot-box"></rect>
+                            <line x1="90" y1="35" x2="180" y2="35" class="plot-line"></line>
+                            <line x1="180" y1="30" x2="180" y2="40" class="plot-line"></line>
+                            <line x1="60" y1="20" x2="60" y2="50" class="plot-line"></line>
+                        </svg>
+                    </div>
+                    
+                    <!-- Left Skew -->
+                    <div>
+                        <h3 class="font-semibold text-lg text-gray-800">3. Left-Skewed (Skewed Left)</h3>
+                        <p class="text-gray-600 mb-2">The data is bunched on the right. The left whisker is long, showing low-value outliers. These outliers pull the mean *down*.</p>
+                        <p class="text-gray-800 font-medium">Relationship: <strong>Mean < Median</strong> (Mean is less than the Median)</p>
+                        <svg class="svg-plot" viewBox="0 0 200 60">
+                            <line x1="10" y1="40" x2="190" y2="40" class="plot-axis"></line>
+                            <line x1="20" y1="35" x2="110" y2="35" class="plot-line"></line>
+                            <line x1="20" y1="30" x2="20" y2="40" class="plot-line"></line>
+                            <rect x="110" y="20" width="50" height="30" class="plot-box"></rect>
+                            <line x1="160" y1="35" x2="180" y2="35" class="plot-line"></line>
+                            <line x1="180" y1="30" x2="180" y2="40" class="plot-line"></line>
+                            <line x1="140" y1="20" x2="140" y2="50" class="plot-line"></line>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- NEW CARD 10: Skew Practice -->
+            <div id="card-10" class="lesson-card">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Skew Practice</h2>
+                <p class="text-lg text-gray-700 mb-6">Time to practice! Identify the skew for each example.</p>
+
+                <!-- Skew Quiz Score -->
+                <div id="skew-quiz-score" class="text-2xl font-bold text-center my-6 hidden"></div>
+
+                <form id="skew-quiz-form" class="space-y-10">
+                    
+                    <!-- Part 1: From Plots -->
+                    <div class="space-y-8">
+                        <h3 class="text-xl font-semibold text-gray-800 border-b pb-2">Part 1: Identify Skew from Plots</h3>
+                        
+                        <!-- Skew Q1: Box Plot (Left Skew) -->
+                        <div>
+                            <p class="text-lg font-medium text-gray-900 mb-3">1. Classify the plot:</p>
+                            <svg class="svg-plot" style="max-width: 300px;" viewBox="0 0 200 60">
+                                <line x1="10" y1="40" x2="190" y2="40" class="plot-axis"></line>
+                                <line x1="20" y1="35" x2="110" y2="35" class="plot-line"></line>
+                                <line x1="20" y1="30" x2="20" y2="40" class="plot-line"></line>
+                                <rect x="110" y="20" width="50" height="30" class="plot-box"></rect>
+                                <line x1="160" y1="35" x2="180" y2="35" class="plot-line"></line>
+                                <line x1="180" y1="30" x2="180" y2="40" class="plot-line"></line>
+                                <line x1="140" y1="20" x2="140" y2="50" class="plot-line"></line>
+                            </svg>
+                            <div class="space-y-2 mt-3">
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq1" value="left" class="mr-3"> Skewed Left
+                                </label>
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq1" value="symmetric" class="mr-3"> Symmetric
+                                </label>
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq1" value="right" class="mr-3"> Skewed Right
+                                </label>
+                            </div>
+                            <div id="feedback-sq1" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                        </div>
+
+                        <!-- Skew Q2: Dot Plot (Symmetric) -->
+                        <div>
+                            <p class="text-lg font-medium text-gray-900 mb-3">2. Classify the plot:</p>
+                            <svg class="svg-plot" style="max-width: 300px;" viewBox="0 0 100 60">
+                                <line x1="0" y1="50" x2="100" y2="50" class="plot-axis"></line>
+                                <g fill="#3b82f6">
+                                    <circle cx="20" cy="45" r="3"></circle>
+                                    <circle cx="35" cy="45" r="3"></circle>
+                                    <circle cx="35" cy="39" r="3"></circle>
+                                    <circle cx="50" cy="45" r="3"></circle>
+                                    <circle cx="50" cy="39" r="3"></circle>
+                                    <circle cx="50" cy="33" r="3"></circle>
+                                    <circle cx="65" cy="45" r="3"></circle>
+                                    <circle cx="65" cy="39" r="3"></circle>
+                                    <circle cx="80" cy="45" r="3"></circle>
+                                </g>
+                            </svg>
+                            <div class="space-y-2 mt-3">
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq2" value="left" class="mr-3"> Skewed Left
+                                </label>
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq2" value="symmetric" class="mr-3"> Symmetric
+                                </label>
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq2" value="right" class="mr-3"> Skewed Right
+                                </label>
+                            </div>
+                            <div id="feedback-sq2" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                        </div>
+                        
+                        <!-- Skew Q3: Histogram (Right Skew) -->
+                        <div>
+                            <p class="text-lg font-medium text-gray-900 mb-3">3. Classify the plot:</p>
+                            <svg class="svg-plot" style="max-width: 300px;" viewBox="0 0 100 60">
+                                <line x1="0" y1="50" x2="100" y2="50" class="plot-axis"></line>
+                                <g fill="#3b82f6" stroke="#1d4ed8" stroke-width="0.5">
+                                    <rect x="10" y="10" width="15" height="40"></rect>
+                                    <rect x="25" y="25" width="15" height="25"></rect>
+                                    <rect x="40" y="35" width="15" height="15"></rect>
+                                    <rect x="55" y="45" width="15" height="5"></rect>
+                                </g>
+                            </svg>
+                            <div class="space-y-2 mt-3">
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq3" value="left" class="mr-3"> Skewed Left
+                                </label>
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq3" value="symmetric" class="mr-3"> Symmetric
+                                </label>
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq3" value="right" class="mr-3"> Skewed Right
+                                </label>
+                            </div>
+                            <div id="feedback-sq3" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                        </div>
+
+                        <!-- Skew Q4: Stem-and-Leaf (Symmetric) -->
+                        <div>
+                            <p class="text-lg font-medium text-gray-900 mb-3">4. Classify the plot:</p>
+                            <div class="stem-leaf">1 | 2
+2 | 3 5
+3 | 0 2 6 7
+4 | 2 3 5 8 8
+5 | 0 1 4
+6 | 2</div>
+                            <div class="space-y-2 mt-3">
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq4" value="left" class="mr-3"> Skewed Left
+                                </label>
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq4" value="symmetric" class="mr-3"> Symmetric
+                                </label>
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq4" value="right" class="mr-3"> Skewed Right
+                                </label>
+                            </div>
+                            <div id="feedback-sq4" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                        </div>
+                    </div>
+
+                    <!-- Part 2: From Mean/Median -->
+                    <div class="space-y-8">
+                        <h3 class="text-xl font-semibold text-gray-800 border-b pb-2">Part 2: Identify Skew from Mean & Median</h3>
+                        
+                        <!-- Skew Q5: Mean > Median -->
+                        <div>
+                            <p class="text-lg font-medium text-gray-900 mb-3">5. Mean = 41, Median = 31</p>
+                            <div class="space-y-2">
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq5" value="left" class="mr-3"> Skewed Left (Mean &lt; Median)
+                                </label>
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq5" value="symmetric" class="mr-3"> Symmetric (Mean $\approx$ Median)
+                                </label>
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq5" value="right" class="mr-3"> Skewed Right (Mean > Median)
+                                </label>
+                            </div>
+                            <div id="feedback-sq5" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                        </div>
+                        
+                        <!-- Skew Q6: Mean < Median -->
+                        <div>
+                            <p class="text-lg font-medium text-gray-900 mb-3">6. Mean = 20, Median = 35</p>
+                            <div class="space-y-2">
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq6" value="left" class="mr-3"> Skewed Left (Mean &lt; Median)
+                                </label>
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq6" value="symmetric" class="mr-3"> Symmetric (Mean $\approx$ Median)
+                                </label>
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq6" value="right" class="mr-3"> Skewed Right (Mean > Median)
+                                </label>
+                            </div>
+                            <div id="feedback-sq6" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                        </div>
+
+                        <!-- Skew Q7: Mean = Median -->
+                        <div>
+                            <p class="text-lg font-medium text-gray-900 mb-3">7. Mean = 54, Median = 54</p>
+                            <div class="space-y-2">
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq7" value="left" class="mr-3"> Skewed Left (Mean &lt; Median)
+                                </label>
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq7" value="symmetric" class="mr-3"> Symmetric (Mean $\approx$ Median)
+                                </label>
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq7" value="right" class="mr-3"> Skewed Right (Mean > Median)
+                                </label>
+                            </div>
+                            <div id="feedback-sq7" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                        </div>
+                        
+                        <!-- Skew Q8: Mean < Median -->
+                        <div>
+                            <p class="text-lg font-medium text-gray-900 mb-3">8. Mean = 112, Median = 123</p>
+                            <div class="space-y-2">
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq8" value="left" class="mr-3"> Skewed Left (Mean &lt; Median)
+                                </label>
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq8" value="symmetric" class="mr-3"> Symmetric (Mean $\approx$ Median)
+                                </label>
+                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                    <input type="radio" name="sq8" value="right" class="mr-3"> Skewed Right (Mean > Median)
+                                </label>
+                            </div>
+                            <div id="feedback-sq8" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                        </div>
+                    </div>
+
+                    <!-- Skew Quiz Controls -->
+                    <div id="skew-quiz-controls" class="flex gap-4">
+                        <button type="button" onclick="checkSkewAnswers()" id="check-skew-answers-btn" class="w-full bg-blue-600 text-white p-3 rounded-lg font-medium hover:bg-blue-700 transition">Check Skew Answers</button>
+                        <button type="button" onclick="trySkewAgain()" id="try-skew-again-btn" class="hidden w-1/2 bg-gray-600 text-white p-3 rounded-lg font-medium hover:bg-gray-700 transition">Try Again</button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- UPDATED Card 11: Practice Quiz -->
+            <div id="card-11" class="lesson-card">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Practice Quiz</h2>
+                <p class="text-xl mb-6 text-gray-700">Use the box plot below to answer the questions. This plot shows the <strong>time (in minutes) it took 60 students</strong> to complete a puzzle.</p>
+
+                <!-- Quiz Plot -->
+                <svg class="svg-plot" viewBox="0 0 450 100"> <!-- WIDENED viewBox -->
+                    <!-- Axis -->
+                    <line x1="0" y1="60" x2="450" y2="60" class="plot-axis"></line>
+                    <!-- Whisker 1 -->
+                    <line x1="50" y1="50" x2="120" y2="50" class="plot-line"></line>
+                    <line x1="50" y1="40" x2="50" y2="60" class="plot-line"></line>
+                    <!-- Box 1 -->
+                    <rect x="120" y="30" width="80" height="40" class="plot-box"></rect>
+                    <!-- Box 2 -->
+                    <rect x="200" y="30" width="130" height="40" class="plot-box"></rect>
+                    <!-- Whisker 2 -->
+                    <line x1="330" y1="50" x2="400" y2="50" class="plot-line"></line>
+                    <line x1="400" y1="40" x2="400" y2="60" class="plot-line"></line>
+                    <!-- Median Line -->
+                    <line x1="200" y1="30" x2="200" y2="70" class="plot-line"></line>
+                    
+                    <!-- Labels -->
+                    <g class="plot-label">
+                        <text x="50" y="85">5</text>
+                        <text x="120" y="85">8</text>
+                        <text x="200" y="85">10</text>
+                        <text x="330" y="85">15</text>
+                        <text x="400" y="85">22</text>
+                    </g>
+                    <g class="plot-label" style="font-weight: 600;">
+                        <text x="50" y="15">Min: 5</text>
+                        <text x="120" y="15">Q1: 8</text>
+                        <text x="200" y="15">Med: 10</text>
+                        <text x="330" y="15">Q3: 15</text>
+                        <text x="400" y="15">Max: 22</text>
+                    </g>
+                </svg>
+
+                <!-- Questions -->
+                <form id="quiz-form" class="mt-8 space-y-8">
+                    <!-- Question 1 -->
+                    <div>
+                        <p class="text-lg font-medium text-gray-900 mb-3">1. What percentage of students took between 8 and 15 minutes?</p>
+                        <div class="space-y-2">
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q1" value="25" class="mr-3"> 25%
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q1" value="50" class="mr-3"> 50%
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q1" value="75" class="mr-3"> 75%
+                            </label>
+                        </div>
+                        <div id="feedback-q1" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                    </div>
+                    
+                    <!-- Question 2 -->
+                    <div>
+                        <p class="text-lg font-medium text-gray-900 mb-3">2. How many students took 10 minutes or less?</p>
+                        <div class="space-y-2">
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q2" value="15" class="mr-3"> 15 students
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q2" value="30" class="mr-3"> 30 students
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q2" value="50" class="mr-3"> 50 students
+                            </label>
+                        </div>
+                        <div id="feedback-q2" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                    </div>
+
+                    <!-- Question 3 -->
+                    <div>
+                        <p class="text-lg font-medium text-gray-900 mb-3">3. What percentage of students took more than 15 minutes?</p>
+                        <div class="space-y-2">
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q3" value="25" class="mr-3"> 25%
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q3" value="50" class="mr-3"> 50%
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q3" value="75" class="mr-3"> 75%
+                            </label>
+                        </div>
+                        <div id="feedback-q3" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                    </div>
+
+                    <!-- Question 4 -->
+                    <div>
+                        <p class="text-lg font-medium text-gray-900 mb-3">4. How many students took between 5 and 8 minutes?</p>
+                        <div class="space-y-2">
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q4" value="15" class="mr-3"> 15 students
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q4" value="25" class="mr-3"> 25 students
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q4" value="30" class="mr-3"> 30 students
+                            </label>
+                        </div>
+                        <div id="feedback-q4" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                    </div>
+                    
+                    <!-- Question 5 -->
+                    <div>
+                        <p class="text-lg font-medium text-gray-900 mb-3">5. How many students took *more* than 10 minutes?</p>
+                        <div class="space-y-2">
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q5" value="15" class="mr-3"> 15 students
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q5" value="30" class="mr-3"> 30 students
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q5" value="50" class="mr-3"> 50 students
+                            </label>
+                        </div>
+                        <div id="feedback-q5" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                    </div>
+                    
+                    <!-- Question 6 -->
+                    <div>
+                        <p class="text-lg font-medium text-gray-900 mb-3">6. What percentage of students took between 10 and 15 minutes?</p>
+                        <div class="space-y-2">
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q6" value="25" class="mr-3"> 25%
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q6" value="50" class="mr-3"> 50%
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q6" value="75" class="mr-3"> 75%
+                            </label>
+                        </div>
+                        <div id="feedback-q6" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                    </div>
+
+                    <!-- Question 7 -->
+                    <div>
+                        <p class="text-lg font-medium text-gray-900 mb-3">7. How many students took *at least* 8 minutes?</p>
+                        <div class="space-y-2">
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q7" value="30" class="mr-3"> 30 students
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q7" value="45" class="mr-3"> 45 students
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q7" value="60" class="mr-3"> 60 students
+                            </label>
+                        </div>
+                        <div id="feedback-q7" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                    </div>
+                    
+                    <!-- Question 8 -->
+                    <div>
+                        <p class="text-lg font-medium text-gray-900 mb-3">8. What percentage of students took *less* than 8 minutes?</p>
+                        <div class="space-y-2">
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q8" value="25" class="mr-3"> 25%
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q8" value="50" class="mr-3"> 50%
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q8" value="0" class="mr-3"> 0%
+                            </label>
+                        </div>
+                        <div id="feedback-q8" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                    </div>
+
+                    <!-- Question 9 -->
+                    <div>
+                        <p class="text-lg font-medium text-gray-900 mb-3">9. What percentage of students took between 8 and 22 minutes?</p>
+                        <div class="space-y-2">
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q9" value="50" class="mr-3"> 50%
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q9" value="75" class="mr-3"> 75%
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q9" value="100" class="mr-3"> 100%
+                            </label>
+                        </div>
+                        <div id="feedback-q9" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                    </div>
+
+                    <!-- Question 10 -->
+                    <div>
+                        <p class="text-lg font-medium text-gray-900 mb-3">10. How many students are in the "interquartile range" (IQR)?</p>
+                        <div class="space-y-2">
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q10" value="30" class="mr-3"> 30 students
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q10" value="50" class="mr-3"> 50 students
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q10" value="60" class="mr-3"> 60 students
+                            </label>
+                        </div>
+                        <div id="feedback-q10" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                    </div>
+                    
+                    <!-- Question 11 -->
+                    <div>
+                        <p class="text-lg font-medium text-gray-900 mb-3">11. How many students took *less* than 15 minutes?</p>
+                        <div class="space-y-2">
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q11" value="30" class="mr-3"> 30 students
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q11" value="45" class="mr-3"> 45 students
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q11" value="60" class="mr-3"> 60 students
+                            </label>
+                        </div>
+                        <div id="feedback-q11" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                    </div>
+                    
+                    <!-- Question 12 -->
+                    <div>
+                        <p class="text-lg font-medium text-gray-900 mb-3">12. A student finished in 12 minutes. Which 25% section are they in?</p>
+                        <div class="space-y-2">
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q12" value="q1-med" class="mr-3"> Between Q1 (8) and Median (10)
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q12" value="med-q3" class="mr-3"> Between Median (10) and Q3 (15)
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q12" value="q3-max" class="mr-3"> Between Q3 (15) and Max (22)
+                            </label>
+                        </div>
+                        <div id="feedback-q12" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                    </div>
+                    
+                    <!-- Question 13 -->
+                    <div>
+                        <p class="text-lg font-medium text-gray-900 mb-3">13. Based on the shape of the plot, what is the most likely relationship between the mean and median?</p>
+                        <div class="space-y-2">
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q13" value="mean-gt-median" class="mr-3"> The mean is greater than the median (right-skewed).
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q13" value="mean-lt-median" class="mr-3"> The mean is less than the median (left-skewed).
+                            </label>
+                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
+                                <input type="radio" name="q13" value="mean-eq-median" class="mr-3"> The mean is approximately equal to the median (symmetrical).
+                            </label>
+                        </div>
+                        <div id="feedback-q13" class="hidden mt-3 p-3 rounded-md text-sm"></div>
+                    </div>
+
+                    <div id="quiz-controls" class="flex gap-4">
+                        <button type="button" onclick="checkAnswers()" id="check-answers-btn" class="w-full bg-blue-600 text-white p-3 rounded-lg font-medium hover:bg-blue-700 transition">Check Answers</button>
+                        <button type="button" onclick="tryAgain()" id="try-again-btn" class="hidden w-1/2 bg-gray-600 text-white p-3 rounded-lg font-medium hover:bg-gray-700 transition">Try Again</button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- UPDATED Card 12: Lesson Complete -->
+            <div id="card-12" class="lesson-card text-center">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Lesson Complete!</h2>
+                
+                <!-- Score Tally Element -->
+                <div id="main-quiz-score" class="text-2xl font-bold text-center my-6 hidden"></div>
+
+                <p class="text-xl text-gray-700 mb-6">Great job! You've deconstructed the box plot and learned the 25% rule.</p>
+                <!-- Simple graphic -->
+                <svg class="svg-plot" style="max-width: 200px;" viewBox="0 0 100 100">
+                    <path d="M50,10 C77.6,10 100,32.4 100,60 C100,87.6 77.6,110 50,110 C22.4,110 0,87.6 0,60 C0,32.4 22.4,10 50,10 Z" fill="#dcfce7"></path>
+                    <path d="M30,55 L45,70 L70,40" stroke="#22c55e" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+                <button onclick="restartLesson()" class="mt-6 w-full max-w-xs mx-auto bg-blue-600 text-white p-3 rounded-lg font-medium hover:bg-blue-700 transition">Restart Lesson</button>
+            </div>
+
+        </div>
+
+        <!-- Footer / Navigation -->
+        <div class="p-6 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+            <button id="prev-btn" onclick="prevCard()" class="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg font-medium hover:bg-gray-300 transition disabled:opacity-50" disabled>
+                Previous
+            </button>
+            <button id="next-btn" onclick="nextCard()" class="bg-blue-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
+                Next
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentCard = 1;
+        // UPDATED: Total steps
+        const totalCards = 12;
+        let selectedLabel = null;
+
+        // --- Card Navigation ---
+
+        function showCard(cardNumber) {
+            // Hide all cards
+            document.querySelectorAll('.lesson-card').forEach(card => {
+                card.classList.remove('active');
+            });
+
+            // Show the target card
+            const card = document.getElementById(`card-${cardNumber}`);
+            if (card) {
+                card.classList.add('active');
+                currentCard = cardNumber;
+                updateProgress();
+            }
+            
+            // Auto-scroll to top of card content when card changes
+            document.getElementById('card-container').scrollTop = 0;
+        }
+
+        function nextCard() {
+            if (currentCard < totalCards) {
+                // Check for skew quiz
+                if (currentCard === 10) {
+                     if (!document.getElementById('skew-quiz-form').dataset.completed) {
+                        return; 
+                    }
+                }
+                // UPDATED: Quiz card is now 11
+                if (currentCard === 11) {
+                    if (!document.getElementById('quiz-form').dataset.completed) {
+                        return; 
+                    }
+                }
+                showCard(currentCard + 1);
+            }
+        }
+
+        function prevCard() {
+            if (currentCard > 1) {
+                // UPDATED: Check for card 12
+                if (currentCard === 12) {
+                    document.getElementById('quiz-form').dataset.completed = "";
+                    tryAgain(); // Reset the main quiz form
+                }
+                // UPDATED: Check for card 11
+                if (currentCard === 11) {
+                    document.getElementById('skew-quiz-form').dataset.completed = "";
+                    trySkewAgain(); // Reset the skew quiz form
+                }
+                showCard(currentCard - 1);
+            }
+        }
+
+        function updateProgress() {
+            const percent = (currentCard / totalCards) * 100;
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+            document.getElementById('progress-text').innerText = `Step ${currentCard} of ${totalCards}`;
+
+            // Update button states
+            document.getElementById('prev-btn').disabled = (currentCard === 1);
+            
+            // Handle Skew Quiz card (10)
+            if (currentCard === 10) {
+                if(document.getElementById('skew-quiz-form').dataset.completed) {
+                    document.getElementById('next-btn').disabled = false;
+                } else {
+                    document.getElementById('next-btn').disabled = true;
+                }
+            // UPDATED: Handle Main Quiz card (11)
+            } else if (currentCard === 11) {
+                if(document.getElementById('quiz-form').dataset.completed) {
+                    document.getElementById('next-btn').disabled = false;
+                } else {
+                    document.getElementById('next-btn').disabled = true;
+                }
+            // UPDATED: Handle Last card (12)
+            } else if (currentCard === totalCards) {
+                 document.getElementById('next-btn').disabled = true;
+            } else {
+                document.getElementById('next-btn').disabled = false;
+            }
+        }
+
+        function restartLesson() {
+            trySkewAgain(); // Reset skew quiz
+            tryAgain(); // Reset main quiz
+            document.getElementById('skew-quiz-form').dataset.completed = "";
+            document.getElementById('quiz-form').dataset.completed = "";
+            showCard(1);
+        }
+
+        // --- Interactive Plot (Card 5) ---
+
+        const svgNS = "http://www.w3.org/2000/svg";
+        const plot = document.getElementById('interactive-plot');
+        const dotsGroup = document.getElementById('data-dots');
+        const plotGroup = document.getElementById('plot-elements');
+        const labelGroup = document.getElementById('section-labels');
+
+        // Initial data points: 12 total, 3 per section
+        let dataPoints = [
+            // Section 1: Whisker 1 (Values 50, 75, 100)
+            { value: 50, base: 50, section: 1 }, // Min
+            { value: 75, base: 50, section: 1 }, // Was 65
+            { value: 100, base: 50, section: 1 }, // Q1
+            // Section 2: Box 1 (Values 130, 160, 200)
+            { value: 130, base: 100, section: 2 },
+            { value: 160, base: 100, section: 2 },
+            { value: 200, base: 100, section: 2 }, // Median
+            // Section 3: Box 2 (Values 230, 260, 300)
+            { value: 240, base: 200, section: 3 },
+            { value: 270, base: 200, section: 3 },
+            { value: 300, base: 200, section: 3 }, // Q3
+            // Section 4: Whisker 2 (Values 340, 370, 400)
+            { value: 350, base: 300, section: 4 },
+            { value: 380, base: 300, section: 4 },
+            { value: 450, base: 300, section: 4 }  // Max
+        ];
+
+        function renderPlot() {
+            // Clear previous render
+            dotsGroup.innerHTML = '';
+            plotGroup.innerHTML = '';
+            labelGroup.innerHTML = '';
+
+            // Get 5-number summary from data points
+            const min = dataPoints[0].value;
+            const q1 = dataPoints[2].value;
+            const med = dataPoints[5].value;
+            const q3 = dataPoints[8].value;
+            const max = dataPoints[11].value;
+
+            // Draw dots
+            dataPoints.forEach(p => {
+                const dot = document.createElementNS(svgNS, 'circle');
+                dot.setAttribute('cx', p.value);
+                dot.setAttribute('cy', 100);
+                dot.setAttribute('r', 5);
+                dot.setAttribute('class', 'data-dot');
+                dotsGroup.appendChild(dot);
+            });
+
+            // Draw Whisker 1
+            plotGroup.appendChild(createLine(min, 90, q1, 90));
+            plotGroup.appendChild(createLine(min, 80, min, 100));
+            // Draw Box 1
+            plotGroup.appendChild(createRect(q1, 70, med - q1, 40));
+            // Draw Box 2
+            plotGroup.appendChild(createRect(med, 70, q3 - med, 40));
+            // Draw Whisker 2
+            plotGroup.appendChild(createLine(q3, 90, max, 90));
+            plotGroup.appendChild(createLine(max, 80, max, 100));
+            // Draw Median line
+            plotGroup.appendChild(createLine(med, 70, med, 110));
+
+            // Draw Section Labels
+            const labelY = 135; // Moved further down
+            labelGroup.appendChild(createLabel((min + q1) / 2, labelY, '3 points (25%)'));
+            labelGroup.appendChild(createLabel((q1 + med) / 2, labelY, '3 points (25%)'));
+            labelGroup.appendChild(createLabel((med + q3) / 2, labelY, '3 points (25%)'));
+            labelGroup.appendChild(createLabel((q3 + max) / 2, labelY, '3 points (25%)'));
+        }
+
+        // --- Plot drawing helpers ---
+        function createLine(x1, y1, x2, y2) {
+            const line = document.createElementNS(svgNS, 'line');
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            line.setAttribute('class', 'plot-line');
+            return line;
+        }
+
+        function createRect(x, y, width, height) {
+            const rect = document.createElementNS(svgNS, 'rect');
+            rect.setAttribute('x', x);
+            rect.setAttribute('y', y);
+            rect.setAttribute('width', width);
+            rect.setAttribute('height', height);
+            rect.setAttribute('class', 'plot-box');
+            return rect;
+        }
+        
+        function createLabel(x, y, text) {
+            const label = document.createElementNS(svgNS, 'text');
+            label.setAttribute('x', x);
+            label.setAttribute('y', y);
+            label.setAttribute('class', 'section-label');
+            label.textContent = text;
+            return label;
+        }
+        
+        function adjustSpread(section, direction) {
+            
+            // Get the anchor point (the point that *doesn't* move)
+            let anchorPoint;
+            if (section === 1) {
+                anchorPoint = dataPoints[0]; // Min
+            } else if (section === 2) {
+                anchorPoint = dataPoints[2]; // Q1
+            } else if (section === 3) {
+                anchorPoint = dataPoints[5]; // Median
+            } else { // section === 4
+                anchorPoint = dataPoints[8]; // Q3
+            }
+
+            // Get the points that *do* move
+            let otherPoints;
+             if (section === 1) {
+                otherPoints = [dataPoints[1], dataPoints[2]]; // Q1 is dataPoints[2]
+            } else if (section === 2) {
+                otherPoints = [dataPoints[3], dataPoints[4], dataPoints[5]]; // Median is dataPoints[5]
+            } else if (section === 3) {
+                otherPoints = [dataPoints[6], dataPoints[7], dataPoints[8]]; // Q3 is dataPoints[8]
+            } else { // section === 4
+                otherPoints = [dataPoints[9], dataPoints[10], dataPoints[11]]; // Max is dataPoints[11]
+            }
+            
+            const step = (direction === 'spread') ? 10 : -10;
+
+            // --- Check bunch/spread limits ---
+            if (direction === 'bunch') {
+                // Check if the first moving point is already too close to the anchor
+                if (otherPoints[0].value + step <= anchorPoint.value + 10) {
+                    return; // Don't bunch further
+                }
+                
+                // Also check if internal points are too close
+                if (section === 1) { // 2 moving points
+                    if ( (otherPoints[1].value + (step*2)) <= (otherPoints[0].value + step + 10) ) return;
+                } else if (section > 1) { // 3 moving points
+                    if ( (otherPoints[1].value + (step*2)) <= (otherPoints[0].value + step + 10) ) return;
+                    if ( (otherPoints[2].value + (step*3)) <= (otherPoints[1].value + (step*2) + 10) ) return;
+                }
+            }
+            
+            if (direction === 'spread') {
+                if (section < 4) {
+                    // Find the first point of the *next* section
+                    const nextSectionFirstPoint = dataPoints.find(p => p.section === section + 1);
+                    // Find the last point of the *current* section (which is also an anchor)
+                    const lastMovingPoint = otherPoints[otherPoints.length - 1];
+                    
+                    let lastPointFuturePosition = lastMovingPoint.value;
+                    let nextSectionMoveAmount = 0;
+                    
+                    // Calculate the future position of the last moving point
+                    // And how much the *next* section will be shifted by
+                    if (section === 1) {
+                        lastPointFuturePosition += (step * 2); // Q1's new position
+                        nextSectionMoveAmount = (step * 2); // How much dataPoints[3] will move
+                    } else if (section === 2) {
+                        lastPointFuturePosition += (step * 3); // Median's new position
+                        nextSectionMoveAmount = (step * 3); // How much dataPoints[6] will move
+                    } else if (section === 3) {
+                        lastPointFuturePosition += (step * 3); // Q3's new position
+                        nextSectionMoveAmount = (step * 3); // How much dataPoints[9] will move
+                    }
+                    
+                    // Calculate the future position of the first point in the next section
+                    const nextPointFuturePosition = nextSectionFirstPoint.value + nextSectionMoveAmount;
+                    
+                    // Check if the future positions will be too close
+                    if (lastPointFuturePosition >= nextPointFuturePosition - 20) {
+                        return; // Don't spread further
+                    }
+                }
+                if (section === 4) {
+                    // Check for screen edge
+                    if (otherPoints[otherPoints.length-1].value + (step * 3) >= 490) return;
+                }
+            }
+
+            // Apply movement
+            let moveAmount = 0;
+            if (section === 1) {
+                // For whisker 1, anchor MIN (index 0) and move others
+                dataPoints[1].value += step;
+                dataPoints[2].value += (step * 2); // Q1 moves
+                moveAmount = step * 2; // This is how much Q1 moved
+            } else if (section === 2) {
+                // Anchor Q1 (index 2)
+                dataPoints[3].value += step;
+                dataPoints[4].value += (step * 2);
+                dataPoints[5].value += (step * 3); // Median moves
+                moveAmount = step * 3; // This is how much Median moved
+            } else if (section === 3) {
+                // Anchor Median (index 5)
+                dataPoints[6].value += step;
+                dataPoints[7].value += (step * 2);
+                dataPoints[8].value += (step * 3); // Q3 moves
+                moveAmount = step * 3; // This is how much Q3 moved
+            } else if (section === 4) {
+                // Anchor Q3 (index 8)
+                dataPoints[9].value += step;
+                dataPoints[10].value += (step * 2);
+                dataPoints[11].value += (step * 3); // Max moves
+                // No moveAmount needed, as no sections follow
+            }
+
+            // Move subsequent sections
+            if (moveAmount !== 0) {
+                for (let i = section + 1; i <= 4; i++) {
+                    dataPoints.filter(p => p.section === i).forEach(p => {
+                        p.value += moveAmount;
+                    });
+                }
+            }
+
+            renderPlot();
+        }
+
+        // --- Labeling Game (Cards 6-8) ---
+
+        function selectLabel(button) {
+            // Remove selection from others in this bank
+            button.closest('.flex').querySelectorAll('.bank-word').forEach(btn => {
+                btn.classList.remove('bg-blue-500', 'text-white');
+                btn.classList.add('bg-gray-200', 'text-gray-700');
+            });
+
+            // Add selection to this one
+            button.classList.add('bg-blue-500', 'text-white');
+            button.classList.remove('bg-gray-200', 'text-gray-700');
+            selectedLabel = {
+                id: button.dataset.label,
+                text: button.innerText
+            };
+        }
+        
+        function labelPlot(targetId) {
+            if (!selectedLabel) return; // Nothing selected
+
+            // Special case for Card 8 (Section 25%)
+            const isCard8 = targetId.startsWith('sec');
+            let isCorrect = false;
+
+            if (isCard8) {
+                // Correct answer for sections is always '25'
+                isCorrect = (selectedLabel.id === '25'); 
+            } else {
+                // Normal logic for other cards
+                isCorrect = (targetId === selectedLabel.id); 
+            }
+
+            if (isCorrect) {
+                // Correct!
+                const textElement = document.getElementById(`label-${targetId}`);
+                textElement.textContent = selectedLabel.text;
+                textElement.classList.add('filled');
+                textElement.style.pointerEvents = 'none'; // Disable clicking
+
+                // Don't disable the button on Card 8, since it's reusable
+                if (!isCard8) {
+                    const button = document.querySelector(`.bank-word[data-label="${selectedLabel.id}"]`);
+                    if (button) {
+                        button.classList.add('disabled');
+                        button.style.pointerEvents = 'none';
+                    }
+                }
+                
+                selectedLabel = null; // Clear selection
+            } else {
+                // Incorrect, flash the box red
+                const textElement = document.getElementById(`label-${targetId}`);
+                textElement.style.fill = '#ef4444';
+                setTimeout(() => {
+                    textElement.style.fill = '#3b82f6';
+                }, 500);
+            }
+        }
+        
+        function resetLabels(bankId) {
+            const bank = document.getElementById(bankId);
+            const plot = bank.previousElementSibling; // Assumes plot is right before bank
+            
+            // Reset word bank
+            bank.querySelectorAll('.bank-word').forEach(btn => {
+                btn.classList.remove('bg-blue-500', 'text-white', 'disabled');
+                btn.classList.add('bg-gray-200', 'text-gray-700');
+                btn.style.pointerEvents = 'auto';
+            });
+            
+            // Reset plot labels
+            plot.querySelectorAll('.label-target').forEach(label => {
+                label.textContent = '[ ? ]';
+                label.classList.remove('filled');
+                label.style.pointerEvents = 'auto';
+            });
+            
+            selectedLabel = null;
+        }
+
+        // --- NEW: Skew Quiz Logic (Card 10) ---
+        const correctSkewAnswers = {
+            sq1: "left",
+            sq2: "symmetric",
+            sq3: "right",
+            sq4: "symmetric",
+            sq5: "right",
+            sq6: "left",
+            sq7: "symmetric",
+            sq8: "left"
+        };
+        
+        const skewFeedback = {
+            sq1: {
+                correct: "<strong>Correct!</strong> The long left whisker shows the data is skewed left.",
+                incorrect: "<strong>Not quite.</strong> The left whisker is much longer than the right, meaning low-value outliers are pulling the data to the left."
+            },
+            sq2: {
+                correct: "<strong>Correct!</strong> The dots form a nice mound in the middle. This is symmetrical.",
+                incorrect: "<strong>Hint:</strong> The data is clustered in the middle and balanced on both sides."
+            },
+            sq3: {
+                correct: "<strong>Correct!</strong> The 'tail' of the data is on the right. This is right-skewed.",
+                incorrect: "<strong>Hint:</strong> The data is bunched up on the left, with a long 'tail' of high-values on the right."
+            },
+            sq4: {
+                correct: "<strong>Correct!</strong> The 'leaves' (numbers) are roughly balanced, with the largest cluster in the middle (the 40s). This is symmetrical.",
+                incorrect: "<strong>Hint:</strong> Imagine turning this on its side. It would form a mound shape, similar to the dot plot."
+            },
+            sq5: {
+                correct: "<strong>Correct!</strong> The mean (41) is greater than the median (31), so it is skewed right.",
+                incorrect: "<strong>Hint:</strong> When Mean > Median, high-value outliers are pulling the average *up*."
+            },
+            sq6: {
+                correct: "<strong>Correct!</strong> The mean (20) is less than the median (35), so it is skewed left.",
+                incorrect: "<strong>Hint:</strong> When Mean < Median, low-value outliers are pulling the average *down*."
+            },
+            sq7: {
+                correct: "<strong>Correct!</strong> The mean (54) and median (54) are equal, so it is symmetrical.",
+                incorrect: "<strong>Hint:</strong> When Mean $\approx$ Median, the data is balanced."
+            },
+            sq8: {
+                correct: "<strong>Correct!</strong> The mean (112) is less than the median (123), so it is skewed left.",
+                incorrect: "<strong>Hint:</strong> When Mean < Median, low-value outliers are pulling the average *down*."
+            }
+        };
+
+        function checkSkewAnswers() {
+            let correctCount = 0;
+            for (let q in correctSkewAnswers) {
+                const radios = document.getElementsByName(q);
+                const feedbackEl = document.getElementById(`feedback-${q}`);
+                let selectedValue = null;
+                
+                for (const radio of radios) {
+                    if (radio.checked) {
+                        selectedValue = radio.value;
+                        break;
+                    }
+                }
+
+                if (selectedValue === correctSkewAnswers[q]) {
+                    feedbackEl.innerHTML = skewFeedback[q].correct;
+                    feedbackEl.className = 'feedback-correct mt-3 p-3 rounded-md text-sm';
+                    correctCount++;
+                } else {
+                    feedbackEl.innerHTML = skewFeedback[q].incorrect;
+                    feedbackEl.className = 'feedback-incorrect mt-3 p-3 rounded-md text-sm';
+                }
+                feedbackEl.classList.remove('hidden');
+            }
+
+            // Show score
+            const scoreEl = document.getElementById('skew-quiz-score');
+            scoreEl.textContent = `You got ${correctCount} / 8 correct!`;
+            if (correctCount === 8) {
+                scoreEl.className = 'text-2xl font-bold text-center my-6 text-green-600';
+            } else if (correctCount >= 5) {
+                scoreEl.className = 'text-2xl font-bold text-center my-6 text-blue-600';
+            } else {
+                scoreEl.className = 'text-2xl font-bold text-center my-6 text-red-600';
+            }
+            scoreEl.classList.remove('hidden');
+
+            // Update controls
+            document.getElementById('try-skew-again-btn').classList.remove('hidden');
+            document.getElementById('check-skew-answers-btn').classList.add('hidden');
+            document.getElementById('skew-quiz-form').dataset.completed = "true";
+            updateProgress(); // Enable 'Next' button
+        }
+        
+        function trySkewAgain() {
+            document.getElementById('skew-quiz-form').reset();
+            document.querySelectorAll('[id^=feedback-sq]').forEach(el => {
+                el.classList.add('hidden');
+            });
+            document.getElementById('skew-quiz-score').classList.add('hidden');
+            document.querySelectorAll('#skew-quiz-form .quiz-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.getElementById('check-skew-answers-btn').classList.remove('hidden');
+            document.getElementById('try-skew-again-btn').classList.add('hidden');
+            document.getElementById('skew-quiz-form').dataset.completed = "";
+            updateProgress(); // Disable 'Next' button
+        }
+
+        // --- Main Quiz Logic (Card 11) ---
+
+        // UPDATED: Now 13 questions
+        const correctAnswers = {
+            q1: "50",
+            q2: "30",
+            q3: "25",
+            q4: "15",
+            q5: "30",
+            q6: "25",
+            q7: "45",
+            q8: "25",
+            q9: "75",
+            q10: "30",
+            q11: "45",
+            q12: "med-q3",
+            q13: "mean-gt-median"
+        };
+        
+        // UPDATED: Now 13 questions
+        const feedback = {
+            q1: {
+                correct: "<strong>Correct!</strong> The section from Q1 (8 min) to Q3 (15 min) contains the two middle sections, which is 25% + 25% = 50% of the students.",
+                incorrect: "<strong>Not quite.</strong> The plot shows this range covers from Q1 (8 min) to Q3 (15 min). This is the entire 'box', which contains two 25% sections. So, 25% + 25% = 50%."
+            },
+            q2: {
+                correct: "<strong>Correct!</strong> 10 minutes is the Median, which means 50% of the data is at or below it. 50% of 60 students is 30 students.",
+                incorrect: "<strong>Hint:</strong> 10 minutes is the Median. The Median represents the 50% mark. How many students is 50% of the total 60?"
+            },
+            q3: {
+                correct: "<strong>Correct!</strong> 15 minutes is Q3, which is the 75% mark. The percentage of students *above* this point is the final section (the top whisker), which is 25%.",
+                incorrect: "<strong>Remember the rule:</strong> 15 minutes is Q3. This marks the 75% point, meaning 75% of students are *below* it. The question asks how many are *above* it. That's just the final section!"
+            },
+            q4: {
+                correct: "<strong>Correct!</strong> 5 minutes (Min) to 8 minutes (Q1) is the first 25% section. 25% of 60 students is 15 students.",
+                incorrect: "<strong>Hint:</strong> The range from 5 (Min) to 8 (Q1) is the very first 'whisker'. How many students are in any single section? (Remember the 25% rule and the 60 student total)."
+            },
+            q5: {
+                correct: "<strong>Correct!</strong> 10 minutes is the Median (50%). This means 50% took *more* than 10 minutes. 50% of 60 is 30 students.",
+                incorrect: "<strong>Hint:</strong> 10 minutes is the Median. If 50% took 10 minutes or *less*, what percentage took *more*? What is that percentage of 60?"
+            },
+            q6: {
+                correct: "<strong>Correct!</strong> The range from 10 (Median) to 15 (Q3) is exactly one section, which is always 25%.",
+                incorrect: "<strong>Hint:</strong> Look at the plot. The section from the Median (10) to Q3 (15) is the third 25% section."
+            },
+            q7: {
+                correct: "<strong>Correct!</strong> 8 minutes is Q1 (the 25% mark). This means 25% are *below* it, so 75% must be *at or above* it. 75% of 60 is 45 students.",
+                incorrect: "<strong>Hint:</strong> 8 minutes is Q1. This is the 25% mark. The question asks for everyone *at or above* this point, which is 3 sections. What is 3 * 25%? And what is that percentage of 60?"
+            },
+            q8: {
+                correct: "<strong>Correct!</strong> 8 minutes is Q1. By definition, 25% of the data is *less* than Q1.",
+                incorrect: "<strong>Hint:</strong> 8 minutes is Q1. The data *below* Q1 is the first whisker, which is always 25%."
+            },
+            q9: {
+                correct: "<strong>Correct!</strong> This range goes from Q1 (8) to the Max (22). This covers the 3 upper sections. 25% + 25% + 25% = 75%.",
+                incorrect: "<strong>Hint:</strong> Count the sections. From Q1 to the Median is one. From Median to Q3 is two. From Q3 to Max is three. How much is 3 x 25%?"
+            },
+            q10: {
+                correct: "<strong>Correct!</strong> The 'Interquartile Range' (IQR) is the box, from Q1 to Q3. It contains two 25% sections (25% + 25% = 50%). 50% of 60 is 30 students.",
+                incorrect: "<strong>Hint:</strong> 'Interquartile Range' is a fancy term for the box, which goes from Q1 to Q3. It's two sections. How many students is that?"
+            },
+            q11: {
+                correct: "<strong>Correct!</strong> 15 minutes is Q3. By definition, 75% of the data is *at or below* Q3. 75% of 60 is 45 students.",
+                incorrect: "<strong>Hint:</strong> 15 minutes is Q3, which is the 75th percentile. The question asks for the number of students *less* than this. What is 75% of 60?"
+            },
+            q12: {
+                correct: "<strong>Correct!</strong> 12 is a number between 10 (Median) and 15 (Q3).",
+                incorrect: "<strong>Hint:</strong> Find 12 on the number line. It's not between 8 and 10. It is between 10 and 15."
+            },
+            q13: {
+                correct: "<strong>Correct!</strong> The plot is **right-skewed**. The right whisker (15 to 22) and right box (10 to 15) are more spread out than the left. This indicates high-value outliers are pulling the mean *up*, so the mean will be greater than the median.",
+                incorrect: "<strong>Not quite.</strong> Look at the shape. The right side of the plot (from 10 to 22) is much more spread out than the left side (from 5 to 10). This is a classic **right-skewed** plot, meaning the mean is pulled *higher* than the median."
+            }
+        };
+
+        function checkAnswers() {
+            let allCorrect = true;
+            let correctCount = 0; 
+            
+            for (let q in correctAnswers) {
+                const radios = document.getElementsByName(q);
+                const feedbackEl = document.getElementById(`feedback-${q}`);
+                let selectedValue = null;
+                
+                for (const radio of radios) {
+                    if (radio.checked) {
+                        selectedValue = radio.value;
+                        break;
+                    }
+                }
+
+                if (selectedValue === correctAnswers[q]) {
+                    feedbackEl.innerHTML = feedback[q].correct;
+                    feedbackEl.className = 'feedback-correct mt-3 p-3 rounded-md text-sm';
+                    correctCount++; 
+                } else {
+                    feedbackEl.innerHTML = feedback[q].incorrect;
+                    feedbackEl.className = 'feedback-incorrect mt-3 p-3 rounded-md text-sm';
+                    allCorrect = false;
+                }
+                feedbackEl.classList.remove('hidden');
+            }
+
+            // --- MOVED THIS BLOCK to Card 12 ---
+            // UPDATED: ID is now main-quiz-score
+            const scoreEl = document.getElementById('main-quiz-score'); 
+            // UPDATED to 13 questions
+            scoreEl.textContent = `You got ${correctCount} / 13 correct!`;
+            
+            // Set score color based on performance
+            // UPDATED thresholds
+            if (correctCount === 13) {
+                scoreEl.className = 'text-2xl font-bold text-center my-6 text-green-600'; // Perfect
+            } else if (correctCount >= 9) {
+                scoreEl.className = 'text-2xl font-bold text-center my-6 text-blue-600'; // Good
+            } else {
+                scoreEl.className = 'text-2xl font-bold text-center my-6 text-red-600'; // Needs review
+            }
+            // --- END OF MOVED BLOCK ---
+            
+            // Show 'Try Again' button
+            document.getElementById('try-again-btn').classList.remove('hidden');
+            // Hide 'Check Answers'
+            document.getElementById('check-answers-btn').classList.add('hidden');
+            
+            // Mark quiz as completed and enable 'Next'
+            document.getElementById('quiz-form').dataset.completed = "true";
+            updateProgress();
+        }
+        
+        function tryAgain() {
+            document.getElementById('quiz-form').reset();
+            
+            // Hide feedback
+            document.querySelectorAll('[id^=feedback-q]').forEach(el => {
+                el.classList.add('hidden');
+            });
+
+            // Hide score on reset
+            document.getElementById('main-quiz-score').classList.add('hidden');
+            
+            // Remove selected styles
+            document.querySelectorAll('#quiz-form .quiz-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Show 'Check Answers'
+            document.getElementById('check-answers-btn').classList.remove('hidden');
+            // Hide 'Try Again'
+            document.getElementById('try-again-btn').classList.add('hidden');
+            
+            // Mark quiz as not completed and disable 'Next'
+            document.getElementById('quiz-form').dataset.completed = "";
+            updateProgress();
+        }
+
+
+        // --- Initial Setup ---
+
+        // Initialize first card and plot
+        showCard(1);
+        renderPlot();
+        
+        // Add listeners to all labeling buttons
+        document.querySelectorAll('.bank-word').forEach(button => {
+            button.addEventListener('click', () => selectLabel(button));
+        });
+        
+        // Add listeners to ALL quiz options (both quizzes)
+        document.querySelectorAll('.quiz-option input').forEach(radio => {
+            radio.addEventListener('change', () => {
+                // Remove 'selected' from all options in this group
+                document.querySelectorAll(`input[name="${radio.name}"]`).forEach(opt => {
+                    opt.closest('.quiz-option').classList.remove('selected');
+                });
+                // Add 'selected' to the one that was just clicked
+                radio.closest('.quiz-option').classList.add('selected');
+            });
+        });
+
+    </script>
+</body>
+</html>
+
