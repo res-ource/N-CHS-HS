@@ -1,1716 +1,1255 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Box Plot Lesson</title>
+    <title>Interactive Math Lesson</title>
+    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load MathJax -->
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                textmacros: {
+                    "text": ["{\\text{#1}}", 1], // For \text{}
+                    "approx": ["\\approx"] // For \approx
+                }
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
     <style>
-        /* Using Inter font */
-        body {
-            font-family: "Inter", sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+        body, html {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', 'sans-serif';
         }
-
-        /* Hide all cards by default */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f3f4f6;
+        }
+        .content-wrapper {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-bottom: 90px;
+        }
+        .main-content {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
         .lesson-card {
-            display: none;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
+            min-height: 400px;
         }
-
-        /* Show only the active card */
-        .lesson-card.active {
-            display: block;
-        }
-
-        /* Simple dot styles */
-        .data-dot {
-            fill: #3b82f6;
-            /* blue-500 */
-            transition: cx 0.5s ease-in-out;
-            cursor: move;
-        }
-
-        /* Style for the plot elements */
-        .plot-line {
-            stroke: #1f2937;
-            /* gray-800 */
-            stroke-width: 2;
-        }
-
-        .plot-box {
-            fill: none;
-            stroke: #1f2937;
-            /* gray-800 */
-            stroke-width: 2;
-            transition: all 0.5s ease-in-out;
-        }
-
-        .plot-axis {
-            stroke: #6b7280;
-            /* gray-500 */
-            stroke-width: 1;
-        }
-
-        .axis-label,
-        .plot-label {
-            font-size: 14px;
-            fill: #374151;
-            /* gray-700 */
-            font-family: "Inter", sans-serif;
-            text-anchor: middle;
-            user-select: none;
-        }
-        
-        .section-label {
-            font-size: 11px;
-            fill: #4b5563; /* gray-600 */
-            font-family: "Inter", sans-serif;
-            text-anchor: middle;
-            user-select: none;
-            transition: x 0.5s ease-in-out;
-        }
-
-        .svg-plot {
+        .nav-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
             width: 100%;
-            max-width: 600px;
+            background-color: #ffffff;
+            border-top: 1px solid #e5e7eb;
+            padding: 16px;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+        .nav-container {
+            max-width: 800px;
             margin: 0 auto;
-            overflow: visible;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-
-        /* Styles for drag-and-drop game */
-        .label-target {
-            font-size: 14px;
-            fill: #3b82f6;
-            /* blue-500 */
-            cursor: pointer;
+        .nav-btn {
+            padding: 12px 28px;
+            border-radius: 8px;
             font-weight: 600;
+            font-size: 16px;
+            transition: all 0.2s ease-in-out;
+            border: none;
+            cursor: pointer;
         }
-
-        .label-target.filled {
-            fill: #1f2937;
-            /* gray-800 */
-            cursor: default;
-        }
-
-        .bank-word {
-            transition: all 0.2s ease;
-        }
-
-        .bank-word.disabled {
-            opacity: 0.3;
+        .nav-btn:disabled {
+            background-color: #d1d5db;
+            color: #6b7280;
             cursor: not-allowed;
         }
-
-        /* Quiz answer styling */
-        .quiz-option {
-            border: 2px solid #e5e7eb; /* gray-200 */
-            transition: all 0.2s ease;
+        .prev-btn {
+            background-color: #e5e7eb;
+            color: #374151;
         }
-
-        .quiz-option.selected {
-            border-color: #3b82f6; /* blue-500 */
-            background-color: #eff6ff; /* blue-50 */
+        .prev-btn:hover:not(:disabled) {
+            background-color: #d1d5db;
         }
-
-        .feedback-correct {
-            color: #166534; /* green-800 */
-            background-color: #dcfce7; /* green-100 */
-            border-left: 4px solid #22c55e; /* green-500 */
+        .next-btn {
+            background-color: #2563eb;
+            color: white;
         }
-        
-        .feedback-incorrect {
-            color: #991b1b; /* red-800 */
-            background-color: #fee2e2; /* red-100 */
-            border-left: 4px solid #ef4444; /* red-500 */
+        .next-btn:hover:not(:disabled) {
+            background-color: #1d4ed8;
         }
-
-        /* Stem-and-leaf plot style */
-        .stem-leaf {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: #f9fafb; /* gray-50 */
-            border: 1px solid #e5e7eb; /* gray-200 */
-            padding: 12px;
+        .progress-bar-container {
+            width: 30%;
+            background-color: #e5e7eb;
+            border-radius: 99px;
+            height: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #2563eb;
+            border-radius: 99px;
+            transition: width 0.3s ease-out;
+        }
+        .check-btn {
+            padding: 12px 24px;
             border-radius: 8px;
-            font-size: 16px;
-            line-height: 1.6;
-            white-space: pre;
-            text-align: left;
-            max-width: 200px;
-            margin: 0 auto;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+        }
+        .check-btn:disabled {
+            background-color: #d1d5db;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+        .calc-btn {
+            border: none;
+            cursor: pointer;
+            font-size: 1.125rem;
+            transition: background-color 0.2s;
+        }
+        /* Style for simple skew visualization */
+        .skew-viz {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            height: 120px;
+            border-bottom: 2px solid #9ca3af;
+            padding: 0 10px;
+        }
+        .skew-bar {
+            background-color: #3b82f6;
+            width: 12%;
+            margin: 0 1px;
+            border-radius: 4px 4px 0 0;
+        }
+        /* Style for practice option buttons */
+        .option-btn {
+            display: block;
+            width: 100%;
+            background-color: #f3f4f6;
+            border: 2px solid #d1d5db;
+            color: #374151;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 1.125rem;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option-btn:hover {
+            background-color: #e5e7eb;
+            border-color: #9ca3af;
+        }
+        .option-btn.selected {
+            background-color: #dbeafe;
+            border-color: #3b82f6;
+            color: #1d4ed8;
+            font-weight: 600;
         }
     </style>
 </head>
+<body class="app-container">
 
-<body class="h-full bg-gray-100 flex items-start justify-center p-4">
-
-    <!-- Main lesson container -->
-    <div class="w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden my-8">
-        
-        <!-- Header / Progress Bar -->
-        <div class="p-6 border-b border-gray-200">
-            <h1 class="text-xl font-bold text-center text-gray-800 mb-4">Deconstructing the Box Plot</h1>
-            <div class="flex items-center">
-                <!-- UPDATED: Total steps -->
-                <div id="progress-text" class="text-sm font-medium text-blue-700 mr-4">Step 1 of 12</div>
-                <div class="w-full bg-gray-200 rounded-full h-2.5">
-                    <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 8.33%"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card container -->
-        <div id="card-container" class="p-6 md:p-8">
+    <!-- Main Content Area (Scrollable) -->
+    <div class="content-wrapper">
+        <div class="main-content">
+            <header class="text-center mb-6">
+                <h1 class="text-4xl font-bold text-gray-800">Interactive Math Lesson</h1>
+                <p class="text-xl text-gray-500 mt-1" id="part-title">Part 1: Arithmetic Sequences</p>
+            </header>
 
             <!-- Card 1: Introduction -->
-            <div id="card-1" class="lesson-card active">
-                <h2 class="text-2xl font-semibold text-gray-900 mb-4">What does 25% *really* mean?</h2>
-                <p class="text-lg text-gray-700 mb-4">
-                    The most confusing part of a box plot is that each of the 4 sections represents **25% of the data**... even when they have different lengths!
+            <div class="lesson-card" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">Welcome!</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    This is an interactive lesson to help you master arithmetic sequences.
                 </p>
-                <p class="text-gray-600 mb-6">
-                    This lesson will show you *why* this is true. We'll build an interactive plot with <strong>12 data points</strong>, which means each section will contain exactly <strong>3 points (25% of 12)</strong>.
+                <p class="text-gray-700 text-lg mb-4">
+                    You'll learn what they are, how to use their formula, and practice with some problems.
                 </p>
-                
-                <svg class="svg-plot border border-gray-200 rounded-lg p-4" viewBox="0 0 400 100">
-                    <title>A box plot with each of its four sections labeled 25%</title>
-                    <!-- Axis -->
-                    <line x1="0" y1="60" x2="400" y2="60" class="plot-axis"></line>
-                    <!-- Whisker 1 -->
-                    <line x1="20" y1="50" x2="100" y2="50" class="plot-line"></line>
-                    <line x1="20" y1="40" x2="20" y2="60" class="plot-line"></line>
-                    <!-- Box 1 -->
-                    <rect x="100" y="30" width="100" height="40" class="plot-box" fill="#eff6ff"></rect>
-                    <!-- Box 2 -->
-                    <rect x="200" y="30" width="100" height="40" class="plot-box" fill="#eff6ff"></rect>
-                    <!-- Whisker 2 -->
-                    <line x1="300" y1="50" x2="380" y2="50" class="plot-line"></line>
-                    <line x1="380" y1="40" x2="380" y2="60" class="plot-line"></line>
-                    <!-- Median Line -->
-                    <line x1="200" y1="30" x2="200" y2="70" class="plot-line"></line>
-                    
-                    <!-- 25% Labels -->
-                    <g class="plot-label" style="font-size: 16px; font-weight: 600; fill: #2563eb;">
-                        <text x="60" y="25">25%</text>
-                        <text x="150" y="25">25%</text>
-                        <text x="250" y="25">25%</text>
-                        <text x="340" y="25">25%</text>
-                    </g>
-                </svg>
+                <p class="text-gray-700 text-lg">
+                    Click "Next" to get started!
+                </p>
+            </div>
+            
+            <!-- Card 2: What is a Sequence? -->
+            <div class="lesson-card" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">1. What is an Arithmetic Sequence?</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    An arithmetic sequence is a list of numbers where the **difference** between any two side-by-side terms is the same.
+                </p>
+                <p class="text-gray-700 text-lg mb-4">
+                    In simple terms, you are **adding or subtracting the same number** every time to get to the next term.
+                </p>
+                <div class="space-y-3">
+                    <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                        <p class="font-bold text-blue-800">Example (Adding):</p>
+                        <p class="text-xl font-mono text-blue-900">{ 5, 8, 11, 14, ... }</p>
+                        <p class="text-blue-700">(You add 3 each time)</p>
+                    </div>
+                    <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
+                        <p class="font-bold text-red-800">Example (Subtracting):</p>
+                        <p class="text-xl font-mono text-red-900">{ 100, 90, 80, 70, ... }</p>
+                        <p class="text-red-700">(You subtract 10 each time)</p>
+                    </div>
+                </div>
             </div>
 
-            <!-- Card 2: The 5-Number Summary -->
-            <div id="card-2" class="lesson-card">
-                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Find the 5-Number Summary</h2>
-                <p class="text-gray-700 mb-4">First, we find 5 key points that split the data.</p>
-                <ul class="list-disc list-outside text-gray-600 pl-5 mb-4 space-y-1">
-                    <li>The <strong>Minimum</strong> (lowest value).</li>
-                    <li>The <strong>Median</strong> (the middle value, 50% of data is below it).</li>
-                    <li>The <strong>Maximum</strong> (highest value).</li>
-                    <li><strong>Q1</strong> & <strong>Q3</strong> (the medians of the lower and upper halves).</li>
+            <!-- Card 3: Common Difference -->
+            <div class="lesson-card" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">1. The Common Difference $(d)$</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    That special number you add or subtract is called the **common difference**.
+                </p>
+                <p class="text-gray-700 text-lg mb-4">
+                    We use the variable $d$ to represent it.
+                </p>
+                <ul class="list-disc list-inside space-y-2 text-lg text-gray-700">
+                    <li>If the sequence is increasing, $d$ is positive.</li>
+                    <li>If the sequence is decreasing, $d$ is negative.</li>
                 </ul>
-                <!-- SVG: 5-Number Summary -->
-                <svg class="svg-plot" viewBox="0 0 400 100">
-                    <!-- Axis -->
-                    <line x1="0" y1="60" x2="400" y2="60" class="plot-axis"></line>
-                    <!-- Points -->
-                    <g class="plot-label">
-                        <circle cx="20" cy="60" r="3" fill="#1f2937"></circle>
-                        <text x="20" y="80">5</text>
-                        <text x="20" y="50">Minimum</text>
-                        
-                        <circle cx="100" cy="60" r="3" fill="#1f2937"></circle>
-                        <text x="100" y="80">8</text>
-                        <text x="100" y="50">Q1</text>
-                        
-                        <circle cx="200" cy="60" r="3" fill="#1f2937"></circle>
-                        <text x="200" y="80">12</text>
-                        <text x="200" y="50">Median</text>
-                        
-                        <circle cx="300" cy="60" r="3" fill="#1f2937"></circle>
-                        <text x="300" y="80">18</text>
-                        <text x="300" y="50">Q3</text>
-                        
-                        <circle cx="380" cy="60" r="3" fill="#1f2937"></circle>
-                        <text x="380" y="80">25</text>
-                        <text x="380" y="50">Maximum</text>
-                    </g>
-                </svg>
+                <p class="text-gray-700 text-lg my-4 font-semibold">
+                    To find $d$, just take any term and subtract the term that came before it.
+                </p>
+                <div class="bg-gray-100 p-4 rounded-lg font-mono text-gray-800">
+                    <p>{ 5, 8, 11, 14, ... }</p>
+                    <p>$d = 8 - 5 = 3$</p>
+                    <p>$d = 11 - 8 = 3$</p>
+                </div>
             </div>
 
-            <!-- Card 3: The 4 Sections -->
-            <div id="card-3" class="lesson-card">
-                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Create the 4 Sections</h2>
-                <p class="text-gray-700 mb-4">These 5 points create the 4 sections of a box plot: two "whiskers" and two "boxes".</p>
-                <!-- SVG: The 4 sections -->
-                <svg class="svg-plot" viewBox="0 0 400 100">
-                    <!-- Axis -->
-                    <line x1="0" y1="60" x2="400" y2="60" class="plot-axis"></line>
-                    <!-- Whisker 1 -->
-                    <line x1="20" y1="50" x2="100" y2="50" class="plot-line"></line>
-                    <line x1="20" y1="40" x2="20" y2="60" class="plot-line"></line>
-                    <!-- Box 1 -->
-                    <rect x="100" y="30" width="100" height="40" class="plot-box"></rect>
-                    <!-- Box 2 -->
-                    <rect x="200" y="30" width="100" height="40" class="plot-box"></rect>
-                    <!-- Whisker 2 -->
-                    <line x1="300" y1="50" x2="380" y2="50" class="plot-line"></line>
-                    <line x1="380" y1="40" x2="380" y2="60" class="plot-line"></line>
-                    <!-- Median Line -->
-                    <line x1="200" y1="30" x2="200" y2="70" class="plot-line"></line>
-                    
-                    <!-- Labels -->
-                    <g class="plot-label" style="font-size: 12px; font-weight: 500;">
-                        <text x="60" y="25">Whisker 1</text>
-                        <text x="150" y="25">Box 1</text>
-                        <text x="250" y="25">Box 2</text>
-                        <text x="340" y="25">Whisker 2</text>
-                    </g>
-                </svg>
-            </div>
-
-            <!-- Card 4: The 25% Rule -->
-            <div id="card-4" class="lesson-card">
-                <h2 class="text-2xl font-semibold text-gray-900 mb-4">The 25% Rule</h2>
-                <p class="text-gray-700 mb-4">Because the 5-number summary splits the data into 4 <strong>equal groups</strong>, each section must contain exactly <strong>25% of the data points</strong>.</p>
-                <!-- SVG: The 25% rule -->
-                <svg class="svg-plot" viewBox="0 0 400 100">
-                    <!-- Axis -->
-                    <line x1="0" y1="60" x2="400" y2="60" class="plot-axis"></line>
-                    <!-- Whisker 1 -->
-                    <line x1="20" y1="50" x2="100" y2="50" class="plot-line"></line>
-                    <line x1="20" y1="40" x2="20" y2="60" class="plot-line"></line>
-                    <!-- Box 1 -->
-                    <rect x="100" y="30" width="100" height="40" class="plot-box"></rect>
-                    <!-- Box 2 -->
-                    <rect x="200" y="30" width="100" height="40" class="plot-box"></rect>
-                    <!-- Whisker 2 -->
-                    <line x1="300" y1="50" x2="380" y2="50" class="plot-line"></line>
-                    <line x1="380" y1="40" x2="380" y2="60" class="plot-line"></line>
-                    <!-- Median Line -->
-                    <line x1="200" y1="30" x2="200" y2="70" class="plot-line"></line>
-                    
-                    <!-- 25% Labels -->
-                    <g class="plot-label" style="font-size: 14px; font-weight: 600; fill: #0ea5e9;">
-                        <text x="60" y="25">25%</text>
-                        <text x="150" y="25">25%</text>
-                        <text x="250" y="25">25%</text>
-                        <text x="340" y="25">25%</text>
-                    </g>
-                </svg>
-            </div>
-
-            <!-- Card 5: Interactive Plot -->
-            <div id="card-5" class="lesson-card">
-                <h2 class="text-2xl font-semibold text-gray-900 mb-4">The "Aha!" Moment</h2>
-                <p class="text-gray-700 mb-4">Watch the plot. A <span class="font-bold text-red-600">long</span> section just means its 3 points (25%) are <span class="font-bold text-red-600">spread out</span>. A <span class="font-bold text-blue-600">short</span> section means its 3 points (25%) are <span class="font-bold text-blue-600">bunched up</span>.</p>
-                <p class="text-gray-600 mb-4">Use the buttons to see this in action. The <strong>number of dots</strong> in each section never changes!</p>
+            <!-- Card 4: Practice 1 (Find the Difference) -->
+            <div class="lesson-card" data-practice="true" id="practice-card-1">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-blue-700">Quick Check: Find the Difference</h2>
+                    <span id="p1-counter" class="text-lg font-medium text-gray-600">Problem 1 of 6</span>
+                </div>
                 
-                <!-- Interactive SVG -->
-                <svg id="interactive-plot" class="svg-plot" viewBox="0 0 500 150">
-                    <!-- Axis -->
-                    <line x1="0" y1="100" x2="500" y2="100" class="plot-axis"></line>
-                    
-                    <!-- Plot Elements -->
-                    <g id="plot-elements">
-                        <!-- Boxes and Whiskers will be drawn by JS -->
-                    </g>
-                    
-                    <!-- Data Dots -->
-                    <g id="data-dots">
-                        <!-- Dots will be drawn by JS -->
-                    </g>
-                    
-                    <!-- Section Labels -->
-                    <g id="section-labels">
-                        <!-- Labels will be drawn by JS -->
-                    </g>
-                </svg>
+                <p class="text-gray-700 text-lg mb-4">
+                    Is this sequence arithmetic? If so, what is the common difference $(d)$?
+                    <br>
+                    (If it is not arithmetic, type "no")
+                </p>
                 
-                <!-- Control Buttons -->
-                <div class="grid grid-cols-4 gap-2 mt-4">
-                    <!-- Section 1 -->
-                    <div>
-                        <p class="text-center font-medium text-sm mb-1">Whisker 1</p>
-                        <button onclick="adjustSpread(1, 'bunch')" class="w-full bg-blue-500 text-white p-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition">Bunch</button>
-                        <button onclick="adjustSpread(1, 'spread')" class="w-full bg-red-500 text-white p-2 rounded-lg text-sm font-medium mt-1 hover:bg-red-600 transition">Spread</button>
-                    </div>
-                    <!-- Section 2 -->
-                    <div>
-                        <p class="text-center font-medium text-sm mb-1">Box 1</p>
-                        <button onclick="adjustSpread(2, 'bunch')" class="w-full bg-blue-500 text-white p-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition">Bunch</button>
-                        <button onclick="adjustSpread(2, 'spread')" class="w-full bg-red-500 text-white p-2 rounded-lg text-sm font-medium mt-1 hover:bg-red-600 transition">Spread</button>
-                    </div>
-                    <!-- Section 3 -->
-                    <div>
-                        <p class="text-center font-medium text-sm mb-1">Box 2</p>
-                        <button onclick="adjustSpread(3, 'bunch')" class="w-full bg-blue-500 text-white p-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition">Bunch</button>
-                        <button onclick="adjustSpread(3, 'spread')" class="w-full bg-red-500 text-white p-2 rounded-lg text-sm font-medium mt-1 hover:bg-red-600 transition">Spread</button>
-                    </div>
-                    <!-- Section 4 -->
-                    <div>
-                        <p class="text-center font-medium text-sm mb-1">Whisker 2</p>
-                        <button onclick="adjustSpread(4, 'bunch')" class="w-full bg-blue-500 text-white p-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition">Bunch</button>
-                        <button onclick="adjustSpread(4, 'spread')" class="w-full bg-red-500 text-white p-2 rounded-lg text-sm font-medium mt-1 hover:bg-red-600 transition">Spread</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 6: Guided Practice (Terminology) -->
-            <div id="card-6" class="lesson-card">
-                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Guided Practice: Terminology</h2>
-                <p class="text-gray-700 mb-4">Click a word from the bank, then click the <strong>[ ? ]</strong> on the plot to label it.</p>
-                <!-- SVG: Labeling game -->
-                <svg id="label-plot-1" class="svg-plot" viewBox="0 0 400 120">
-                    <!-- Axis -->
-                    <line x1="0" y1="60" x2="400" y2="60" class="plot-axis"></line>
-                    <!-- Whisker 1 -->
-                    <line x1="20" y1="50" x2="100" y2="50" class="plot-line"></line>
-                    <line x1="20" y1="40" x2="20" y2="60" class="plot-line"></line>
-                    <!-- Box 1 -->
-                    <rect x="100" y="30" width="100" height="40" class="plot-box"></rect>
-                    <!-- Box 2 -->
-                    <rect x="200" y="30" width="100" height="40" class="plot-box"></rect>
-                    <!-- Whisker 2 -->
-                    <line x1="300" y1="50" x2="380" y2="50" class="plot-line"></line>
-                    <line x1="380" y1="40" x2="380" y2="60" class="plot-line"></line>
-                    <!-- Median Line -->
-                    <line x1="200" y1="30" x2="200" y2="70" class="plot-line"></line>
-                    
-                    <!-- Labels -->
-                    <g class="plot-label">
-                        <text id="label-min" onclick="labelPlot('min')" x="20" y="90" class="label-target">[ ? ]</text>
-                        <text id="label-q1" onclick="labelPlot('q1')" x="100" y="90" class="label-target">[ ? ]</text>
-                        <text id="label-med" onclick="labelPlot('med')" x="200" y="90" class="label-target">[ ? ]</text>
-                        <text id="label-q3" onclick="labelPlot('q3')" x="300" y="90" class="label-target">[ ? ]</text>
-                        <text id="label-max" onclick="labelPlot('max')" x="380" y="90" class="label-target">[ ? ]</text>
-                    </g>
-                </svg>
-                <!-- Word Bank -->
-                <div class="flex flex-wrap justify-center gap-2 mt-4" id="word-bank-1">
-                    <!-- REORDERED BUTTONS RANDOMLY -->
-                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="med">Median</button>
-                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="max">Maximum</button>
-                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="q1">Q1</button>
-                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="min">Minimum</button>
-                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="q3">Q3</button>
-                </div>
-                <button onclick="resetLabels('bank-1')" class="mt-4 w-full bg-gray-600 text-white p-2 rounded-lg font-medium hover:bg-gray-700 transition">Reset</button>
-            </div>
-            
-            <!-- Card 7: Guided Practice (Percentages Below) -->
-            <div id="card-7" class="lesson-card">
-                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Guided Practice: Percentages</h2>
-                <p class="text-gray-700 mb-4">Now, label the plot with the <strong>total percentage of data at or below</strong> that point.</p>
-                <!-- SVG: Labeling game -->
-                <svg id="label-plot-2" class="svg-plot" viewBox="0 0 400 120">
-                    <!-- Plot (same as above) -->
-                    <line x1="0" y1="60" x2="400" y2="60" class="plot-axis"></line>
-                    <line x1="20" y1="50" x2="100" y2="50" class="plot-line"></line>
-                    <line x1="20" y1="40" x2="20" y2="60" class="plot-line"></line>
-                    <rect x="100" y="30" width="100" height="40" class="plot-box"></rect>
-                    <rect x="200" y="30" width="100" height="40" class="plot-box"></rect>
-                    <line x1="300" y1="50" x2="380" y2="50" class="plot-line"></line>
-                    <line x1="380" y1="40" x2="380" y2="60" class="plot-line"></line>
-                    <line x1="200" y1="30" x2="200" y2="70" class="plot-line"></line>
-                    
-                    <!-- Labels -->
-                    <g class="plot-label">
-                        <text id="label-0" onclick="labelPlot('0')" x="20" y="90" class="label-target">[ ? ]</text>
-                        <text id="label-25" onclick="labelPlot('25')" x="100" y="90" class="label-target">[ ? ]</text>
-                        <text id="label-50" onclick="labelPlot('50')" x="200" y="90" class="label-target">[ ? ]</text>
-                        <text id="label-75" onclick="labelPlot('75')" x="300" y="90" class_name="label-target">[ ? ]</text>
-                        <text id="label-100" onclick="labelPlot('100')" x="380" y="90" class="label-target">[ ? ]</text>
-                    </g>
-                </svg>
-                <!-- Word Bank -->
-                <div class="flex flex-wrap justify-center gap-2 mt-4" id="word-bank-2">
-                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="50">50%</button>
-                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="100">100%</button>
-                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="25">25%</button>
-                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="0">0%</button>
-                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="75">75%</button>
-                </div>
-                <button onclick="resetLabels('bank-2')" class="mt-4 w-full bg-gray-600 text-white p-2 rounded-lg font-medium hover:bg-gray-700 transition">Reset</button>
-            </div>
-            
-            <!-- Card 8: Guided Practice (Section Percentages) -->
-            <div id="card-8" class="lesson-card">
-                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Guided Practice: Section 25%</h2>
-                <p class="text-gray-700 mb-4">Finally, label the <strong>percentage in each section</strong>. (Hint: It's the same for all of them!)</p>
-                <!-- SVG: Labeling game -->
-                <svg id="label-plot-3" class="svg-plot" viewBox="0 0 400 120">
-                    <!-- Plot (same as above) -->
-                    <line x1="0" y1="60" x2="400" y2="60" class="plot-axis"></line>
-                    <line x1="20" y1="50" x2="100" y2="50" class="plot-line"></line>
-                    <line x1="20" y1="40" x2="20" y2="60" class="plot-line"></line>
-                    <rect x="100" y="30" width="100" height="40" class="plot-box"></rect>
-                    <rect x="200" y="30" width="100" height="40" class="plot-box"></rect>
-                    <line x1="300" y1="50" x2="380" y2="50" class="plot-line"></line>
-                    <line x1="380" y1="40" x2="380" y2="60" class="plot-line"></line>
-                    <line x1="200" y1="30" x2="200" y2="70" class="plot-line"></line>
-                    
-                    <!-- Labels -->
-                    <g class="plot-label">
-                        <text id="label-sec1" onclick="labelPlot('sec1')" x="60" y="25" class="label-target">[ ? ]</text>
-                        <text id="label-sec2" onclick="labelPlot('sec2')" x="150" y="25" class="label-target">[ ? ]</text>
-                        <text id="label-sec3" onclick="labelPlot('sec3')" x="250" y="25" class="label-target">[ ? ]</text>
-                        <text id="label-sec4" onclick="labelPlot('sec4')" x="340" y="25" class="label-target">[ ? ]</text>
-                    </g>
-                </svg>
-                <!-- Word Bank -->
-                <div class="flex flex-wrap justify-center gap-2 mt-4" id="word-bank-3">
-                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="50">50%</button>
-                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="25">25%</button>
-                    <button class="bank-word bg-gray-200 text-gray-700 px-3 py-1 rounded-md" data-label="75">75%</button>
-                </div>
-                <button onclick="resetLabels('bank-3')" class="mt-4 w-full bg-gray-600 text-white p-2 rounded-lg font-medium hover:bg-gray-700 transition">Reset</button>
-            </div>
-
-            <!-- Card 9: Skew Explanation -->
-            <div id="card-9" class="lesson-card">
-                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Analyzing Shape: Skew</h2>
-                <p class="text-gray-700 mb-4">The shape of the plot also tells you about the data's **skew** and the relationship between the **Mean** (average) and **Median** (middle).</p>
+                <p id="p1-sequence" class="text-2xl font-bold text-gray-800 text-center my-10 h-8">
+                    <!-- Problem will be generated here -->
+                </p>
                 
-                <div class="space-y-6">
-                    <!-- Symmetrical -->
-                    <div>
-                        <h3 class="font-semibold text-lg text-gray-800">1. Symmetrical (No Skew)</h3>
-                        <p class="text-gray-600 mb-2">Whiskers are a similar length, and the median is in the middle of the box. The data is balanced.</p>
-                        <p class="text-gray-800 font-medium">Relationship: <strong>Mean $\approx$ Median</strong> (Mean is about equal to the Median)</p>
-                        <svg class="svg-plot" viewBox="0 0 200 60">
-                            <line x1="10" y1="40" x2="190" y2="40" class="plot-axis"></line>
-                            <line x1="20" y1="35" x2="50" y2="35" class="plot-line"></line>
-                            <line x1="20" y1="30" x2="20" y2="40" class="plot-line"></line>
-                            <rect x="50" y="20" width="100" height="30" class="plot-box"></rect>
-                            <line x1="150" y1="35" x2="180" y2="35" class="plot-line"></line>
-                            <line x1="180" y1="30" x2="180" y2="40" class="plot-line"></line>
-                            <line x1="100" y1="20" x2="100" y2="50" class="plot-line"></line>
-                        </svg>
+                <div class="flex flex-col sm:flex-row gap-4 mt-10">
+                    <input type="text" id="p1-input" placeholder="Enter d or no" class="flex-grow p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button id="p1-check" class="check-btn bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-all duration-300">
+                        Check Answer
+                    </button>
+                </div>
+
+                <p id="p1-feedback" class="text-lg font-medium text-center h-6 mt-4"></p>
+            </div>
+            
+            <!-- Card 5: The Formula -->
+            <div class="lesson-card" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">2. The Formula for the $n^{th} \text{ Term}$</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    What if you need to find the 50th term? You don't want to add 3 fifty times!
+                </p>
+                <p class="text-gray-700 text-lg mb-4">
+                    Luckily, there is a formula. We use it to find any term (we call it the **$n^{th} \text{ term}$**).
+                </p>
+                <!-- Formula Display -->
+                <div class="bg-gray-800 text-white text-xl sm:text-2xl font-mono p-6 rounded-lg text-center my-4">
+                    $a_n = a_1 + d(n - 1)$
+                </div>
+            </div>
+            
+            <!-- Card 6: Formula Breakdown -->
+            <div class="lesson-card" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">2. The Formula: Breakdown</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    Let's look at what each part of $a_n = a_1 + d(n - 1)$ means.
+                </p>
+                <!-- Variable Breakdown -->
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <span class="text-2xl font-mono font-bold text-blue-600 w-16">$a_n$</span>
+                        <span class="text-lg text-gray-700">This is the term you are **looking for** (e.g., the 50th term). It's your "answer."</span>
                     </div>
-                    
-                    <!-- Right Skew -->
-                    <div>
-                        <h3 class="font-semibold text-lg text-gray-800">2. Right-Skewed (Skewed Right)</h3>
-                        <p class="text-gray-600 mb-2">The data is bunched on the left. The right whisker is long, showing high-value outliers. These outliers pull the mean *up*.</p>
-                        <p class="text-gray-800 font-medium">Relationship: <strong>Mean > Median</strong> (Mean is greater than the Median)</p>
-                        <svg class="svg-plot" viewBox="0 0 200 60">
-                            <line x1="10" y1="40" x2="190" y2="40" class="plot-axis"></line>
-                            <line x1="20" y1="35" x2="40" y2="35" class="plot-line"></line>
-                            <line x1="20" y1="30" x2="20" y2="40" class="plot-line"></line>
-                            <rect x="40" y="20" width="50" height="30" class="plot-box"></rect>
-                            <line x1="90" y1="35" x2="180" y2="35" class="plot-line"></line>
-                            <line x1="180" y1="30" x2="180" y2="40" class="plot-line"></line>
-                            <line x1="60" y1="20" x2="60" y2="50" class="plot-line"></line>
-                        </svg>
+                    <div class="flex items-center">
+                        <span class="text-2xl font-mono font-bold text-blue-600 w-16">$a_1$</span>
+                        <span class="text-lg text-gray-700">The **first term** in the sequence.</span>
                     </div>
-                    
-                    <!-- Left Skew -->
+                    <div class="flex items-center">
+                        <span class="text-2xl font-mono font-bold text-blue-600 w-16">$d$</span>
+                        <span class="text-lg text-gray-700">The **common difference** you already learned to find.</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-2xl font-mono font-bold text-blue-600 w-16">$n$</span>
+                        <span class="text-lg text-gray-700">The **term number** you want (e.g., for the 50th term, $n=50$).</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 7: Worked Example -->
+            <div class="lesson-card" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">3. Worked Example</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    Let's find the 18th term $(a_{18})$ of the sequence: { 12, 27, 42, 57, ... }
+                </p>
+                <div class="space-y-3">
+                    <p><strong>Step 1: Find the parts.</strong></p>
+                    <ul class="list-none space-y-2 bg-gray-50 p-4 rounded-lg">
+                        <li>$a_1$ (first term) = 12</li>
+                        <li>$d$ (common difference) = $27 - 12 = 15$</li>
+                        <li>$n$ (term number) = 18</li>
+                    </ul>
+                    <p><strong>Step 2: Plug them into the formula.</strong></p>
+                    <p class="font-mono bg-gray-100 p-4 rounded-lg">
+                        $a_n = a_1 + d(n - 1)$
+                        <br>
+                        $a_{18} = 12 + 15(18 - 1)$
+                    </p>
+                    <p><strong>Step 3: Solve.</strong></p>
+                    <p class="font-mono bg-gray-100 p-4 rounded-lg">
+                        $a_{18} = 12 + 15(17)$
+                        <br>
+                        $a_{18} = 12 + 255$
+                        <br>
+                        $a_{18} = 267$
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Card 8: Practice 2 (Find the nth Term) -->
+            <div class="lesson-card" data-practice="true" id="practice-card-2">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-blue-700">Quick Check: Find the $n^{th} \text{ Term}$</h2>
+                    <span id="p2-counter" class="text-lg font-medium text-gray-600">Problem 1 of 6</span>
+                </div>
+                
+                <div class="bg-gray-100 p-4 rounded-lg text-center space-y-2">
+                    <p class="text-gray-700 text-lg">Given the sequence:</p>
+                    <p id="p2-sequence" class="text-2xl font-bold text-gray-800 h-8">
+                        <!-- Problem will be generated here -->
+                    </p>
+                    <p id="p2-question" class="text-gray-700 text-lg font-semibold pt-2 h-8">
+                        <!-- Question will be generated here -->
+                    </p>
+                </div>
+                
+                <!-- Formula Reference -->
+                <div class="bg-gray-800 text-white text-lg font-mono p-4 rounded-lg text-center my-4">
+                    Formula: $a_n = a_1 + d(n - 1)$
+                </div>
+
+                <!-- Scaffolding Inputs -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-4">
                     <div>
-                        <h3 class="font-semibold text-lg text-gray-800">3. Left-Skewed (Skewed Left)</h3>
-                        <p class="text-gray-600 mb-2">The data is bunched on the right. The left whisker is long, showing low-value outliers. These outliers pull the mean *down*.</p>
-                        <p class="text-gray-800 font-medium">Relationship: <strong>Mean < Median</strong> (Mean is less than the Median)</p>
-                        <svg class="svg-plot" viewBox="0 0 200 60">
-                            <line x1="10" y1="40" x2="190" y2="40" class="plot-axis"></line>
-                            <line x1="20" y1="35" x2="110" y2="35" class="plot-line"></line>
-                            <line x1="20" y1="30" x2="20" y2="40" class="plot-line"></line>
-                            <rect x="110" y="20" width="50" height="30" class="plot-box"></rect>
-                            <line x1="160" y1="35" x2="180" y2="35" class="plot-line"></line>
-                            <line x1="180" y1="30" x2="180" y2="40" class="plot-line"></line>
-                            <line x1="140" y1="20" x2="140" y2="50" class="plot-line"></line>
-                        </svg>
+                        <label for="p2-a1-input" class="block text-sm font-medium text-gray-700">First term $(a_1)$:</label>
+                        <input type="number" id="p2-a1-input" class="mt-1 p-2 w-full border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label for="p2-d-input" class="block text-sm font-medium text-gray-700">Common difference $(d)$:</label>
+                        <input type="number" id="p2-d-input" class="mt-1 p-2 w-full border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label for="p2-n-input" class="block text-sm font-medium text-gray-700">Term number $(n)$:</label>
+                        <input type="number" id="p2-n-input" class="mt-1 p-2 w-full border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                
+                <!-- Calculator -->
+                <div class="my-4">
+                    <label class="block text-sm font-medium text-gray-700">Practice the Calculation:</label>
+                    <div class="bg-gray-200 p-2 rounded-lg shadow-inner mt-1">
+                        <!-- Calculator Display -->
+                        <div id="p2-calc-display" class="w-full bg-white p-3 border border-gray-300 rounded-lg text-left font-mono text-xl h-[50px] overflow-x-auto" placeholder="Use buttons to build formula..."></div>
+                        
+                        <!-- Calculator Buttons -->
+                        <div class="grid grid-cols-5 gap-2 mt-2">
+                            <button id="calc-a1" class="calc-btn bg-blue-100 text-blue-700 font-bold p-3 rounded-lg hover:bg-blue-200">$a_1$</button>
+                            <button id="calc-d" class="calc-btn bg-blue-100 text-blue-700 font-bold p-3 rounded-lg hover:bg-blue-200">$d$</button>
+                            <button id="calc-n" class="calc-btn bg-blue-100 text-blue-700 font-bold p-3 rounded-lg hover:bg-blue-200">$n$</button>
+                            <button id="calc-1" class="calc-btn bg-gray-100 p-3 rounded-lg hover:bg-gray-300">1</button>
+                            <button id="calc-plus" class="calc-btn bg-gray-100 p-3 rounded-lg hover:bg-gray-300">+</button>
+                            <button id="calc-minus" class="calc-btn bg-gray-100 p-3 rounded-lg hover:bg-gray-300">-</button>
+                            <button id="calc-times" class="calc-btn bg-gray-100 p-3 rounded-lg hover:bg-gray-300">*</button>
+                            <button id="calc-open-p" class="calc-btn bg-gray-100 p-3 rounded-lg hover:bg-gray-300">(</button>
+                            <button id="calc-close-p" class="calc-btn bg-gray-100 p-3 rounded-lg hover:bg-gray-300">)</button>
+                            <button id="calc-clear" class="calc-btn bg-red-100 text-red-700 font-bold p-3 rounded-lg hover:bg-red-200">C</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Check Button -->
+                <div class="mt-6">
+                    <button id="p2-check" class="check-btn w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-all duration-300">
+                        Check Answer
+                    </button>
+                </div>
+
+                <p id="p2-feedback" class="text-lg font-medium text-center h-6 mt-4"></p>
+            </div>
+
+            <!-- Card 9: The "Fresh Take" -->
+            <div class="lesson-card border-2 border-blue-400 bg-blue-50" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">A Fresh Take: Connect to Linear Equations</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    Does the formula $a_n = a_1 + d(n - 1)$ look familiar? It's just a linear equation in disguise!
+                </p>
+                <p class="text-gray-700 text-lg mb-4">
+                    Think about the slope-intercept form $y = mx + b$.
+                </p>
+                <p class="text-gray-700 text-lg mb-4">
+                    The common difference $(d)$ is just the **slope $(m)$** of the line.
+                </p>
+                <p class="text-gray-700 text-lg mb-4">
+                    The term number $(n)$ is like the **$x$-value**, and the term's value $(a_n)$ is like the **$y$-value**.
+                </p>
+                <p class="text-gray-700 text-lg">
+                    This is why the points of an arithmetic sequence always form a straight line if you graph them!
+                </p>
+            </div>
+
+            <!-- Card 10: Practice 3 (Word Problem) -->
+            <div class="lesson-card" data-practice="true" id="practice-card-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-blue-700">Quick Check: Word Problem</h2>
+                    <span id="p3-counter" class="text-lg font-medium text-gray-600">Problem 1 of 6</span>
+                </div>
+                
+                <p id="p3-problem" class="text-gray-700 text-lg mb-4 h-24">
+                    <!-- Problem will be generated here -->
+                </p>
+                
+                <p id="p3-question" class="text-gray-700 text-lg font-semibold mb-4 h-12">
+                    <!-- Question will be generated here -->
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 mt-10">
+                    <input type="number" id="p3-input" placeholder="Enter the final answer" class="flex-grow p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button id="p3-check" class="check-btn bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-all duration-300">
+                        Check Answer
+                    </button>
+                </div>
+
+                <p id="p3-feedback" class="text-lg font-medium text-center h-6 mt-4"></p>
+            </div>
+
+            <!-- Card 11: Arithmetic Lesson Complete -->
+            <div class="lesson-card" data-practice="false" id="mid-score-card">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">Part 1 Complete!</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    Great job on arithmetic sequences!
+                </p>
+                <p class="text-gray-700 text-lg mb-4">
+                    Click "Next" to start **Part 2: Skew & Statistics**.
+                </p>
+                <div class="text-center bg-blue-50 border-2 border-blue-200 p-4 rounded-lg mt-8">
+                    <p class="text-lg font-semibold text-gray-700">Current Tally:</p>
+                    <p id="mid-score" class="text-2xl font-bold text-gray-800">
+                        <!-- Score will be injected here -->
+                    </p>
+                </div>
+            </div>
+            
+            <!-- 
+            ================================================================
+            === PART 2: SKEW AND STATISTICS (NEW CARDS START HERE) ===
+            ================================================================
+            -->
+            
+            <!-- Card 12: Intro to Skew -->
+            <div class="lesson-card" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">Part 2: Skew & Statistics</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    Welcome to Part 2! Let's look at a topic from statistics: **skew**.
+                </p>
+                <p class="text-gray-700 text-lg mb-4">
+                    Skew describes the **shape** of a data distribution. It tells us if the data is balanced or if it's "piled up" on one side with a long "tail" on the other.
+                </p>
+            </div>
+            
+            <!-- Card 13: What is Skew? -->
+            <div class="lesson-card" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">1. What is Skew?</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-center mb-2">Skewed Left</h3>
+                        <div class="skew-viz">
+                            <div class="skew-bar" style="height: 20%;"></div>
+                            <div class="skew-bar" style="height: 30%;"></div>
+                            <div class="skew-bar" style="height: 40%;"></div>
+                            <div class="skew-bar" style="height: 80%;"></div>
+                            <div class="skew-bar" style="height: 70%;"></div>
+                            <div class="skew-bar" style="height: 60%;"></div>
+                        </div>
+                        <p class="text-gray-700 text-lg mt-2">The "tail" of the data is on the **left**. Most data is on the right.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-center mb-2">Symmetric</h3>
+                        <div class="skew-viz">
+                            <div class="skew-bar" style="height: 20%;"></div>
+                            <div class="skew-bar" style="height: 50%;"></div>
+                            <div class="skew-bar" style="height: 80%;"></div>
+                            <div class="skew-bar" style="height: 80%;"></div>
+                            <div class="skew-bar" style="height: 50%;"></div>
+                            <div class="skew-bar" style="height: 20%;"></div>
+                        </div>
+                        <p class="text-gray-700 text-lg mt-2">The data is **balanced**. It looks like a mirror image.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-center mb-2">Skewed Right</h3>
+                        <div class="skew-viz">
+                            <div class="skew-bar" style="height: 60%;"></div>
+                            <div class="skew-bar" style="height: 70%;"></div>
+                            <div class="skew-bar" style="height: 80%;"></div>
+                            <div class="skew-bar" style="height: 40%;"></div>
+                            <div class="skew-bar" style="height: 30%;"></div>
+                            <div class="skew-bar" style="height: 20%;"></div>
+                        </div>
+                        <p class="text-gray-700 text-lg mt-2">The "tail" of the data is on the **right**. Most data is on the left.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 14: The Key Relationship -->
+            <div class="lesson-card" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">2. The Key Relationship: Mean vs. Median</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    Skew is important because it tells us about the relationship between the **Mean** (the average) and the **Median** (the middle value).
+                </p>
+                <p class="text-gray-700 text-lg mb-4">
+                    The **Mean** is sensitive and gets "pulled" by the tail (the outliers). The **Median** is resistant and stays in the middle of the "hump."
+                </p>
+                <div class="space-y-4">
+                    <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                        <p class="text-xl font-semibold text-blue-800">If it's Skewed Left:</p>
+                        <p class="text-xl font-mono text-blue-900">Mean < Median</p>
+                        <p class="text-blue-700">(The mean is pulled left/lower by the tail)</p>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 p-4 rounded-lg">
+                        <p class="text-xl font-semibold text-gray-800">If it's Symmetric:</p>
+                        <p class="text-xl font-mono text-gray-900">Mean $\approx$ Median</p>
+                        <p class="text-gray-700">(The mean and median are roughly equal)</p>
+                    </div>
+                    <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
+                        <p class="text-xl font-semibold text-red-800">If it's Skewed Right:</p>
+                        <p class="text-xl font-mono text-red-900">Mean > Median</p>
+                        <p class="text-red-700">(The mean is pulled right/higher by the tail)</p>
                     </div>
                 </div>
             </div>
             
-            <!-- NEW CARD 10: Skew Practice -->
-            <div id="card-10" class="lesson-card">
-                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Skew Practice</h2>
-                <p class="text-lg text-gray-700 mb-6">Time to practice! Identify the skew for each example.</p>
-
-                <!-- Skew Quiz Score -->
-                <div id="skew-quiz-score" class="text-2xl font-bold text-center my-6 hidden"></div>
-
-                <form id="skew-quiz-form" class="space-y-10">
-                    
-                    <!-- Part 1: From Plots -->
-                    <div class="space-y-8">
-                        <h3 class="text-xl font-semibold text-gray-800 border-b pb-2">Part 1: Identify Skew from Plots</h3>
-                        
-                        <!-- Skew Q1: Box Plot (Left Skew) -->
-                        <div>
-                            <p class="text-lg font-medium text-gray-900 mb-3">1. Classify the plot:</p>
-                            <svg class="svg-plot" style="max-width: 300px;" viewBox="0 0 200 60">
-                                <line x1="10" y1="40" x2="190" y2="40" class="plot-axis"></line>
-                                <line x1="20" y1="35" x2="110" y2="35" class="plot-line"></line>
-                                <line x1="20" y1="30" x2="20" y2="40" class="plot-line"></line>
-                                <rect x="110" y="20" width="50" height="30" class="plot-box"></rect>
-                                <line x1="160" y1="35" x2="180" y2="35" class="plot-line"></line>
-                                <line x1="180" y1="30" x2="180" y2="40" class="plot-line"></line>
-                                <line x1="140" y1="20" x2="140" y2="50" class="plot-line"></line>
-                            </svg>
-                            <div class="space-y-2 mt-3">
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq1" value="left" class="mr-3"> Skewed Left
-                                </label>
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq1" value="symmetric" class="mr-3"> Symmetric
-                                </label>
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq1" value="right" class="mr-3"> Skewed Right
-                                </label>
-                            </div>
-                            <div id="feedback-sq1" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                        </div>
-
-                        <!-- Skew Q2: Dot Plot (Symmetric) -->
-                        <div>
-                            <p class="text-lg font-medium text-gray-900 mb-3">2. Classify the plot:</p>
-                            <svg class="svg-plot" style="max-width: 300px;" viewBox="0 0 100 60">
-                                <line x1="0" y1="50" x2="100" y2="50" class="plot-axis"></line>
-                                <g fill="#3b82f6">
-                                    <circle cx="20" cy="45" r="3"></circle>
-                                    <circle cx="35" cy="45" r="3"></circle>
-                                    <circle cx="35" cy="39" r="3"></circle>
-                                    <circle cx="50" cy="45" r="3"></circle>
-                                    <circle cx="50" cy="39" r="3"></circle>
-                                    <circle cx="50" cy="33" r="3"></circle>
-                                    <circle cx="65" cy="45" r="3"></circle>
-                                    <circle cx="65" cy="39" r="3"></circle>
-                                    <circle cx="80" cy="45" r="3"></circle>
-                                </g>
-                            </svg>
-                            <div class="space-y-2 mt-3">
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq2" value="left" class="mr-3"> Skewed Left
-                                </label>
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq2" value="symmetric" class="mr-3"> Symmetric
-                                </label>
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq2" value="right" class="mr-3"> Skewed Right
-                                </label>
-                            </div>
-                            <div id="feedback-sq2" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                        </div>
-                        
-                        <!-- Skew Q3: Histogram (Right Skew) -->
-                        <div>
-                            <p class="text-lg font-medium text-gray-900 mb-3">3. Classify the plot:</p>
-                            <svg class="svg-plot" style="max-width: 300px;" viewBox="0 0 100 60">
-                                <line x1="0" y1="50" x2="100" y2="50" class="plot-axis"></line>
-                                <g fill="#3b82f6" stroke="#1d4ed8" stroke-width="0.5">
-                                    <rect x="10" y="10" width="15" height="40"></rect>
-                                    <rect x="25" y="25" width="15" height="25"></rect>
-                                    <rect x="40" y="35" width="15" height="15"></rect>
-                                    <rect x="55" y="45" width="15" height="5"></rect>
-                                </g>
-                            </svg>
-                            <div class="space-y-2 mt-3">
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq3" value="left" class="mr-3"> Skewed Left
-                                </label>
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq3" value="symmetric" class="mr-3"> Symmetric
-                                </label>
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq3" value="right" class="mr-3"> Skewed Right
-                                </label>
-                            </div>
-                            <div id="feedback-sq3" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                        </div>
-
-                        <!-- Skew Q4: Stem-and-Leaf (Symmetric) -->
-                        <div>
-                            <p class="text-lg font-medium text-gray-900 mb-3">4. Classify the plot:</p>
-                            <div class="stem-leaf">1 | 2
-2 | 3 5
-3 | 0 2 6 7
-4 | 2 3 5 8 8
-5 | 0 1 4
-6 | 2</div>
-                            <div class="space-y-2 mt-3">
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq4" value="left" class="mr-3"> Skewed Left
-                                </label>
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq4" value="symmetric" class="mr-3"> Symmetric
-                                </label>
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq4" value="right" class="mr-3"> Skewed Right
-                                </label>
-                            </div>
-                            <div id="feedback-sq4" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                        </div>
-                    </div>
-
-                    <!-- Part 2: From Mean/Median -->
-                    <div class="space-y-8">
-                        <h3 class="text-xl font-semibold text-gray-800 border-b pb-2">Part 2: Identify Skew from Mean & Median</h3>
-                        
-                        <!-- Skew Q5: Mean > Median -->
-                        <div>
-                            <p class="text-lg font-medium text-gray-900 mb-3">5. Mean = 41, Median = 31</p>
-                            <div class="space-y-2">
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq5" value="left" class="mr-3"> Skewed Left (Mean &lt; Median)
-                                </label>
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq5" value="symmetric" class="mr-3"> Symmetric (Mean $\approx$ Median)
-                                </label>
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq5" value="right" class="mr-3"> Skewed Right (Mean > Median)
-                                </label>
-                            </div>
-                            <div id="feedback-sq5" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                        </div>
-                        
-                        <!-- Skew Q6: Mean < Median -->
-                        <div>
-                            <p class="text-lg font-medium text-gray-900 mb-3">6. Mean = 20, Median = 35</p>
-                            <div class="space-y-2">
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq6" value="left" class="mr-3"> Skewed Left (Mean &lt; Median)
-                                </label>
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq6" value="symmetric" class="mr-3"> Symmetric (Mean $\approx$ Median)
-                                </label>
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq6" value="right" class="mr-3"> Skewed Right (Mean > Median)
-                                </label>
-                            </div>
-                            <div id="feedback-sq6" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                        </div>
-
-                        <!-- Skew Q7: Mean = Median -->
-                        <div>
-                            <p class="text-lg font-medium text-gray-900 mb-3">7. Mean = 54, Median = 54</p>
-                            <div class="space-y-2">
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq7" value="left" class="mr-3"> Skewed Left (Mean &lt; Median)
-                                </label>
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq7" value="symmetric" class="mr-3"> Symmetric (Mean $\approx$ Median)
-                                </label>
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq7" value="right" class="mr-3"> Skewed Right (Mean > Median)
-                                </label>
-                            </div>
-                            <div id="feedback-sq7" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                        </div>
-                        
-                        <!-- Skew Q8: Mean < Median -->
-                        <div>
-                            <p class="text-lg font-medium text-gray-900 mb-3">8. Mean = 112, Median = 123</p>
-                            <div class="space-y-2">
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq8" value="left" class="mr-3"> Skewed Left (Mean &lt; Median)
-                                </label>
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq8" value="symmetric" class="mr-3"> Symmetric (Mean $\approx$ Median)
-                                </label>
-                                <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                    <input type="radio" name="sq8" value="right" class="mr-3"> Skewed Right (Mean > Median)
-                                </label>
-                            </div>
-                            <div id="feedback-sq8" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                        </div>
-                    </div>
-
-                    <!-- Skew Quiz Controls -->
-                    <div id="skew-quiz-controls" class="flex gap-4">
-                        <button type="button" onclick="checkSkewAnswers()" id="check-skew-answers-btn" class="w-full bg-blue-600 text-white p-3 rounded-lg font-medium hover:bg-blue-700 transition">Check Skew Answers</button>
-                        <button type="button" onclick="trySkewAgain()" id="try-skew-again-btn" class="hidden w-1/2 bg-gray-600 text-white p-3 rounded-lg font-medium hover:bg-gray-700 transition">Try Again</button>
-                    </div>
-                </form>
-            </div>
-            
-            <!-- UPDATED Card 11: Practice Quiz -->
-            <div id="card-11" class="lesson-card">
-                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Practice Quiz</h2>
-                <p class="text-xl mb-6 text-gray-700">Use the box plot below to answer the questions. This plot shows the <strong>time (in minutes) it took 60 students</strong> to complete a puzzle.</p>
-
-                <!-- Quiz Plot -->
-                <svg class="svg-plot" viewBox="0 0 450 100"> <!-- WIDENED viewBox -->
-                    <!-- Axis -->
-                    <line x1="0" y1="60" x2="450" y2="60" class="plot-axis"></line>
-                    <!-- Whisker 1 -->
-                    <line x1="50" y1="50" x2="120" y2="50" class="plot-line"></line>
-                    <line x1="50" y1="40" x2="50" y2="60" class="plot-line"></line>
-                    <!-- Box 1 -->
-                    <rect x="120" y="30" width="80" height="40" class="plot-box"></rect>
-                    <!-- Box 2 -->
-                    <rect x="200" y="30" width="130" height="40" class="plot-box"></rect>
-                    <!-- Whisker 2 -->
-                    <line x1="330" y1="50" x2="400" y2="50" class="plot-line"></line>
-                    <line x1="400" y1="40" x2="400" y2="60" class="plot-line"></line>
-                    <!-- Median Line -->
-                    <line x1="200" y1="30" x2="200" y2="70" class="plot-line"></line>
-                    
-                    <!-- Labels -->
-                    <g class="plot-label">
-                        <text x="50" y="85">5</text>
-                        <text x="120" y="85">8</text>
-                        <text x="200" y="85">10</text>
-                        <text x="330" y="85">15</text>
-                        <text x="400" y="85">22</text>
-                    </g>
-                    <g class="plot-label" style="font-weight: 600;">
-                        <text x="50" y="15">Min: 5</text>
-                        <text x="120" y="15">Q1: 8</text>
-                        <text x="200" y="15">Med: 10</text>
-                        <text x="330" y="15">Q3: 15</text>
-                        <text x="400" y="15">Max: 22</text>
-                    </g>
-                </svg>
-
-                <!-- Questions -->
-                <form id="quiz-form" class="mt-8 space-y-8">
-                    <!-- Question 1 -->
-                    <div>
-                        <p class="text-lg font-medium text-gray-900 mb-3">1. What percentage of students took between 8 and 15 minutes?</p>
-                        <div class="space-y-2">
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q1" value="25" class="mr-3"> 25%
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q1" value="50" class="mr-3"> 50%
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q1" value="75" class="mr-3"> 75%
-                            </label>
-                        </div>
-                        <div id="feedback-q1" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                    </div>
-                    
-                    <!-- Question 2 -->
-                    <div>
-                        <p class="text-lg font-medium text-gray-900 mb-3">2. How many students took 10 minutes or less?</p>
-                        <div class="space-y-2">
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q2" value="15" class="mr-3"> 15 students
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q2" value="30" class="mr-3"> 30 students
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q2" value="50" class="mr-3"> 50 students
-                            </label>
-                        </div>
-                        <div id="feedback-q2" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                    </div>
-
-                    <!-- Question 3 -->
-                    <div>
-                        <p class="text-lg font-medium text-gray-900 mb-3">3. What percentage of students took more than 15 minutes?</p>
-                        <div class="space-y-2">
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q3" value="25" class="mr-3"> 25%
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q3" value="50" class="mr-3"> 50%
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q3" value="75" class="mr-3"> 75%
-                            </label>
-                        </div>
-                        <div id="feedback-q3" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                    </div>
-
-                    <!-- Question 4 -->
-                    <div>
-                        <p class="text-lg font-medium text-gray-900 mb-3">4. How many students took between 5 and 8 minutes?</p>
-                        <div class="space-y-2">
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q4" value="15" class="mr-3"> 15 students
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q4" value="25" class="mr-3"> 25 students
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q4" value="30" class="mr-3"> 30 students
-                            </label>
-                        </div>
-                        <div id="feedback-q4" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                    </div>
-                    
-                    <!-- Question 5 -->
-                    <div>
-                        <p class="text-lg font-medium text-gray-900 mb-3">5. How many students took *more* than 10 minutes?</p>
-                        <div class="space-y-2">
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q5" value="15" class="mr-3"> 15 students
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q5" value="30" class="mr-3"> 30 students
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q5" value="50" class="mr-3"> 50 students
-                            </label>
-                        </div>
-                        <div id="feedback-q5" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                    </div>
-                    
-                    <!-- Question 6 -->
-                    <div>
-                        <p class="text-lg font-medium text-gray-900 mb-3">6. What percentage of students took between 10 and 15 minutes?</p>
-                        <div class="space-y-2">
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q6" value="25" class="mr-3"> 25%
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q6" value="50" class="mr-3"> 50%
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q6" value="75" class="mr-3"> 75%
-                            </label>
-                        </div>
-                        <div id="feedback-q6" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                    </div>
-
-                    <!-- Question 7 -->
-                    <div>
-                        <p class="text-lg font-medium text-gray-900 mb-3">7. How many students took *at least* 8 minutes?</p>
-                        <div class="space-y-2">
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q7" value="30" class="mr-3"> 30 students
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q7" value="45" class="mr-3"> 45 students
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q7" value="60" class="mr-3"> 60 students
-                            </label>
-                        </div>
-                        <div id="feedback-q7" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                    </div>
-                    
-                    <!-- Question 8 -->
-                    <div>
-                        <p class="text-lg font-medium text-gray-900 mb-3">8. What percentage of students took *less* than 8 minutes?</p>
-                        <div class="space-y-2">
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q8" value="25" class="mr-3"> 25%
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q8" value="50" class="mr-3"> 50%
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q8" value="0" class="mr-3"> 0%
-                            </label>
-                        </div>
-                        <div id="feedback-q8" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                    </div>
-
-                    <!-- Question 9 -->
-                    <div>
-                        <p class="text-lg font-medium text-gray-900 mb-3">9. What percentage of students took between 8 and 22 minutes?</p>
-                        <div class="space-y-2">
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q9" value="50" class="mr-3"> 50%
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q9" value="75" class="mr-3"> 75%
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q9" value="100" class="mr-3"> 100%
-                            </label>
-                        </div>
-                        <div id="feedback-q9" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                    </div>
-
-                    <!-- Question 10 -->
-                    <div>
-                        <p class="text-lg font-medium text-gray-900 mb-3">10. How many students are in the "interquartile range" (IQR)?</p>
-                        <div class="space-y-2">
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q10" value="30" class="mr-3"> 30 students
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q10" value="50" class="mr-3"> 50 students
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q10" value="60" class="mr-3"> 60 students
-                            </label>
-                        </div>
-                        <div id="feedback-q10" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                    </div>
-                    
-                    <!-- Question 11 -->
-                    <div>
-                        <p class="text-lg font-medium text-gray-900 mb-3">11. How many students took *less* than 15 minutes?</p>
-                        <div class="space-y-2">
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q11" value="30" class="mr-3"> 30 students
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q11" value="45" class="mr-3"> 45 students
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q11" value="60" class="mr-3"> 60 students
-                            </label>
-                        </div>
-                        <div id="feedback-q11" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                    </div>
-                    
-                    <!-- Question 12 -->
-                    <div>
-                        <p class="text-lg font-medium text-gray-900 mb-3">12. A student finished in 12 minutes. Which 25% section are they in?</p>
-                        <div class="space-y-2">
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q12" value="q1-med" class="mr-3"> Between Q1 (8) and Median (10)
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q12" value="med-q3" class="mr-3"> Between Median (10) and Q3 (15)
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q12" value="q3-max" class="mr-3"> Between Q3 (15) and Max (22)
-                            </label>
-                        </div>
-                        <div id="feedback-q12" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                    </div>
-                    
-                    <!-- Question 13 -->
-                    <div>
-                        <p class="text-lg font-medium text-gray-900 mb-3">13. Based on the shape of the plot, what is the most likely relationship between the mean and median?</p>
-                        <div class="space-y-2">
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q13" value="mean-gt-median" class="mr-3"> The mean is greater than the median (right-skewed).
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q13" value="mean-lt-median" class="mr-3"> The mean is less than the median (left-skewed).
-                            </label>
-                            <label class="quiz-option flex items-center p-3 rounded-lg cursor-pointer">
-                                <input type="radio" name="q13" value="mean-eq-median" class="mr-3"> The mean is approximately equal to the median (symmetrical).
-                            </label>
-                        </div>
-                        <div id="feedback-q13" class="hidden mt-3 p-3 rounded-md text-sm"></div>
-                    </div>
-
-                    <div id="quiz-controls" class="flex gap-4">
-                        <button type="button" onclick="checkAnswers()" id="check-answers-btn" class="w-full bg-blue-600 text-white p-3 rounded-lg font-medium hover:bg-blue-700 transition">Check Answers</button>
-                        <button type="button" onclick="tryAgain()" id="try-again-btn" class="hidden w-1/2 bg-gray-600 text-white p-3 rounded-lg font-medium hover:bg-gray-700 transition">Try Again</button>
-                    </div>
-                </form>
-            </div>
-            
-            <!-- UPDATED Card 12: Lesson Complete -->
-            <div id="card-12" class="lesson-card text-center">
-                <h2 class="text-3xl font-bold text-gray-900 mb-4">Lesson Complete!</h2>
+            <!-- Card 15: Practice 4 (Identify Skew) -->
+            <div class="lesson-card" data-practice="true" id="practice-card-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-blue-700">Quick Check: Identify the Skew</h2>
+                    <span id="p4-counter" class="text-lg font-medium text-gray-600">Problem 1 of 6</span>
+                </div>
                 
-                <!-- Score Tally Element -->
-                <div id="main-quiz-score" class="text-2xl font-bold text-center my-6 hidden"></div>
+                <p class="text-gray-700 text-lg mb-4">
+                    Based on the graph, how is the data distributed?
+                </p>
+                
+                <div id="p4-viz" class="skew-viz my-10">
+                    <!-- Skew visualization will be generated here -->
+                </div>
+                
+                <div class="space-y-3 mt-10" id="p4-options">
+                    <button class="option-btn" data-value="left">Skewed Left</button>
+                    <button class="option-btn" data-value="symmetric">Symmetric</button>
+                    <button class="option-btn" data-value="right">Skewed Right</button>
+                </div>
 
-                <p class="text-xl text-gray-700 mb-6">Great job! You've deconstructed the box plot and learned the 25% rule.</p>
-                <!-- Simple graphic -->
-                <svg class="svg-plot" style="max-width: 200px;" viewBox="0 0 100 100">
-                    <path d="M50,10 C77.6,10 100,32.4 100,60 C100,87.6 77.6,110 50,110 C22.4,110 0,87.6 0,60 C0,32.4 22.4,10 50,10 Z" fill="#dcfce7"></path>
-                    <path d="M30,55 L45,70 L70,40" stroke="#22c55e" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg>
-                <button onclick="restartLesson()" class="mt-6 w-full max-w-xs mx-auto bg-blue-600 text-white p-3 rounded-lg font-medium hover:bg-blue-700 transition">Restart Lesson</button>
+                <div class="mt-6">
+                    <button id="p4-check" class="check-btn w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-all duration-300">
+                        Check Answer
+                    </button>
+                </div>
+
+                <p id="p4-feedback" class="text-lg font-medium text-center h-6 mt-4"></p>
+            </div>
+            
+            <!-- Card 16: Practice 5 (Mean vs Median) -->
+            <div class="lesson-card" data-practice="true" id="practice-card-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-blue-700">Quick Check: Mean vs. Median</h2>
+                    <span id="p5-counter" class="text-lg font-medium text-gray-600">Problem 1 of 6</span>
+                </div>
+                
+                <p id="p5-question" class="text-gray-700 text-xl font-semibold text-center my-10 h-16">
+                    <!-- Question will be generated here -->
+                </p>
+                
+                <div class="space-y-3 mt-10" id="p5-options">
+                    <button class="option-btn" data-value="<">Mean < Median</button>
+                    <button class="option-btn" data-value="=">Mean $\approx$ Median</button>
+                    <button class="option-btn" data-value=">">Mean > Median</button>
+                </div>
+                
+                <div class="mt-6">
+                    <button id="p5-check" class="check-btn w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-all duration-300">
+                        Check Answer
+                    </button>
+                </div>
+
+                <p id="p5-feedback" class="text-lg font-medium text-center h-6 mt-4"></p>
+            </div>
+            
+            <!-- Card 17: Final Lesson Complete -->
+            <div class="lesson-card" data-practice="false">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">Lesson Complete!</h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    Great job! You've now reviewed both Arithmetic Sequences and Skew.
+                </p>
+                <p class="text-gray-700 text-lg mt-6 font-semibold">Your Final Tally:</p>
+                <div id="final-score" class="text-center bg-blue-50 border-2 border-blue-200 p-4 rounded-lg mt-2">
+                    <!-- Score will be injected here -->
+                </div>
+                <p class="text-gray-700 text-lg mt-4">
+                    You can use the "Previous" button to review any part of the lesson.
+                </p>
             </div>
 
+        </div> <!-- end .main-content -->
+    </div> <!-- end .content-wrapper -->
+
+    <!-- Navigation Footer -->
+    <footer class="nav-footer">
+        <div class="nav-container">
+            <button id="prev-btn" class="nav-btn prev-btn">Previous</button>
+            <div class="progress-bar-container">
+                <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+            </div>
+            <button id="next-btn" class="nav-btn next-btn">Next</button>
         </div>
-
-        <!-- Footer / Navigation -->
-        <div class="p-6 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
-            <button id="prev-btn" onclick="prevCard()" class="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg font-medium hover:bg-gray-300 transition disabled:opacity-50" disabled>
-                Previous
-            </button>
-            <button id="next-btn" onclick="nextCard()" class="bg-blue-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
-                Next
-            </button>
-        </div>
-    </div>
+    </footer>
 
     <script>
-        let currentCard = 1;
-        // UPDATED: Total steps
-        const totalCards = 12;
-        let selectedLabel = null;
-
-        // --- Card Navigation ---
-
-        function showCard(cardNumber) {
-            // Hide all cards
-            document.querySelectorAll('.lesson-card').forEach(card => {
-                card.classList.remove('active');
-            });
-
-            // Show the target card
-            const card = document.getElementById(`card-${cardNumber}`);
-            if (card) {
-                card.classList.add('active');
-                currentCard = cardNumber;
-                updateProgress();
-            }
+        document.addEventListener('DOMContentLoaded', () => {
+            const lessonCards = document.querySelectorAll('.lesson-card');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const progressBar = document.getElementById('progress-bar');
+            const partTitle = document.getElementById('part-title');
+            let currentCard = 0;
+            const totalCards = lessonCards.length;
+            const totalProblems = 6;
             
-            // Auto-scroll to top of card content when card changes
-            document.getElementById('card-container').scrollTop = 0;
-        }
+            // Find the index of the first "Part 2" card
+            const part2CardIndex = [...lessonCards].findIndex(card => card.innerHTML.includes('Part 2: Skew & Statistics'));
 
-        function nextCard() {
-            if (currentCard < totalCards) {
-                // Check for skew quiz
-                if (currentCard === 10) {
-                     if (!document.getElementById('skew-quiz-form').dataset.completed) {
-                        return; 
-                    }
+            let totalCorrect = 0;
+            let totalAttempts = 0;
+
+            // --- State for Practice Sections ---
+            // Practice 1 State
+            let p1_answer;
+            let p1_problemIndex = 1;
+            let p1_complete = false;
+            let p1_problemQueue = [];
+            // Practice 2 State
+            let p2_answer;
+            let p2_a1;
+            let p2_d;
+            let p2_n;
+            let p2_problemIndex = 1;
+            let p2_complete = false;
+            // Practice 3 State
+            let p3_answer;
+            let p3_problemIndex = 1;
+            let p3_complete = false;
+            // Practice 4 State
+            let p4_answer;
+            let p4_selected = null;
+            let p4_problemIndex = 1;
+            let p4_complete = false;
+            let p4_problemQueue = [];
+            // Practice 5 State
+            let p5_answer;
+            let p5_selected = null;
+            let p5_problemIndex = 1;
+            let p5_complete = false;
+            let p5_problemQueue = [];
+
+
+            // --- Helper Functions ---
+            const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+            const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+            const typesetMath = (element) => {
+                if (window.MathJax && window.MathJax.typesetPromise) {
+                    window.MathJax.typesetPromise([element]).catch((err) => console.log('MathJax Typeset Error: ' + err.message));
                 }
-                // UPDATED: Quiz card is now 11
-                if (currentCard === 11) {
-                    if (!document.getElementById('quiz-form').dataset.completed) {
-                        return; 
-                    }
-                }
-                showCard(currentCard + 1);
-            }
-        }
-
-        function prevCard() {
-            if (currentCard > 1) {
-                // UPDATED: Check for card 12
-                if (currentCard === 12) {
-                    document.getElementById('quiz-form').dataset.completed = "";
-                    tryAgain(); // Reset the main quiz form
-                }
-                // UPDATED: Check for card 11
-                if (currentCard === 11) {
-                    document.getElementById('skew-quiz-form').dataset.completed = "";
-                    trySkewAgain(); // Reset the skew quiz form
-                }
-                showCard(currentCard - 1);
-            }
-        }
-
-        function updateProgress() {
-            const percent = (currentCard / totalCards) * 100;
-            document.getElementById('progress-bar').style.width = `${percent}%`;
-            document.getElementById('progress-text').innerText = `Step ${currentCard} of ${totalCards}`;
-
-            // Update button states
-            document.getElementById('prev-btn').disabled = (currentCard === 1);
-            
-            // Handle Skew Quiz card (10)
-            if (currentCard === 10) {
-                if(document.getElementById('skew-quiz-form').dataset.completed) {
-                    document.getElementById('next-btn').disabled = false;
-                } else {
-                    document.getElementById('next-btn').disabled = true;
-                }
-            // UPDATED: Handle Main Quiz card (11)
-            } else if (currentCard === 11) {
-                if(document.getElementById('quiz-form').dataset.completed) {
-                    document.getElementById('next-btn').disabled = false;
-                } else {
-                    document.getElementById('next-btn').disabled = true;
-                }
-            // UPDATED: Handle Last card (12)
-            } else if (currentCard === totalCards) {
-                 document.getElementById('next-btn').disabled = true;
-            } else {
-                document.getElementById('next-btn').disabled = false;
-            }
-        }
-
-        function restartLesson() {
-            trySkewAgain(); // Reset skew quiz
-            tryAgain(); // Reset main quiz
-            document.getElementById('skew-quiz-form').dataset.completed = "";
-            document.getElementById('quiz-form').dataset.completed = "";
-            showCard(1);
-        }
-
-        // --- Interactive Plot (Card 5) ---
-
-        const svgNS = "http://www.w3.org/2000/svg";
-        const plot = document.getElementById('interactive-plot');
-        const dotsGroup = document.getElementById('data-dots');
-        const plotGroup = document.getElementById('plot-elements');
-        const labelGroup = document.getElementById('section-labels');
-
-        // Initial data points: 12 total, 3 per section
-        let dataPoints = [
-            // Section 1: Whisker 1 (Values 50, 75, 100)
-            { value: 50, base: 50, section: 1 }, // Min
-            { value: 75, base: 50, section: 1 }, // Was 65
-            { value: 100, base: 50, section: 1 }, // Q1
-            // Section 2: Box 1 (Values 130, 160, 200)
-            { value: 130, base: 100, section: 2 },
-            { value: 160, base: 100, section: 2 },
-            { value: 200, base: 100, section: 2 }, // Median
-            // Section 3: Box 2 (Values 230, 260, 300)
-            { value: 240, base: 200, section: 3 },
-            { value: 270, base: 200, section: 3 },
-            { value: 300, base: 200, section: 3 }, // Q3
-            // Section 4: Whisker 2 (Values 340, 370, 400)
-            { value: 350, base: 300, section: 4 },
-            { value: 380, base: 300, section: 4 },
-            { value: 450, base: 300, section: 4 }  // Max
-        ];
-
-        function renderPlot() {
-            // Clear previous render
-            dotsGroup.innerHTML = '';
-            plotGroup.innerHTML = '';
-            labelGroup.innerHTML = '';
-
-            // Get 5-number summary from data points
-            const min = dataPoints[0].value;
-            const q1 = dataPoints[2].value;
-            const med = dataPoints[5].value;
-            const q3 = dataPoints[8].value;
-            const max = dataPoints[11].value;
-
-            // Draw dots
-            dataPoints.forEach(p => {
-                const dot = document.createElementNS(svgNS, 'circle');
-                dot.setAttribute('cx', p.value);
-                dot.setAttribute('cy', 100);
-                dot.setAttribute('r', 5);
-                dot.setAttribute('class', 'data-dot');
-                dotsGroup.appendChild(dot);
-            });
-
-            // Draw Whisker 1
-            plotGroup.appendChild(createLine(min, 90, q1, 90));
-            plotGroup.appendChild(createLine(min, 80, min, 100));
-            // Draw Box 1
-            plotGroup.appendChild(createRect(q1, 70, med - q1, 40));
-            // Draw Box 2
-            plotGroup.appendChild(createRect(med, 70, q3 - med, 40));
-            // Draw Whisker 2
-            plotGroup.appendChild(createLine(q3, 90, max, 90));
-            plotGroup.appendChild(createLine(max, 80, max, 100));
-            // Draw Median line
-            plotGroup.appendChild(createLine(med, 70, med, 110));
-
-            // Draw Section Labels
-            const labelY = 135; // Moved further down
-            labelGroup.appendChild(createLabel((min + q1) / 2, labelY, '3 points (25%)'));
-            labelGroup.appendChild(createLabel((q1 + med) / 2, labelY, '3 points (25%)'));
-            labelGroup.appendChild(createLabel((med + q3) / 2, labelY, '3 points (25%)'));
-            labelGroup.appendChild(createLabel((q3 + max) / 2, labelY, '3 points (25%)'));
-        }
-
-        // --- Plot drawing helpers ---
-        function createLine(x1, y1, x2, y2) {
-            const line = document.createElementNS(svgNS, 'line');
-            line.setAttribute('x1', x1);
-            line.setAttribute('y1', y1);
-            line.setAttribute('x2', x2);
-            line.setAttribute('y2', y2);
-            line.setAttribute('class', 'plot-line');
-            return line;
-        }
-
-        function createRect(x, y, width, height) {
-            const rect = document.createElementNS(svgNS, 'rect');
-            rect.setAttribute('x', x);
-            rect.setAttribute('y', y);
-            rect.setAttribute('width', width);
-            rect.setAttribute('height', height);
-            rect.setAttribute('class', 'plot-box');
-            return rect;
-        }
-        
-        function createLabel(x, y, text) {
-            const label = document.createElementNS(svgNS, 'text');
-            label.setAttribute('x', x);
-            label.setAttribute('y', y);
-            label.setAttribute('class', 'section-label');
-            label.textContent = text;
-            return label;
-        }
-        
-        function adjustSpread(section, direction) {
-            
-            // Get the anchor point (the point that *doesn't* move)
-            let anchorPoint;
-            if (section === 1) {
-                anchorPoint = dataPoints[0]; // Min
-            } else if (section === 2) {
-                anchorPoint = dataPoints[2]; // Q1
-            } else if (section === 3) {
-                anchorPoint = dataPoints[5]; // Median
-            } else { // section === 4
-                anchorPoint = dataPoints[8]; // Q3
-            }
-
-            // Get the points that *do* move
-            let otherPoints;
-             if (section === 1) {
-                otherPoints = [dataPoints[1], dataPoints[2]]; // Q1 is dataPoints[2]
-            } else if (section === 2) {
-                otherPoints = [dataPoints[3], dataPoints[4], dataPoints[5]]; // Median is dataPoints[5]
-            } else if (section === 3) {
-                otherPoints = [dataPoints[6], dataPoints[7], dataPoints[8]]; // Q3 is dataPoints[8]
-            } else { // section === 4
-                otherPoints = [dataPoints[9], dataPoints[10], dataPoints[11]]; // Max is dataPoints[11]
-            }
-            
-            const step = (direction === 'spread') ? 10 : -10;
-
-            // --- Check bunch/spread limits ---
-            if (direction === 'bunch') {
-                // Check if the first moving point is already too close to the anchor
-                if (otherPoints[0].value + step <= anchorPoint.value + 10) {
-                    return; // Don't bunch further
-                }
-                
-                // Also check if internal points are too close
-                if (section === 1) { // 2 moving points
-                    if ( (otherPoints[1].value + (step*2)) <= (otherPoints[0].value + step + 10) ) return;
-                } else if (section > 1) { // 3 moving points
-                    if ( (otherPoints[1].value + (step*2)) <= (otherPoints[0].value + step + 10) ) return;
-                    if ( (otherPoints[2].value + (step*3)) <= (otherPoints[1].value + (step*2) + 10) ) return;
-                }
-            }
-            
-            if (direction === 'spread') {
-                if (section < 4) {
-                    // Find the first point of the *next* section
-                    const nextSectionFirstPoint = dataPoints.find(p => p.section === section + 1);
-                    // Find the last point of the *current* section (which is also an anchor)
-                    const lastMovingPoint = otherPoints[otherPoints.length - 1];
-                    
-                    let lastPointFuturePosition = lastMovingPoint.value;
-                    let nextSectionMoveAmount = 0;
-                    
-                    // Calculate the future position of the last moving point
-                    // And how much the *next* section will be shifted by
-                    if (section === 1) {
-                        lastPointFuturePosition += (step * 2); // Q1's new position
-                        nextSectionMoveAmount = (step * 2); // How much dataPoints[3] will move
-                    } else if (section === 2) {
-                        lastPointFuturePosition += (step * 3); // Median's new position
-                        nextSectionMoveAmount = (step * 3); // How much dataPoints[6] will move
-                    } else if (section === 3) {
-                        lastPointFuturePosition += (step * 3); // Q3's new position
-                        nextSectionMoveAmount = (step * 3); // How much dataPoints[9] will move
-                    }
-                    
-                    // Calculate the future position of the first point in the next section
-                    const nextPointFuturePosition = nextSectionFirstPoint.value + nextSectionMoveAmount;
-                    
-                    // Check if the future positions will be too close
-                    if (lastPointFuturePosition >= nextPointFuturePosition - 20) {
-                        return; // Don't spread further
-                    }
-                }
-                if (section === 4) {
-                    // Check for screen edge
-                    if (otherPoints[otherPoints.length-1].value + (step * 3) >= 490) return;
-                }
-            }
-
-            // Apply movement
-            let moveAmount = 0;
-            if (section === 1) {
-                // For whisker 1, anchor MIN (index 0) and move others
-                dataPoints[1].value += step;
-                dataPoints[2].value += (step * 2); // Q1 moves
-                moveAmount = step * 2; // This is how much Q1 moved
-            } else if (section === 2) {
-                // Anchor Q1 (index 2)
-                dataPoints[3].value += step;
-                dataPoints[4].value += (step * 2);
-                dataPoints[5].value += (step * 3); // Median moves
-                moveAmount = step * 3; // This is how much Median moved
-            } else if (section === 3) {
-                // Anchor Median (index 5)
-                dataPoints[6].value += step;
-                dataPoints[7].value += (step * 2);
-                dataPoints[8].value += (step * 3); // Q3 moves
-                moveAmount = step * 3; // This is how much Q3 moved
-            } else if (section === 4) {
-                // Anchor Q3 (index 8)
-                dataPoints[9].value += step;
-                dataPoints[10].value += (step * 2);
-                dataPoints[11].value += (step * 3); // Max moves
-                // No moveAmount needed, as no sections follow
-            }
-
-            // Move subsequent sections
-            if (moveAmount !== 0) {
-                for (let i = section + 1; i <= 4; i++) {
-                    dataPoints.filter(p => p.section === i).forEach(p => {
-                        p.value += moveAmount;
-                    });
-                }
-            }
-
-            renderPlot();
-        }
-
-        // --- Labeling Game (Cards 6-8) ---
-
-        function selectLabel(button) {
-            // Remove selection from others in this bank
-            button.closest('.flex').querySelectorAll('.bank-word').forEach(btn => {
-                btn.classList.remove('bg-blue-500', 'text-white');
-                btn.classList.add('bg-gray-200', 'text-gray-700');
-            });
-
-            // Add selection to this one
-            button.classList.add('bg-blue-500', 'text-white');
-            button.classList.remove('bg-gray-200', 'text-gray-700');
-            selectedLabel = {
-                id: button.dataset.label,
-                text: button.innerText
             };
-        }
-        
-        function labelPlot(targetId) {
-            if (!selectedLabel) return; // Nothing selected
-
-            // Special case for Card 8 (Section 25%)
-            const isCard8 = targetId.startsWith('sec');
-            let isCorrect = false;
-
-            if (isCard8) {
-                // Correct answer for sections is always '25'
-                isCorrect = (selectedLabel.id === '25'); 
-            } else {
-                // Normal logic for other cards
-                isCorrect = (targetId === selectedLabel.id); 
-            }
-
-            if (isCorrect) {
-                // Correct!
-                const textElement = document.getElementById(`label-${targetId}`);
-                textElement.textContent = selectedLabel.text;
-                textElement.classList.add('filled');
-                textElement.style.pointerEvents = 'none'; // Disable clicking
-
-                // Don't disable the button on Card 8, since it's reusable
-                if (!isCard8) {
-                    const button = document.querySelector(`.bank-word[data-label="${selectedLabel.id}"]`);
-                    if (button) {
-                        button.classList.add('disabled');
-                        button.style.pointerEvents = 'none';
-                    }
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
                 }
-                
-                selectedLabel = null; // Clear selection
-            } else {
-                // Incorrect, flash the box red
-                const textElement = document.getElementById(`label-${targetId}`);
-                textElement.style.fill = '#ef4444';
-                setTimeout(() => {
-                    textElement.style.fill = '#3b82f6';
-                }, 500);
-            }
-        }
-        
-        function resetLabels(bankId) {
-            const bank = document.getElementById(bankId);
-            const plot = bank.previousElementSibling; // Assumes plot is right before bank
-            
-            // Reset word bank
-            bank.querySelectorAll('.bank-word').forEach(btn => {
-                btn.classList.remove('bg-blue-500', 'text-white', 'disabled');
-                btn.classList.add('bg-gray-200', 'text-gray-700');
-                btn.style.pointerEvents = 'auto';
-            });
-            
-            // Reset plot labels
-            plot.querySelectorAll('.label-target').forEach(label => {
-                label.textContent = '[ ? ]';
-                label.classList.remove('filled');
-                label.style.pointerEvents = 'auto';
-            });
-            
-            selectedLabel = null;
-        }
-
-        // --- NEW: Skew Quiz Logic (Card 10) ---
-        const correctSkewAnswers = {
-            sq1: "left",
-            sq2: "symmetric",
-            sq3: "right",
-            sq4: "symmetric",
-            sq5: "right",
-            sq6: "left",
-            sq7: "symmetric",
-            sq8: "left"
-        };
-        
-        const skewFeedback = {
-            sq1: {
-                correct: "<strong>Correct!</strong> The long left whisker shows the data is skewed left.",
-                incorrect: "<strong>Not quite.</strong> The left whisker is much longer than the right, meaning low-value outliers are pulling the data to the left."
-            },
-            sq2: {
-                correct: "<strong>Correct!</strong> The dots form a nice mound in the middle. This is symmetrical.",
-                incorrect: "<strong>Hint:</strong> The data is clustered in the middle and balanced on both sides."
-            },
-            sq3: {
-                correct: "<strong>Correct!</strong> The 'tail' of the data is on the right. This is right-skewed.",
-                incorrect: "<strong>Hint:</strong> The data is bunched up on the left, with a long 'tail' of high-values on the right."
-            },
-            sq4: {
-                correct: "<strong>Correct!</strong> The 'leaves' (numbers) are roughly balanced, with the largest cluster in the middle (the 40s). This is symmetrical.",
-                incorrect: "<strong>Hint:</strong> Imagine turning this on its side. It would form a mound shape, similar to the dot plot."
-            },
-            sq5: {
-                correct: "<strong>Correct!</strong> The mean (41) is greater than the median (31), so it is skewed right.",
-                incorrect: "<strong>Hint:</strong> When Mean > Median, high-value outliers are pulling the average *up*."
-            },
-            sq6: {
-                correct: "<strong>Correct!</strong> The mean (20) is less than the median (35), so it is skewed left.",
-                incorrect: "<strong>Hint:</strong> When Mean < Median, low-value outliers are pulling the average *down*."
-            },
-            sq7: {
-                correct: "<strong>Correct!</strong> The mean (54) and median (54) are equal, so it is symmetrical.",
-                incorrect: "<strong>Hint:</strong> When Mean $\approx$ Median, the data is balanced."
-            },
-            sq8: {
-                correct: "<strong>Correct!</strong> The mean (112) is less than the median (123), so it is skewed left.",
-                incorrect: "<strong>Hint:</strong> When Mean < Median, low-value outliers are pulling the average *down*."
-            }
-        };
-
-        function checkSkewAnswers() {
-            let correctCount = 0;
-            for (let q in correctSkewAnswers) {
-                const radios = document.getElementsByName(q);
-                const feedbackEl = document.getElementById(`feedback-${q}`);
-                let selectedValue = null;
-                
-                for (const radio of radios) {
-                    if (radio.checked) {
-                        selectedValue = radio.value;
-                        break;
-                    }
-                }
-
-                if (selectedValue === correctSkewAnswers[q]) {
-                    feedbackEl.innerHTML = skewFeedback[q].correct;
-                    feedbackEl.className = 'feedback-correct mt-3 p-3 rounded-md text-sm';
-                    correctCount++;
-                } else {
-                    feedbackEl.innerHTML = skewFeedback[q].incorrect;
-                    feedbackEl.className = 'feedback-incorrect mt-3 p-3 rounded-md text-sm';
-                }
-                feedbackEl.classList.remove('hidden');
             }
 
-            // Show score
-            const scoreEl = document.getElementById('skew-quiz-score');
-            scoreEl.textContent = `You got ${correctCount} / 8 correct!`;
-            if (correctCount === 8) {
-                scoreEl.className = 'text-2xl font-bold text-center my-6 text-green-600';
-            } else if (correctCount >= 5) {
-                scoreEl.className = 'text-2xl font-bold text-center my-6 text-blue-600';
-            } else {
-                scoreEl.className = 'text-2xl font-bold text-center my-6 text-red-600';
-            }
-            scoreEl.classList.remove('hidden');
-
-            // Update controls
-            document.getElementById('try-skew-again-btn').classList.remove('hidden');
-            document.getElementById('check-skew-answers-btn').classList.add('hidden');
-            document.getElementById('skew-quiz-form').dataset.completed = "true";
-            updateProgress(); // Enable 'Next' button
-        }
-        
-        function trySkewAgain() {
-            document.getElementById('skew-quiz-form').reset();
-            document.querySelectorAll('[id^=feedback-sq]').forEach(el => {
-                el.classList.add('hidden');
-            });
-            document.getElementById('skew-quiz-score').classList.add('hidden');
-            document.querySelectorAll('#skew-quiz-form .quiz-option').forEach(opt => {
-                opt.classList.remove('selected');
-            });
-            document.getElementById('check-skew-answers-btn').classList.remove('hidden');
-            document.getElementById('try-skew-again-btn').classList.add('hidden');
-            document.getElementById('skew-quiz-form').dataset.completed = "";
-            updateProgress(); // Disable 'Next' button
-        }
-
-        // --- Main Quiz Logic (Card 11) ---
-
-        // UPDATED: Now 13 questions
-        const correctAnswers = {
-            q1: "50",
-            q2: "30",
-            q3: "25",
-            q4: "15",
-            q5: "30",
-            q6: "25",
-            q7: "45",
-            q8: "25",
-            q9: "75",
-            q10: "30",
-            q11: "45",
-            q12: "med-q3",
-            q13: "mean-gt-median"
-        };
-        
-        // UPDATED: Now 13 questions
-        const feedback = {
-            q1: {
-                correct: "<strong>Correct!</strong> The section from Q1 (8 min) to Q3 (15 min) contains the two middle sections, which is 25% + 25% = 50% of the students.",
-                incorrect: "<strong>Not quite.</strong> The plot shows this range covers from Q1 (8 min) to Q3 (15 min). This is the entire 'box', which contains two 25% sections. So, 25% + 25% = 50%."
-            },
-            q2: {
-                correct: "<strong>Correct!</strong> 10 minutes is the Median, which means 50% of the data is at or below it. 50% of 60 students is 30 students.",
-                incorrect: "<strong>Hint:</strong> 10 minutes is the Median. The Median represents the 50% mark. How many students is 50% of the total 60?"
-            },
-            q3: {
-                correct: "<strong>Correct!</strong> 15 minutes is Q3, which is the 75% mark. The percentage of students *above* this point is the final section (the top whisker), which is 25%.",
-                incorrect: "<strong>Remember the rule:</strong> 15 minutes is Q3. This marks the 75% point, meaning 75% of students are *below* it. The question asks how many are *above* it. That's just the final section!"
-            },
-            q4: {
-                correct: "<strong>Correct!</strong> 5 minutes (Min) to 8 minutes (Q1) is the first 25% section. 25% of 60 students is 15 students.",
-                incorrect: "<strong>Hint:</strong> The range from 5 (Min) to 8 (Q1) is the very first 'whisker'. How many students are in any single section? (Remember the 25% rule and the 60 student total)."
-            },
-            q5: {
-                correct: "<strong>Correct!</strong> 10 minutes is the Median (50%). This means 50% took *more* than 10 minutes. 50% of 60 is 30 students.",
-                incorrect: "<strong>Hint:</strong> 10 minutes is the Median. If 50% took 10 minutes or *less*, what percentage took *more*? What is that percentage of 60?"
-            },
-            q6: {
-                correct: "<strong>Correct!</strong> The range from 10 (Median) to 15 (Q3) is exactly one section, which is always 25%.",
-                incorrect: "<strong>Hint:</strong> Look at the plot. The section from the Median (10) to Q3 (15) is the third 25% section."
-            },
-            q7: {
-                correct: "<strong>Correct!</strong> 8 minutes is Q1 (the 25% mark). This means 25% are *below* it, so 75% must be *at or above* it. 75% of 60 is 45 students.",
-                incorrect: "<strong>Hint:</strong> 8 minutes is Q1. This is the 25% mark. The question asks for everyone *at or above* this point, which is 3 sections. What is 3 * 25%? And what is that percentage of 60?"
-            },
-            q8: {
-                correct: "<strong>Correct!</strong> 8 minutes is Q1. By definition, 25% of the data is *less* than Q1.",
-                incorrect: "<strong>Hint:</strong> 8 minutes is Q1. The data *below* Q1 is the first whisker, which is always 25%."
-            },
-            q9: {
-                correct: "<strong>Correct!</strong> This range goes from Q1 (8) to the Max (22). This covers the 3 upper sections. 25% + 25% + 25% = 75%.",
-                incorrect: "<strong>Hint:</strong> Count the sections. From Q1 to the Median is one. From Median to Q3 is two. From Q3 to Max is three. How much is 3 x 25%?"
-            },
-            q10: {
-                correct: "<strong>Correct!</strong> The 'Interquartile Range' (IQR) is the box, from Q1 to Q3. It contains two 25% sections (25% + 25% = 50%). 50% of 60 is 30 students.",
-                incorrect: "<strong>Hint:</strong> 'Interquartile Range' is a fancy term for the box, which goes from Q1 to Q3. It's two sections. How many students is that?"
-            },
-            q11: {
-                correct: "<strong>Correct!</strong> 15 minutes is Q3. By definition, 75% of the data is *at or below* Q3. 75% of 60 is 45 students.",
-                incorrect: "<strong>Hint:</strong> 15 minutes is Q3, which is the 75th percentile. The question asks for the number of students *less* than this. What is 75% of 60?"
-            },
-            q12: {
-                correct: "<strong>Correct!</strong> 12 is a number between 10 (Median) and 15 (Q3).",
-                incorrect: "<strong>Hint:</strong> Find 12 on the number line. It's not between 8 and 10. It is between 10 and 15."
-            },
-            q13: {
-                correct: "<strong>Correct!</strong> The plot is **right-skewed**. The right whisker (15 to 22) and right box (10 to 15) are more spread out than the left. This indicates high-value outliers are pulling the mean *up*, so the mean will be greater than the median.",
-                incorrect: "<strong>Not quite.</strong> Look at the shape. The right side of the plot (from 10 to 22) is much more spread out than the left side (from 5 to 10). This is a classic **right-skewed** plot, meaning the mean is pulled *higher* than the median."
-            }
-        };
-
-        function checkAnswers() {
-            let allCorrect = true;
-            let correctCount = 0; 
-            
-            for (let q in correctAnswers) {
-                const radios = document.getElementsByName(q);
-                const feedbackEl = document.getElementById(`feedback-${q}`);
-                let selectedValue = null;
-                
-                for (const radio of radios) {
-                    if (radio.checked) {
-                        selectedValue = radio.value;
-                        break;
-                    }
-                }
-
-                if (selectedValue === correctAnswers[q]) {
-                    feedbackEl.innerHTML = feedback[q].correct;
-                    feedbackEl.className = 'feedback-correct mt-3 p-3 rounded-md text-sm';
-                    correctCount++; 
-                } else {
-                    feedbackEl.innerHTML = feedback[q].incorrect;
-                    feedbackEl.className = 'feedback-incorrect mt-3 p-3 rounded-md text-sm';
-                    allCorrect = false;
-                }
-                feedbackEl.classList.remove('hidden');
-            }
-
-            // --- MOVED THIS BLOCK to Card 12 ---
-            // UPDATED: ID is now main-quiz-score
-            const scoreEl = document.getElementById('main-quiz-score'); 
-            // UPDATED to 13 questions
-            scoreEl.textContent = `You got ${correctCount} / 13 correct!`;
-            
-            // Set score color based on performance
-            // UPDATED thresholds
-            if (correctCount === 13) {
-                scoreEl.className = 'text-2xl font-bold text-center my-6 text-green-600'; // Perfect
-            } else if (correctCount >= 9) {
-                scoreEl.className = 'text-2xl font-bold text-center my-6 text-blue-600'; // Good
-            } else {
-                scoreEl.className = 'text-2xl font-bold text-center my-6 text-red-600'; // Needs review
-            }
-            // --- END OF MOVED BLOCK ---
-            
-            // Show 'Try Again' button
-            document.getElementById('try-again-btn').classList.remove('hidden');
-            // Hide 'Check Answers'
-            document.getElementById('check-answers-btn').classList.add('hidden');
-            
-            // Mark quiz as completed and enable 'Next'
-            document.getElementById('quiz-form').dataset.completed = "true";
-            updateProgress();
-        }
-        
-        function tryAgain() {
-            document.getElementById('quiz-form').reset();
-            
-            // Hide feedback
-            document.querySelectorAll('[id^=feedback-q]').forEach(el => {
-                el.classList.add('hidden');
-            });
-
-            // Hide score on reset
-            document.getElementById('main-quiz-score').classList.add('hidden');
-            
-            // Remove selected styles
-            document.querySelectorAll('#quiz-form .quiz-option').forEach(opt => {
-                opt.classList.remove('selected');
-            });
-            
-            // Show 'Check Answers'
-            document.getElementById('check-answers-btn').classList.remove('hidden');
-            // Hide 'Try Again'
-            document.getElementById('try-again-btn').classList.add('hidden');
-            
-            // Mark quiz as not completed and disable 'Next'
-            document.getElementById('quiz-form').dataset.completed = "";
-            updateProgress();
-        }
-
-
-        // --- Initial Setup ---
-
-        // Initialize first card and plot
-        showCard(1);
-        renderPlot();
-        
-        // Add listeners to all labeling buttons
-        document.querySelectorAll('.bank-word').forEach(button => {
-            button.addEventListener('click', () => selectLabel(button));
-        });
-        
-        // Add listeners to ALL quiz options (both quizzes)
-        document.querySelectorAll('.quiz-option input').forEach(radio => {
-            radio.addEventListener('change', () => {
-                // Remove 'selected' from all options in this group
-                document.querySelectorAll(`input[name="${radio.name}"]`).forEach(opt => {
-                    opt.closest('.quiz-option').classList.remove('selected');
+            // --- UI Update Functions ---
+            function updateCardView() {
+                lessonCards.forEach((card, index) => {
+                    card.style.display = (index === currentCard) ? 'block' : 'none';
                 });
-                // Add 'selected' to the one that was just clicked
-                radio.closest('.quiz-option').classList.add('selected');
-            });
-        });
+                
+                // Update Part Title
+                if (currentCard >= part2CardIndex) {
+                    partTitle.textContent = 'Part 2: Skew & Statistics';
+                } else {
+                    partTitle.textContent = 'Part 1: Arithmetic Sequences';
+                }
 
+                // Update scores on summary cards
+                if (lessonCards[currentCard].id === 'mid-score-card') {
+                    const scoreEl = document.getElementById('mid-score');
+                    if (scoreEl) {
+                        scoreEl.innerHTML = `${totalCorrect} Correct / ${totalAttempts} Total Attempts`;
+                    }
+                } else if (currentCard === totalCards - 1) { // Final card
+                    const scoreEl = document.getElementById('final-score');
+                    if (scoreEl) {
+                        scoreEl.innerHTML = `<p class="text-2xl font-bold text-gray-800">
+                            ${totalCorrect} Correct / ${totalAttempts} Total Attempts
+                            </p>`;
+                    }
+                }
+
+                // Scroll to top of content area on card change
+                document.querySelector('.content-wrapper').scrollTop = 0;
+                updateNav();
+            }
+
+            function updateNav() {
+                // Update Progress Bar
+                progressBar.style.width = `${(currentCard / (totalCards - 1)) * 100}%`;
+                
+                // Update Prev Button
+                prevBtn.disabled = (currentCard === 0);
+
+                // Update Next Button
+                const card = lessonCards[currentCard];
+                const isPractice = card.dataset.practice === 'true';
+                
+                if (isPractice) {
+                    let sectionComplete = false;
+                    if (card.id === 'practice-card-1') sectionComplete = p1_complete;
+                    else if (card.id === 'practice-card-2') sectionComplete = p2_complete;
+                    else if (card.id === 'practice-card-3') sectionComplete = p3_complete;
+                    else if (card.id === 'practice-card-4') sectionComplete = p4_complete; 
+                    else if (card.id === 'practice-card-5') sectionComplete = p5_complete; 
+                    
+                    nextBtn.disabled = !sectionComplete;
+                } else {
+                    nextBtn.disabled = (currentCard === totalCards - 1);
+                }
+            }
+
+            // --- Practice 1: Find the Difference ---
+            const p1_card = document.getElementById('practice-card-1');
+            const p1_seq = document.getElementById('p1-sequence');
+            const p1_input = document.getElementById('p1-input');
+            const p1_check = document.getElementById('p1-check');
+            const p1_feedback = document.getElementById('p1-feedback');
+            const p1_counter = document.getElementById('p1-counter');
+
+            function generateP1() {
+                p1_check.disabled = false;
+                p1_input.value = '';
+                p1_feedback.textContent = '';
+                
+                const problemType = p1_problemQueue[p1_problemIndex - 1]; 
+                
+                let seq = [];
+                if (problemType === 'positive') {
+                    // Arithmetic, POSITIVE difference
+                    let a1 = randomInt(-20, 20);
+                    let d = randomInt(1, 10); // d is 1 to 10
+                    seq = [a1, a1 + d, a1 + d * 2, a1 + d * 3];
+                    p1_answer = d;
+                } else if (problemType === 'negative') {
+                    // Arithmetic, NEGATIVE difference
+                    let a1 = randomInt(-20, 20);
+                    let d = randomInt(-10, -1); // d is -10 to -1
+                    seq = [a1, a1 + d, a1 + d * 2, a1 + d * 3];
+                    p1_answer = d;
+                } else { // problemType === 'no'
+                    // Not arithmetic
+                    let a1 = randomInt(-20, 20);
+                    let d1 = randomInt(-10, 10);
+                    let d2 = randomInt(-10, 10);
+                    while (d1 === 0) { d1 = randomInt(-10, 10); }
+                    while (d2 === 0 || d1 === d2) { d2 = randomInt(-10, 10); }
+                    seq = [a1, a1 + d1, a1 + d1 + d2, a1 + d1 + d2 + d1];
+                    p1_answer = "no";
+                }
+                
+                p1_seq.textContent = `{ ${seq.join(', ')}, ... }`;
+            }
+
+            async function checkP1() {
+                const userAnswer = p1_input.value.trim().toLowerCase();
+                let isCorrect = false;
+
+                if (userAnswer === "") {
+                    p1_feedback.textContent = 'Please enter an answer.';
+                    p1_feedback.style.color = 'red';
+                    return;
+                }
+                totalAttempts++; 
+                p1_check.disabled = true; // Disable button immediately
+
+                if (p1_answer === "no") {
+                    isCorrect = (userAnswer === "no");
+                } else {
+                    isCorrect = (parseInt(userAnswer, 10) === p1_answer);
+                }
+
+                if (isCorrect) {
+                    totalCorrect++; 
+                    p1_feedback.textContent = 'Correct!';
+                    p1_feedback.style.color = 'green';
+                } else {
+                    p1_feedback.textContent = `Not quite. The correct answer was ${p1_answer}.`;
+                    p1_feedback.style.color = 'red';
+                }
+                
+                await sleep(2000); // Wait 2 seconds to read feedback
+
+                p1_problemIndex++;
+                if (p1_problemIndex > totalProblems) {
+                    p1_feedback.textContent = 'Section Complete! Click Next to continue.';
+                    p1_complete = true;
+                    nextBtn.disabled = false;
+                } else {
+                    p1_counter.textContent = `Problem ${p1_problemIndex} of ${totalProblems}`;
+                    generateP1();
+                }
+            }
+
+            // --- Practice 2: Find the nth Term ---
+            const p2_card = document.getElementById('practice-card-2');
+            const p2_seq = document.getElementById('p2-sequence');
+            const p2_q = document.getElementById('p2-question');
+            const p2_a1_input = document.getElementById('p2-a1-input');
+            const p2_d_input = document.getElementById('p2-d-input');
+            const p2_n_input = document.getElementById('p2-n-input');
+            const p2_check = document.getElementById('p2-check');
+            const p2_feedback = document.getElementById('p2-feedback');
+            const p2_counter = document.getElementById('p2-counter');
+            const p2_calc_display = document.getElementById('p2-calc-display');
+            let p2_calc_string = "";
+            
+            const calc_a1 = document.getElementById('calc-a1');
+            const calc_d = document.getElementById('calc-d');
+            const calc_n = document.getElementById('calc-n');
+            const calc_1 = document.getElementById('calc-1');
+            const calc_plus = document.getElementById('calc-plus');
+            const calc_minus = document.getElementById('calc-minus');
+            const calc_times = document.getElementById('calc-times');
+            const calc_open_p = document.getElementById('calc-open-p');
+            const calc_close_p = document.getElementById('calc-close-p');
+            const calc_clear = document.getElementById('calc-clear');
+            
+            // Re-render the calculator display with MathJax
+            function updateCalcDisplay() {
+                p2_calc_display.innerHTML = p2_calc_string;
+                typesetMath(p2_calc_display);
+            }
+
+            function generateP2() {
+                p2_check.disabled = false;
+                let a1 = randomInt(-15, 15);
+                let n = randomInt(18, 50);
+                let d_p2 = randomInt(-10, 10);
+                while (d_p2 === 0) { d_p2 = randomInt(-10, 10); }
+
+                p2_a1 = a1;
+                p2_d = d_p2;
+                p2_n = n;
+                p2_answer = a1 + d_p2 * (n - 1);
+
+                let seq = [a1, a1 + d_p2, a1 + d_p2 * 2, a1 + d_p2 * 3];
+                p2_seq.textContent = `{ ${seq.join(', ')}, ... }`;
+                p2_q.innerHTML = `What is the ${n}$^{th} \\text{ term } (a_{${n}})$?`;
+                typesetMath(p2_q);
+                
+                p2_a1_input.value = '';
+                p2_d_input.value = '';
+                p2_n_input.value = '';
+                p2_calc_string = '';
+                updateCalcDisplay();
+                p2_feedback.textContent = '';
+            }
+
+            async function checkP2() {
+                const user_a1 = parseInt(p2_a1_input.value, 10);
+                const user_d = parseInt(p2_d_input.value, 10);
+                const user_n = parseInt(p2_n_input.value, 10);
+
+                if (isNaN(user_a1) || isNaN(user_d) || isNaN(user_n)) {
+                    p2_feedback.textContent = 'Please fill in a1, d, and n.';
+                    p2_feedback.style.color = 'red';
+                    return;
+                }
+
+                totalAttempts++;
+                p2_check.disabled = true; // Disable button immediately
+
+                // Check if this is a new attempt at this problem's answer
+                const currentAttemptSignature = `${user_a1}-${user_d}-${user_n}-${p2_calc_string}`;
+                p2_card.dataset.lastAttempt = currentAttemptSignature;
+                
+                // Now check the calculator string
+                const correctFormulaSimple = "$a_1$+$d$*($n$-1)";
+                let simpleUserString = p2_calc_string.replace(/\s/g, ''); // remove spaces
+
+                let isCorrect = (user_a1 === p2_a1) && 
+                                (user_d === p2_d) &&
+                                (user_n === p2_n) &&
+                                (simpleUserString === correctFormulaSimple);
+
+                if (isCorrect) {
+                    totalCorrect++;
+                    p2_feedback.textContent = 'Correct! Your setup is perfect.';
+                    p2_feedback.style.color = 'green';
+                } else {
+                    // Find the *first* error and report it
+                    if (user_a1 !== p2_a1) {
+                        p2_feedback.innerHTML = `Not quite. The correct $(a_1)$ was ${p2_a1}.`;
+                    } else if (user_d !== p2_d) {
+                        p2_feedback.innerHTML = `Not quite. The correct $(d)$ was ${p2_d}.`;
+                    } else if (user_n !== p2_n) {
+                        p2_feedback.innerHTML = `Not quite. The correct $(n)$ was ${p2_n}.`;
+                    } else if (simpleUserString !== correctFormulaSimple) {
+                        p2_feedback.innerHTML = `Not quite. The correct formula is $a_1 + d * (n - 1)$.`;
+                    }
+                    p2_feedback.style.color = 'red';
+                    typesetMath(p2_feedback);
+                }
+                
+                await sleep(2500); // Give a bit longer to read complex feedback
+                
+                p2_problemIndex++;
+                if (p2_problemIndex > totalProblems) {
+                    p2_feedback.textContent = 'Section Complete! Click Next to continue.';
+                    p2_complete = true;
+                    nextBtn.disabled = false;
+                } else {
+                    p2_counter.textContent = `Problem ${p2_problemIndex} of ${totalProblems}`;
+                    generateP2();
+                }
+            }
+            
+            // --- Practice 3: Word Problem ---
+            const p3_card = document.getElementById('practice-card-3');
+            const p3_problem = document.getElementById('p3-problem');
+            const p3_question = document.getElementById('p3-question');
+            const p3_input = document.getElementById('p3-input');
+            const p3_check = document.getElementById('p3-check');
+            const p3_feedback = document.getElementById('p3-feedback');
+            const p3_counter = document.getElementById('p3-counter');
+            
+            const wordProblems = [
+                {
+                    setup: (a1, d, n) => `Karen's New Year's resolution is to work out. On the first day, she burns ${a1} calories. She decides to increase her workout, burning ${d} more calories each day than the day before.`,
+                    question: (a1, d, n) => `How many calories will Karen burn on the ${n}th day?`,
+                    a1: () => randomInt(200, 350), d: () => randomInt(5, 25), n: () => randomInt(20, 40)
+                },
+                {
+                    setup: (a1, d, n) => `A theater has ${a1} seats in the first row. Each row behind it has ${d} more seats than the row in front of it.`,
+                    question: (a1, d, n) => `How many seats are in the ${n}th row?`,
+                    a1: () => randomInt(10, 20), d: () => randomInt(2, 6), n: () => randomInt(15, 30)
+                },
+                {
+                    setup: (a1, d, n) => `You start a new savings plan. On day 1, you save $${a1}. To be ambitious, you decide to save $${d} more each day than you did the previous day.`,
+                    question: (a1, d, n) => `How much money will you save on the ${n}th day?`,
+                    a1: () => randomInt(1, 5), d: () => randomInt(1, 3), n: () => randomInt(30, 60)
+                },
+                {
+                    setup: (a1, d, n) => `A stack of logs has ${a1} logs in the bottom layer. Each layer on top has ${d} fewer logs than the one below it.`,
+                    question: (a1, d, n) => `How many logs are on the ${n}th layer?`,
+                    a1: () => randomInt(30, 50), d: () => randomInt(-4, -1), n: () => randomInt(8, 12)
+                }
+            ];
+
+            function generateP3() {
+                p3_check.disabled = false;
+                p3_input.value = '';
+                p3_feedback.textContent = '';
+                
+                const problemTemplate = wordProblems[randomInt(0, wordProblems.length - 1)];
+                const a1 = problemTemplate.a1();
+                const d = problemTemplate.d();
+                const n = problemTemplate.n();
+                
+                p3_answer = a1 + d * (n - 1);
+                
+                p3_problem.textContent = problemTemplate.setup(a1, d, n);
+                p3_question.textContent = problemTemplate.question(a1, d, n);
+            }
+
+            async function checkP3() {
+                const userAnswer = parseInt(p3_input.value, 10);
+                
+                if (isNaN(userAnswer)) {
+                    p3_feedback.textContent = 'Please enter a number.';
+                    p3_feedback.style.color = 'red';
+                    return;
+                }
+                totalAttempts++; 
+                p3_check.disabled = true;
+                
+                if (userAnswer === p3_answer) {
+                    totalCorrect++; 
+                    p3_feedback.textContent = 'Correct!';
+                    p3_feedback.style.color = 'green';
+                } else {
+                    p3_feedback.textContent = `Not quite. The correct answer was ${p3_answer}.`;
+                    p3_feedback.style.color = 'red';
+                }
+
+                await sleep(2000);
+                
+                p3_problemIndex++;
+                if (p3_problemIndex > totalProblems) {
+                    p3_feedback.textContent = 'Section Complete! Click Next to continue.';
+                    p3_complete = true;
+                    nextBtn.disabled = false;
+                } else {
+                    p3_counter.textContent = `Problem ${p3_problemIndex} of ${totalProblems}`;
+                    generateP3();
+                }
+            }
+            
+            // --- Practice 4: Identify Skew ---
+            const p4_card = document.getElementById('practice-card-4');
+            const p4_viz = document.getElementById('p4-viz');
+            const p4_options = document.getElementById('p4-options').querySelectorAll('.option-btn');
+            const p4_check = document.getElementById('p4-check');
+            const p4_feedback = document.getElementById('p4-feedback');
+            const p4_counter = document.getElementById('p4-counter');
+
+            function generateP4() {
+                p4_check.disabled = false;
+                p4_feedback.textContent = '';
+                p4_selected = null;
+                p4_options.forEach(btn => btn.classList.remove('selected'));
+                
+                const problemType = p4_problemQueue[p4_problemIndex - 1];
+                p4_answer = problemType;
+                
+                let heights = [];
+                if (problemType === 'left') {
+                    heights = [20, 30, 40, 80, 70, 60];
+                } else if (problemType === 'symmetric') {
+                    heights = [20, 50, 80, 80, 50, 20];
+                } else { // 'right'
+                    heights = [60, 70, 80, 40, 30, 20];
+                }
+                
+                p4_viz.innerHTML = ''; // Clear old viz
+                heights.forEach(h => {
+                    const bar = document.createElement('div');
+                    bar.className = 'skew-bar';
+                    bar.style.height = `${h}%`;
+                    p4_viz.appendChild(bar);
+                });
+            }
+
+            p4_options.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    p4_options.forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    p4_selected = btn.dataset.value;
+                });
+            });
+
+            async function checkP4() {
+                if (p4_selected === null) {
+                    p4_feedback.textContent = 'Please select an answer.';
+                    p4_feedback.style.color = 'red';
+                    return;
+                }
+                totalAttempts++;
+                p4_check.disabled = true;
+                
+                if (p4_selected === p4_answer) {
+                    totalCorrect++;
+                    p4_feedback.textContent = 'Correct!';
+                    p4_feedback.style.color = 'green';
+                } else {
+                    let answerText = p4_answer.charAt(0).toUpperCase() + p4_answer.slice(1);
+                    p4_feedback.textContent = `Not quite. The correct answer was "Skewed ${answerText}".`;
+                    p4_feedback.style.color = 'red';
+                }
+                
+                await sleep(2000);
+                
+                p4_problemIndex++;
+                if (p4_problemIndex > totalProblems) {
+                    p4_feedback.textContent = 'Section Complete! Click Next to continue.';
+                    p4_complete = true;
+                    nextBtn.disabled = false;
+                } else {
+                    p4_counter.textContent = `Problem ${p4_problemIndex} of ${totalProblems}`;
+                    generateP4();
+                }
+            }
+            
+            // --- Practice 5: Mean vs Median ---
+            const p5_card = document.getElementById('practice-card-5');
+            const p5_question = document.getElementById('p5-question');
+            const p5_options = document.getElementById('p5-options').querySelectorAll('.option-btn');
+            const p5_check = document.getElementById('p5-check');
+            const p5_feedback = document.getElementById('p5-feedback');
+            const p5_counter = document.getElementById('p5-counter');
+
+            function generateP5() {
+                p5_check.disabled = false;
+                p5_feedback.textContent = '';
+                p5_selected = null;
+                p5_options.forEach(btn => btn.classList.remove('selected'));
+                
+                const problemType = p5_problemQueue[p5_problemIndex - 1];
+                
+                if (problemType === 'left') {
+                    p5_question.textContent = 'A data set is known to be Skewed Left.';
+                    p5_answer = '<';
+                } else if (problemType === 'symmetric') {
+                    p5_question.textContent = 'A data set is roughly Symmetric.';
+                    p5_answer = '=';
+                } else { // 'right'
+                    p5_question.textContent = 'A data set is known to be Skewed Right.';
+                    p5_answer = '>';
+                }
+            }
+            
+            p5_options.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    p5_options.forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    p5_selected = btn.dataset.value;
+                });
+            });
+            
+            async function checkP5() {
+                if (p5_selected === null) {
+                    p5_feedback.textContent = 'Please select an answer.';
+                    p5_feedback.style.color = 'red';
+                    return;
+                }
+                totalAttempts++;
+                p5_check.disabled = true;
+                
+                if (p5_selected === p5_answer) {
+                    totalCorrect++;
+                    p5_feedback.textContent = 'Correct!';
+                    p5_feedback.style.color = 'green';
+                } else {
+                    let answerText = p5_answer === '<' ? 'Mean < Median' : (p5_answer === '>' ? 'Mean > Median' : 'Mean ≈ Median');
+                    p5_feedback.innerHTML = `Not quite. The correct answer was ${answerText}.`;
+                    p5_feedback.style.color = 'red';
+                    typesetMath(p5_feedback);
+                }
+                
+                await sleep(2000);
+                
+                p5_problemIndex++;
+                if (p5_problemIndex > totalProblems) {
+                    p5_feedback.textContent = 'Section Complete! Click Next to continue.';
+                    p5_complete = true;
+                    nextBtn.disabled = false;
+                } else {
+                    p5_counter.textContent = `Problem ${p5_problemIndex} of ${totalProblems}`;
+                    generateP5();
+                }
+            }
+
+
+            // --- Main Navigation ---
+            prevBtn.addEventListener('click', () => {
+                if (currentCard > 0) {
+                    currentCard--;
+                    updateCardView();
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (currentCard < totalCards - 1) {
+                    currentCard++;
+                    updateCardView();
+                }
+            });
+
+            // --- Initialization ---
+            window.onload = () => {
+                // Add event listeners
+                p1_check.addEventListener('click', checkP1);
+                p2_check.addEventListener('click', checkP2);
+                p3_check.addEventListener('click', checkP3);
+                p4_check.addEventListener('click', checkP4); 
+                p5_check.addEventListener('click', checkP5); 
+                
+                // Add Calculator button listeners
+                calc_a1.addEventListener('click', () => { if (p2_a1_input.value !== '') { p2_calc_string += '$a_1$'; updateCalcDisplay(); } });
+                calc_d.addEventListener('click', () => { if (p2_d_input.value !== '') { p2_calc_string += '$d$'; updateCalcDisplay(); } });
+                calc_n.addEventListener('click', () => { if (p2_n_input.value !== '') { p2_calc_string += '$n$'; updateCalcDisplay(); } });
+                calc_1.addEventListener('click', () => { p2_calc_string += '1'; updateCalcDisplay(); });
+                calc_plus.addEventListener('click', () => { p2_calc_string += ' + '; updateCalcDisplay(); });
+                calc_minus.addEventListener('click', () => { p2_calc_string += ' - '; updateCalcDisplay(); });
+                calc_times.addEventListener('click', () => { p2_calc_string += ' * '; updateCalcDisplay(); });
+                calc_open_p.addEventListener('click', () => { p2_calc_string += '('; updateCalcDisplay(); });
+                calc_close_p.addEventListener('click', () => { p2_calc_string += ')'; updateCalcDisplay(); });
+                calc_clear.addEventListener('click', () => { p2_calc_string = ''; updateCalcDisplay(); });
+
+                // Create and shuffle problem queues
+                p1_problemQueue = ['positive', 'positive', 'negative', 'negative', 'no', 'no'];
+                shuffleArray(p1_problemQueue);
+                
+                p4_problemQueue = ['left', 'left', 'right', 'right', 'symmetric', 'symmetric'];
+                shuffleArray(p4_problemQueue);
+                
+                p5_problemQueue = ['left', 'left', 'right', 'right', 'symmetric', 'symmetric'];
+                shuffleArray(p5_problemQueue);
+
+                // Generate all first problems
+                generateP1();
+                generateP2();
+                generateP3();
+                generateP4(); 
+                generateP5(); 
+                
+                // Set initial view
+                updateCardView();
+                typesetMath(document.body); // Typeset all math on initial load
+            };
+        });
     </script>
 </body>
 </html>
+
