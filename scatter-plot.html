@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Scatterplot Lesson</title>
+    
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configure Tailwind -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // Enable dark mode based on class
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: 0, transform: 'translateY(10px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' },
+                        },
+                        pulseCorrect: {
+                            '0%, 100%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.05)' },
+                        },
+                    },
+                    animation: {
+                        fadeIn: 'fadeIn 0.5s ease-out forwards',
+                        pulseCorrect: 'pulseCorrect 0.5s ease-in-out',
+                    }
+                },
+            },
+        }
+    </script>
+    
+    <style>
+        /* Custom styles for the app */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .option-button {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .option-button.correct {
+            @apply bg-green-100 dark:bg-green-800 border-green-500 border-2;
+            animation: pulseCorrect 0.5s ease-in-out;
+        }
+        
+        .option-button.incorrect {
+            @apply bg-red-100 dark:bg-red-800 border-red-500 border-2 opacity-70;
+        }
+        
+        .option-button:disabled {
+            @apply opacity-60 cursor-not-allowed;
+        }
+        
+        /* Ensure SVGs scale nicely */
+        #graph-container svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100 flex items-center justify-center min-h-screen p-4 transition-colors duration-300">
+
+    <!-- Main App Container -->
+    <main class="w-full max-w-2xl">
+        <!-- Score Tracker -->
+        <div id="score-tracker" class="text-right text-lg font-bold text-blue-600 dark:text-blue-400 mb-2 h-6">
+            <!-- Score will be inserted here -->
+        </div>
+
+        <!-- Main Card -->
+        <div id="card" class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-2xl w-full">
+            <!-- Content is dynamically inserted here -->
+            <div id="card-title" class="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-4"></div>
+            <div id="card-content" class="text-base sm:text-lg text-gray-700 dark:text-gray-300 space-y-4"></div>
+            
+            <!-- Graph Container -->
+            <div id="graph-container" class="w-full h-56 sm:h-72 bg-gray-100 dark:bg-gray-700 rounded-lg my-5 overflow-hidden border dark:border-gray-600">
+                <!-- SVG scatterplot will be inserted here -->
+            </div>
+            
+            <!-- Options Container -->
+            <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
+                <!-- Option buttons will be inserted here -->
+            </div>
+            
+            <!-- Feedback Container -->
+            <div id="feedback-container" class="mt-4 h-16 text-base font-medium">
+                <!-- Feedback/Help text will be inserted here -->
+            </div>
+            
+            <!-- Navigation Container -->
+            <div id="nav-container" class="mt-4 text-right border-t dark:border-gray-700 pt-4">
+                <!-- Next/Start/Retry button will be inserted here -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- STATE MANAGEMENT ---
+        let currentStep = 0;
+        let score = 0;
+        let totalAnswered = 0;
+        let quizQuestions = []; // This will hold just the quiz questions
+        let userPoints = []; // Holds points for the 'create' step
+        let currentSVG = null; // Holds reference to the current SVG
+
+        // --- DOM ELEMENTS ---
+        const cardEl = document.getElementById('card');
+        const titleEl = document.getElementById('card-title');
+        const contentEl = document.getElementById('card-content');
+        const graphEl = document.getElementById('graph-container');
+        const optionsEl = document.getElementById('options-container');
+        const feedbackEl = document.getElementById('feedback-container');
+        const navEl = document.getElementById('nav-container');
+        const scoreEl = document.getElementById('score-tracker');
+
+        // --- SVG PLOT GENERATOR ---
+        /**
+         * Renders an SVG scatterplot in the graph container
+         * @param {string} type - 'positive', 'negative', 'none', 'nonlinear-pos', 'nonlinear-neg', 'outlier', or 'empty'
+         * @returns {SVGElement} The created SVG element
+         */
+        function renderScatterplot(type) {
+            graphEl.innerHTML = ''; // Clear container
+            const width = 300;
+            const height = 200;
+            const padding = 20;
+            let points = '';
+            const numPoints = 70;
+
+            if (type !== 'empty') {
+                for (let i = 0; i < numPoints; i++) {
+                    let x, y;
+                    const noise = () => (Math.random() - 0.5) * 50;
+                    
+                    switch (type) {
+                        case 'positive':
+                            x = padding + Math.random() * (width - 2 * padding);
+                            y = height - x / 2 + noise() - 20; // y decreases as x increases (SVG coords)
+                            break;
+                        case 'negative':
+                            x = padding + Math.random() * (width - 2 * padding);
+                            y = x / 2 + noise() + 50; // y increases as x increases (SVG coords)
+                            break;
+                        case 'nonlinear-pos': // U-shape
+                            x = padding + Math.random() * (width - 2 * padding);
+                            let xNorm = (x - (width / 2)) / (width / 2); // -1 to 1
+                            y = 80 * (xNorm * xNorm) + noise() + 30;
+                            break;
+                        case 'nonlinear-neg': // n-shape
+                            x = padding + Math.random() * (width - 2 * padding);
+                            let xNormN = (x - (width / 2)) / (width / 2); // -1 to 1
+                            y = -80 * (xNormN * xNormN) + noise() + 150;
+                            break;
+                        case 'outlier':
+                            x = padding + Math.random() * (width - 2 * padding);
+                            y = x / 2 + noise() + 50;
+                            // Add one outlier
+                            if (i === numPoints - 1) {
+                                x = width - padding - 10;
+                                y = padding + 10;
+                            }
+                            break;
+                        case 'none':
+                        default:
+                            x = padding + Math.random() * (width - 2 * padding);
+                            y = padding + Math.random() * (height - 2 * padding);
+                            break;
+                    }
+                    
+                    // Clamp points to be within the padding
+                    x = Math.max(padding, Math.min(width - padding, x));
+                    y = Math.max(padding, Math.min(height - padding, y));
+
+                    points += `<circle cx="${x}" cy="${y}" r="2.5" class="fill-current text-blue-500 dark:text-blue-400 opacity-75" />\n`;
+                }
+            }
+            
+            // We create the SVG element dynamically to attach listeners
+            const svgNS = "http://www.w3.org/2000/svg";
+            const svg = document.createElementNS(svgNS, "svg");
+            svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+            svg.setAttribute("aria-label", "A scatterplot graph");
+            
+            svg.innerHTML = `
+                <!-- Axes -->
+                <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" class="stroke-current text-gray-400 dark:text-gray-500" stroke-width="2" />
+                <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" class="stroke-current text-gray-400 dark:text-gray-500" stroke-width="2" />
+                <!-- Data Points -->
+                <g id="data-points">
+                    ${points}
+                </g>
+                <!-- Group for user points -->
+                <g id="user-points"></g>
+            `;
+            
+            graphEl.appendChild(svg);
+            currentSVG = svg; // Store reference to current SVG
+            return svg;
+        }
+        
+        /**
+         * Renders user-clicked points on the SVG
+         * @param {SVGElement} svg - The SVG element to draw on
+         * @param {Array} points - Array of {x, y} objects
+         */
+        function renderUserPoints(svg, points) {
+            const userPointsGroup = svg.getElementById('user-points');
+            if (!userPointsGroup) return;
+            
+            userPointsGroup.innerHTML = ''; // Clear existing user points
+            
+            const svgNS = "http://www.w3.org/2000/svg";
+            points.forEach(p => {
+                const circle = document.createElementNS(svgNS, "circle");
+                circle.setAttribute("cx", p.x);
+                circle.setAttribute("cy", p.y);
+                circle.setAttribute("r", "3.5"); // Make user points slightly bigger
+                // Use a distinct color for user points
+                circle.setAttribute("class", "fill-current text-red-500 dark:text-red-400 user-point");
+                userPointsGroup.appendChild(circle);
+            });
+        }
+
+        /**
+         * Handles click events on the plot area for the 'create' step
+         * @param {MouseEvent} event
+         */
+        function handlePlotClick(event) {
+            if (!currentSVG) return;
+
+            const svg = currentSVG;
+            const pt = svg.createSVGPoint(); // Create an SVGPoint
+            pt.x = event.clientX; // Get screen click coords
+            pt.y = event.clientY;
+
+            // Transform screen coords to SVG coords
+            const svgCoords = pt.matrixTransform(svg.getScreenCTM().inverse());
+            
+            const padding = 20;
+            const width = 300;
+            const height = 200;
+
+            // Clamp points to be within the padding
+            const x = Math.max(padding, Math.min(width - padding, svgCoords.x));
+            const y = Math.max(padding, Math.min(height - padding, svgCoords.y));
+
+            userPoints.push({ x, y });
+            renderUserPoints(svg, userPoints);
+        }
+
+        /**
+         * Called by the 'Analyze Plot' button
+         */
+        function analyzePlot() {
+            if (userPoints.length < 5) {
+                feedbackEl.innerHTML = `<p class="text-yellow-600 dark:text-yellow-400">Please add at least 5 points before analyzing.</p>`;
+                return;
+            }
+            
+            // Remove click listener
+            if (currentSVG) {
+                currentSVG.removeEventListener('click', handlePlotClick);
+                currentSVG.style.cursor = 'default';
+            }
+            
+            // Move to the next step (which should be the question)
+            nextStep();
+        }
+
+
+        // --- LESSON & QUIZ DATA ---
+        // (17 questions total, plus lesson cards)
+        const allSteps = [
+            // --- Intro ---
+            {
+                type: 'intro',
+                title: 'Welcome to the Lesson!',
+                content: `<p>Today, we'll learn all about scatterplots.</p><p>You'll learn how to read them, understand what they mean, and answer questions along the way. Let's get started!</p>`,
+            },
+            {
+                type: 'intro',
+                title: 'What is a Scatterplot?',
+                content: `<p>A scatterplot is a graph of plotted points that shows the relationship between two sets of data (called <strong>bivariate data</strong>).</p><p>For example, we could plot a student's 'Hours Studied' on one axis and their 'Test Score' on the other to see if they are related.</p><p>Importantly, we <strong>do not</strong> connect the dots!</p>`,
+            },
+            {
+                type: 'question',
+                question: "True or False: When making a scatterplot, you should always connect the dots like a line graph.",
+                options: ['True', 'False'],
+                answer: 1, // Index of 'False'
+                help: "Remember, scatterplots show a relationship or trend, but we don't connect the individual points."
+            },
+            
+            // --- Correlation ---
+            {
+                type: 'intro',
+                title: 'Types of Correlation',
+                content: `<p><strong>Correlation</strong> describes the relationship between the two variables. We'll look at three main types.</p>
+                          <ul class="list-disc list-inside ml-2 space-y-1">
+                              <li><strong>Positive:</strong> As one variable increases, the other tends to increase. (Dots go "uphill")</li>
+                              <li><strong>Negative:</strong> As one variable increases, the other tends to decrease. (Dots go "downhill")</li>
+                              <li><strong>No Correlation:</strong> There is no clear pattern or relationship. (Dots are scattered everywhere)</li>
+                          </ul>
+                          <p>Click 'Next' to see some examples and try it yourself.</p>`,
+            },
+            {
+                type: 'question',
+                question: "What kind of correlation does this graph show?",
+                graph: 'positive',
+                options: ['Positive', 'Negative', 'No Correlation'],
+                answer: 0,
+                help: "Look at the trend of the dots. Are they generally going 'uphill' from left to right?"
+            },
+            {
+                type: 'question',
+                question: "What kind of correlation does this graph show?",
+                graph: 'negative',
+                options: ['Positive', 'Negative', 'No Correlation'],
+                answer: 1,
+                help: "Look at the trend of the dots. Are they generally going 'downhill' from left to right?"
+            },
+            {
+                type: 'question',
+                question: "What kind of correlation does this graph show?",
+                graph: 'none',
+                options: ['Positive', 'Negative', 'No Correlation'],
+                answer: 2,
+                help: "The points look randomly scattered. Is there any clear uphill or downhill trend?"
+            },
+            {
+                type: 'question',
+                question: "A scatterplot shows that as the temperature outside increases, ice cream sales also increase. What type of correlation is this?",
+                options: ['Positive', 'Negative', 'No Correlation'],
+                answer: 0,
+                help: "Both values (temperature and sales) are increasing together. What do we call that?"
+            },
+            {
+                type: 'question',
+                question: "A scatterplot shows that as the number of hours a person spends watching TV increases, their test scores tend to decrease. What type of correlation is this?",
+                options: ['Positive', 'Negative', 'No Correlation'],
+                answer: 1,
+                help: "One value (TV time) is increasing, while the other (test scores) is decreasing."
+            },
+            {
+                type: 'question',
+                question: "What kind of correlation does this graph show?",
+                graph: 'positive',
+                options: ['Positive', 'Negative', 'No Correlation'],
+                answer: 0,
+                help: "Even if the dots are a bit spread out, is there a general 'uphill' direction?"
+            },
+            {
+                type: 'question',
+                question: "What kind of correlation does this graph show?",
+                graph: 'none',
+                options: ['Positive', 'Negative', 'No Correlation'],
+                answer: 2,
+                help: "These points are all over the place! There's no clear pattern."
+            },
+            
+            // --- Linear vs. Non-Linear ---
+            {
+                type: 'intro',
+                title: 'Linear vs. Non-Linear',
+                content: `<p>We can also describe the *shape* of the relationship.</p>
+                          <ul class="list-disc list-inside ml-2 space-y-1">
+                              <li><strong>Linear:</strong> The data points tend to follow a straight line.</li>
+                              <li><strong>Non-Linear:</strong> The data points tend to follow a curve (like a "U" shape or an "S" shape).</li>
+                          </ul>
+                          <p>A relationship can be 'Positive and Linear' or 'Negative and Non-Linear'.</p>`,
+            },
+            {
+                type: 'question',
+                question: "Does this scatterplot show a linear or non-linear relationship?",
+                graph: 'positive', // A linear one
+                options: ['Linear', 'Non-Linear'],
+                answer: 0,
+                help: "Could you draw a single straight line that roughly fits through the middle of these points?"
+            },
+            {
+                type: 'question',
+                question: "Does this scatterplot show a linear or non-linear relationship?",
+                graph: 'nonlinear-pos', // U-shape
+                options: ['Linear', 'Non-Linear'],
+                answer: 1,
+                help: "These points don't follow a straight line. They seem to follow a curve."
+            },
+            {
+                type: 'question',
+                question: "Does this scatterplot show a linear or non-linear relationship?",
+                graph: 'negative', // A linear one
+                options: ['Linear', 'Non-Linear'],
+                answer: 0,
+                help: "A 'downhill' relationship can still be linear!"
+            },
+            {
+                type: 'question',
+                question: "Does this scatterplot show a linear or non-linear relationship?",
+                graph: 'nonlinear-neg', // n-shape
+                options: ['Linear', 'Non-Linear'],
+                answer: 1,
+                help: "This relationship clearly follows a 'hill' or 'arc' shape, not a straight line."
+            },
+            
+            // --- Outliers ---
+            {
+                type: 'intro',
+                title: 'What is an Outlier?',
+                content: `<p>An <strong>outlier</strong> is a data point that is far away from the other points in the dataset.</p><p>It's a point that doesn't seem to fit the pattern of the rest of the data. Look for the 'lonely' point.</p>`,
+            },
+            {
+                type: 'question',
+                question: "This graph has an outlier. True or False?",
+                graph: 'outlier',
+                options: ['True', 'False'],
+                answer: 0,
+                help: "Look for a single point that is far away from the main 'downhill' cluster of points."
+            },
+
+            // --- NEW 'CREATE' SECTION ---
+            {
+                type: 'create',
+                title: 'Create Your Own Plot!',
+                content: "<p>Click on the graph area to add at least 5 data points. Try to create a <strong>Positive, Linear</strong> relationship (going 'uphill' in a straight line).</p><p>Click 'Analyze Plot' when you're done.</p>",
+                target: 'Positive, Linear',
+            },
+            {
+                type: 'question',
+                question: "You plotted the points. What is the best description for the relationship you tried to create?",
+                options: ['Positive, Linear', 'Negative, Linear', 'Positive, Non-Linear', 'No Correlation'],
+                answer: 0,
+                help: "The goal was to create a 'Positive, Linear' plot. This means the points should generally go 'uphill' in a straight line."
+            },
+            {
+                type: 'create',
+                title: 'Create Another Plot!',
+                content: "<p>Let's try another one. Add at least 5 data points. This time, try to create a <strong>Negative, Linear</strong> relationship (going 'downhill' in a straight line).</p><p>Click 'Analyze Plot' when you're done.</p>",
+                target: 'Negative, Linear',
+            },
+            {
+                type: 'question',
+                question: "What is the best description for the relationship you tried to create?",
+                options: ['Positive, Linear', 'Negative, Linear', 'Non-Linear', 'No Correlation'],
+                answer: 1,
+                help: "The goal was to create a 'Negative, Linear' plot. This means the points should generally go 'downhill' in a straight line."
+            },
+            
+            // --- Final Review Questions ---
+            {
+                type: 'question',
+                question: "What is the best description for this relationship?",
+                graph: 'positive',
+                options: ['Positive, Linear', 'Negative, Linear', 'Positive, Non-Linear', 'No Correlation'],
+                answer: 0,
+                help: "First, is it going uphill or downhill? Second, does it follow a line or a curve?"
+            },
+            {
+                type: 'question',
+                question: "What is the best description for this relationship?",
+                graph: 'nonlinear-pos',
+                options: ['Positive, Linear', 'Negative, Linear', 'Positive, Non-Linear', 'No Correlation'],
+                answer: 2,
+                help: "First, is the trend a straight line or a curve? Since it's a curve, it's non-linear. Does it open upwards (like a smile)?"
+            },
+            
+            // --- Results ---
+            {
+                type: 'results',
+                title: 'Lesson Complete!',
+            }
+        ];
+
+        // --- APP LOGIC ---
+
+        // Function to load a step
+        function loadStep(stepIndex) {
+            // Animate card transition
+            cardEl.classList.remove('animate-fadeIn');
+            void cardEl.offsetWidth; // Trigger reflow
+            cardEl.classList.add('animate-fadeIn');
+
+            const step = allSteps[stepIndex];
+
+            // Clear previous step's content
+            titleEl.innerHTML = '';
+            contentEl.innerHTML = '';
+            
+            // Only clear graph if it's not a 'create' follow-up question
+            const prevStep = allSteps[stepIndex - 1];
+            if (step.type !== 'question' || !prevStep || prevStep.type !== 'create') {
+                 graphEl.innerHTML = '';
+                 currentSVG = null;
+            }
+
+            optionsEl.innerHTML = '';
+            feedbackEl.innerHTML = '';
+            navEl.innerHTML = '';
+
+            // Update score
+            if (quizQuestions.length > 0) {
+                scoreEl.textContent = `Score: ${score} / ${totalAnswered}`;
+            }
+
+            // Set title
+            titleEl.textContent = step.title;
+
+            // Handle step types
+            switch (step.type) {
+                case 'intro':
+                    contentEl.innerHTML = step.content;
+                    graphEl.style.display = 'none'; // Hide graph container
+                    // Add 'Next' button
+                    const nextButton = createButton('Next', nextStep);
+                    navEl.appendChild(nextButton);
+                    break;
+                
+                // --- NEW 'CREATE' CASE ---
+                case 'create':
+                    contentEl.innerHTML = step.content;
+                    graphEl.style.display = 'block';
+                    userPoints = []; // Clear points for new creation
+                    const svg = renderScatterplot('empty');
+                    svg.addEventListener('click', handlePlotClick);
+                    svg.style.cursor = 'crosshair';
+                    
+                    const analyzeButton = createButton('Analyze Plot', analyzePlot);
+                    navEl.appendChild(analyzeButton);
+                    break;
+
+                case 'question':
+                    contentEl.innerHTML = `<p class="font-medium">${step.question}</p>`;
+                    
+                    if (step.graph) {
+                        // This is a standard question with a pre-defined graph
+                        graphEl.style.display = 'block';
+                        renderScatterplot(step.graph);
+                    } else if (prevStep && prevStep.type === 'create') {
+                        // This is a follow-up to a 'create' step, so leave the user's graph
+                        graphEl.style.display = 'block';
+                        if (currentSVG) {
+                            currentSVG.style.cursor = 'default'; // Change cursor back
+                        }
+                    } else {
+                        // This is a text-only question
+                        graphEl.style.display = 'none';
+                    }
+                    
+                    // Create option buttons
+                    step.options.forEach((option, index) => {
+                        const button = createButton(option, () => checkAnswer(index, step));
+                        button.classList.add('option-button', 'w-full', 'bg-gray-100', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-white', 'hover:bg-gray-200', 'dark:hover:bg-gray-600', 'border', 'border-gray-300', 'dark:border-gray-600');
+                        optionsEl.appendChild(button);
+                    });
+                    break;
+                
+                case 'results':
+                    const percentage = totalAnswered > 0 ? Math.round((score / totalAnswered) * 100) : 0;
+                    let resultMessage = '';
+                    if (percentage >= 90) {
+                        resultMessage = "Excellent work! You're a scatterplot master!";
+                    } else if (percentage >= 70) {
+                        resultMessage = "Great job! You've got a strong grasp on this.";
+                    } else {
+                        resultMessage = "Good start! A little more review might help.";
+                    }
+                    
+                    contentEl.innerHTML = `
+                        <p class="text-center text-xl">You answered:</p>
+                        <p class="text-center text-6xl font-bold my-4">${score} / ${totalAnswered}</p>
+                        <p class="text-center text-3xl font-bold text-blue-600 dark:text-blue-400">${percentage}%</p>
+                        <p class="text-center text-lg mt-4">${resultMessage}</p>
+                    `;
+                    scoreEl.textContent = ''; // Hide score tracker
+                    graphEl.style.display = 'none';
+                    
+                    // Add 'Retry' button
+                    const retryButton = createButton('Retry Lesson', initApp);
+                    navEl.appendChild(retryButton);
+                    break;
+            }
+        }
+
+        // Function to create a button
+        function createButton(text, onClick) {
+            const button = document.createElement('button');
+            button.textContent = text;
+            button.className = 'px-6 py-2 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow';
+            button.onclick = onClick;
+            return button;
+        }
+
+        // Function to check the answer
+        function checkAnswer(selectedIndex, step) {
+            // Disable all option buttons
+            const buttons = optionsEl.querySelectorAll('button');
+            buttons.forEach(button => button.disabled = true);
+            
+            const correctIndex = step.answer;
+            const selectedButton = buttons[selectedIndex];
+            totalAnswered++;
+
+            if (selectedIndex === correctIndex) {
+                // Correct answer
+                score++;
+                selectedButton.classList.add('correct');
+                feedbackEl.innerHTML = `<p class="text-green-600 dark:text-green-400">Correct! Great job.</p>`;
+            } else {
+                // Incorrect answer
+                selectedButton.classList.add('incorrect');
+                buttons[correctIndex].classList.add('correct'); // Show the right answer
+
+                // Check if this is a follow-up to a 'create' step for custom help
+                const prevStep = allSteps[currentStep - 1];
+                let helpText = step.help;
+                if (prevStep && prevStep.type === 'create') {
+                    const target = prevStep.target;
+                    // Provide more specific help based on their goal
+                    helpText = `The goal was to create a '${target}' relationship. ${step.help}`;
+                }
+                
+                feedbackEl.innerHTML = `<p class="text-red-600 dark:text-red-400"><strong>Not quite.</strong> ${helpText}</p>`;
+            }
+            
+            // Update score tracker immediately
+            scoreEl.textContent = `Score: ${score} / ${totalAnswered}`;
+            
+            // Show 'Next' button
+            const nextButton = createButton('Next', nextStep);
+            navEl.appendChild(nextButton);
+        }
+
+        // Function to move to the next step
+        function nextStep() {
+            currentStep++;
+            if (currentStep < allSteps.length) {
+                loadStep(currentStep);
+            }
+        }
+
+        // Function to initialize or reset the app
+        function initApp() {
+            currentStep = 0;
+            score = 0;
+            totalAnswered = 0;
+            // Filter out just the quiz questions for the final tally
+            quizQuestions = allSteps.filter(step => step.type === 'question');
+            // Note: We are using totalAnswered for the denominator, which increments on each answer
+            
+            loadStep(0);
+        }
+
+        // --- START THE APP ---
+        document.addEventListener('DOMContentLoaded', initApp);
+
+    </script>
+</body>
+</html>
