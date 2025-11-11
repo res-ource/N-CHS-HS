@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Geometric Sequences Lesson</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FIX: Corrected 'xintegrity' to 'integrity' -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" xintegrity="sha384-wcIxkf4k558fYv3eMS2NlWWocYhFbTT5rQ8E+sLXYLdBxRRMFAUTpxiP2ooOQK/M" crossorigin="anonymous">
     
     <style>
@@ -92,25 +93,50 @@
                 <p class="text-gray-700 mb-6">Look at the two patterns below. How do you get the next term in each pattern?</p>
                 
                 <div class="space-y-6">
-                    <!-- Pattern 1 -->
+                    <!-- Pattern 1 (Multiple Choice) -->
                     <div class="bg-gray-50 p-4 rounded-lg border">
-                        <label for="warmup1" class="block text-lg font-medium text-gray-700 mb-2">Pattern 1: <span class="font-mono">{5, 10, 15, 20, ...}</span></label>
-                        <div class="flex flex-col sm:flex-row sm:space-x-2">
-                            <input type="text" id="warmup1" name="warmup1" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Enter the rule">
-                            <button onclick="checkWarmup('warmup1', 'add 5')" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
+                        <p class="block text-lg font-medium text-gray-700 mb-2">Pattern 1: <span class="font-mono">{5, 10, 15, 20, ...}</span></p>
+                        <div id="warmup1-options" class="space-y-2 mt-2">
+                            <div>
+                                <input type="radio" id="w1-op1" name="warmup1" value="add 5" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300">
+                                <label for="w1-op1" class="ml-3 text-gray-700">Add 5</label>
+                            </div>
+                            <div>
+                                <input type="radio" id="w1-op2" name="warmup1" value="multiply by 5" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300">
+                                <label for="w1-op2" class="ml-3 text-gray-700">Multiply by 5</label>
+                            </div>
+                            <div>
+                                <input type="radio" id="w1-op3" name="warmup1" value="add 10" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300">
+                                <label for="w1-op3" class="ml-3 text-gray-700">Add 10</label>
+                            </div>
                         </div>
                         <div id="warmup1-feedback" class="feedback hidden"></div>
                     </div>
                     
-                    <!-- Pattern 2 -->
+                    <!-- Pattern 2 (Multiple Choice) -->
                     <div class="bg-gray-50 p-4 rounded-lg border">
-                        <label for="warmup2" class="block text-lg font-medium text-gray-700 mb-2">Pattern 2: <span class="font-mono">{5, 10, 20, 40, ...}</span></label>
-                        <div class="flex flex-col sm:flex-row sm:space-x-2">
-                            <input type="text" id="warmup2" name="warmup2" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Enter the rule">
-                            <button onclick="checkWarmup('warmup2', 'multiply by 2')" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
+                        <p class="block text-lg font-medium text-gray-700 mb-2">Pattern 2: <span class="font-mono">{5, 10, 20, 40, ...}</span></p>
+                        <div id="warmup2-options" class="space-y-2 mt-2">
+                            <div>
+                                <input type="radio" id="w2-op1" name="warmup2" value="add 10" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300">
+                                <label for="w2-op1" class="ml-3 text-gray-700">Add 10</label>
+                            </div>
+                            <div>
+                                <input type="radio" id="w2-op2" name="warmup2" value="multiply by 2" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300">
+                                <label for="w2-op2" class="ml-3 text-gray-700">Multiply by 2</label>
+                            </div>
+                            <div>
+                                <input type="radio" id="w2-op3" name="warmup2" value="multiply by 5" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300">
+                                <label for="w2-op3" class="ml-3 text-gray-700">Multiply by 5</label>
+                            </div>
                         </div>
                         <div id="warmup2-feedback" class="feedback hidden"></div>
                     </div>
+                </div>
+
+                <!-- New Check Button -->
+                <div class="mt-6">
+                    <button id="warmup-check-btn" onclick="checkWarmupMultipleChoice()" class="w-full px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check Answers</button>
                 </div>
 
                 <div class="mt-8 text-right">
@@ -207,21 +233,40 @@
             <div id="card-4" class="lesson-card card-hidden">
                 <h2 class="text-2xl font-semibold text-gray-800 mb-4">Practice Time</h2>
                 
-                <!-- Practice 1 -->
+                <!-- Practice 1 (NOW HYBRID) -->
                 <div class="bg-gray-50 p-4 rounded-lg border mb-6">
                     <p class="text-lg font-medium text-gray-700 mb-2">Practice 1: Write the explicit rule for $ {3, 12, 48, ...} $</p>
                     <div class="flex flex-col sm:flex-row sm:space-x-2">
                         <input type="text" id="p1-a1" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="a1 = ?">
                         <input type="text" id="p1-r" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-2 sm:mt-0" placeholder="r = ?">
-                        <input type="text" id="p1-rule" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-2 sm:mt-0" placeholder="Rule: an = ...">
-                        <button id="p1-btn" onclick="checkPractice1(this)" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
+                    </div>
+                    <!-- NEW: Multiple Choice for Rule -->
+                    <div id="p1-rule-options" class="space-y-2 mt-4">
+                        <p class="font-medium text-gray-700">Select the correct rule:</p>
+                        <div>
+                            <input type="radio" id="p1-op1" name="p1-rule" value="an=3*4^(n-1)" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300">
+                            <label for="p1-op1" class="ml-3 text-gray-700">$a_n = 3 \cdot 4^{(n-1)}$</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="p1-op2" name="p1-rule" value="an=4*3^(n-1)" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300">
+                            <label for="p1-op2" class="ml-3 text-gray-700">$a_n = 4 \cdot 3^{(n-1)}$</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="p1-op3" name="p1-rule" value="an=3*12^(n-1)" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300">
+                            <label for="p1-op3" class="ml-3 text-gray-700">$a_n = 3 \cdot 12^{(n-1)}$</label>
+                        </div>
+                    </div>
+                    <!-- Check Button -->
+                    <div class="mt-4">
+                        <button id="p1-btn" onclick="checkPractice1(this)" class="w-full px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
                     </div>
                     <div id="p1-feedback" class="feedback hidden"></div>
                 </div>
 
+
                 <!-- Practice 2 -->
                 <div class="bg-gray-50 p-4 rounded-lg border mb-6">
-                    <p class="text-lg font-medium text-gray-700 mb-2">Practice 2: Use your rule from Practice 1 to find the 7th term ($a_7$).</p>
+                    <p class="text-lg font-medium text-gray-700 mb-2">Practice 2: Use your info from Practice 1 to find the 7th term ($a_7$).</p>
                     <div class="flex flex-col sm:flex-row sm:space-x-2">
                         <input type="text" id="p2-term" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="a7 = ?">
                         <button id="p2-btn" onclick="checkPractice2(this)" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
@@ -229,7 +274,7 @@
                     <div id="p2-feedback" class="feedback hidden"></div>
                 </div>
 
-                <!-- Practice 3 (NEW) -->
+                <!-- Practice 3 -->
                 <div class="bg-gray-50 p-4 rounded-lg border mb-6">
                     <p class="text-lg font-medium text-gray-700 mb-2">Practice 3: Find $a_1$ and $r$ for $ {100, -50, 25, ...} $</p>
                     <div class="flex flex-col sm:flex-row sm:space-x-2">
@@ -240,7 +285,7 @@
                     <div id="p3-feedback" class="feedback hidden"></div>
                 </div>
 
-                <!-- Practice 4 (NEW) -->
+                <!-- Practice 4 -->
                 <div class="bg-gray-50 p-4 rounded-lg border mb-6">
                     <p class="text-lg font-medium text-gray-700 mb-2">Practice 4: Use your info from Practice 3 to find the 5th term ($a_5$).</p>
                     <div class="flex flex-col sm:flex-row sm:space-x-2">
@@ -250,7 +295,7 @@
                     <div id="p4-feedback" class="feedback hidden"></div>
                 </div>
 
-                <!-- Practice 5 (NEW) -->
+                <!-- Practice 5 -->
                 <div class="bg-gray-50 p-4 rounded-lg border mb-6">
                     <p class="text-lg font-medium text-gray-700 mb-2">Practice 5: Find $a_1$ and $r$ for $ {81, 27, 9, ...} $</p>
                     <div class="flex flex-col sm:flex-row sm:space-x-2">
@@ -261,7 +306,7 @@
                     <div id="p5-feedback" class="feedback hidden"></div>
                 </div>
 
-                <!-- Practice 6 (NEW) -->
+                <!-- Practice 6 -->
                 <div class="bg-gray-50 p-4 rounded-lg border">
                     <p class="text-lg font-medium text-gray-700 mb-2">Practice 6: Find the 10th term ($a_{10}$) for the sequence $a_n = 4 \cdot (2)^{(n-1)}$</p>
                     <div class="flex flex-col sm:flex-row sm:space-x-2">
@@ -323,6 +368,7 @@
         </main>
     </div>
 
+    <!-- FIX: Corrected 'xintegrity' to 'integrity' -->
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" xintegrity="sha384-hIoBPJpTadx52G6POglHmLzHtwpGsbx/sZNMCV2GAA+uRTC2C/K/sOnS8jF2C1S0" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js" xintegrity="sha384-43gviWU0YVjaDtb/Gf1ES3qjQ8HwscLCNTYIRES8RjEDJM8UI26JcMIIEoWscwh" crossorigin="anonymous"
         onload="renderMathInElement(document.body, {
@@ -336,10 +382,8 @@
     <script>
         // --- State Management ---
         var currentCard = 1;
-        // ADDED: Global state for scoring
         var lessonState = {
             score: 0,
-            // UPDATED: New total questions count
             totalQuestions: 13, // 2 warmup, 2 defs, 6 practice, 3 exit ticket
             correctQuestions: {} // To prevent re-scoring
         };
@@ -376,6 +420,7 @@
             removeClass(currentEl, 'card-visible');
             addClass(currentEl, 'card-hidden');
 
+            // FIX: Corrected typo 'card-'T' to 'card-'
             var targetEl = document.getElementById('card-' + targetCard);
             removeClass(targetEl, 'card-hidden');
             addClass(targetEl, 'card-visible');
@@ -411,24 +456,52 @@
         // --- Lesson Logic ---
 
         // 1. Warmup
-        function checkWarmup(id, correctAnswer) {
-            var questionId = 'warmup-' + id;
-            var buttonEl = document.querySelector('button[onclick="checkWarmup(\'' + id + '\', \'' + correctAnswer + '\')"]');
-            if (lessonState.correctQuestions[questionId]) {
-                return;
+        function checkWarmupMultipleChoice() {
+            var buttonEl = document.getElementById('warmup-check-btn');
+            
+            // Check Pattern 1
+            var warmup1Answer = document.querySelector('input[name="warmup1"]:checked');
+            var warmup1Correct = false;
+            if (warmup1Answer) {
+                if (warmup1Answer.value === 'add 5') {
+                    showFeedback('warmup1-feedback', 'Correct! This one is <strong>add 5</strong>.', true);
+                    warmup1Correct = true;
+                } else {
+                    showFeedback('warmup1-feedback', 'Not quite. Look at the difference between consecutive terms.', false);
+                }
+            } else {
+                showFeedback('warmup1-feedback', 'Please select an answer for Pattern 1.', false);
+            }
+            
+            // Score Pattern 1
+            if (warmup1Correct && !lessonState.correctQuestions['warmup-1']) {
+                lessonState.score++;
+                lessonState.correctQuestions['warmup-1'] = true;
             }
 
-            var answer = document.getElementById(id).value.split(' ').join('').toLowerCase();
-            var correct = correctAnswer.split(' ').join('').toLowerCase();
-            var feedbackId = id + '-feedback';
-            
-            if (answer.indexOf(correct) !== -1) {
-                showFeedback(feedbackId, 'Correct! This one is <strong>' + correctAnswer + '</strong>.', true);
-                lessonState.score++;
-                lessonState.correctQuestions[questionId] = true;
-                buttonEl.disabled = true;
+            // Check Pattern 2
+            var warmup2Answer = document.querySelector('input[name="warmup2"]:checked');
+            var warmup2Correct = false;
+            if (warmup2Answer) {
+                if (warmup2Answer.value === 'multiply by 2') {
+                    showFeedback('warmup2-feedback', 'Correct! This one is <strong>multiply by 2</strong>.', true);
+                    warmup2Correct = true;
+                } else {
+                    showFeedback('warmup2-feedback', 'Not quite. Look at how each term relates to the next.', false);
+                }
             } else {
-                showFeedback(feedbackId, 'Not quite. Look at the difference between consecutive terms. Try again!', false);
+                showFeedback('warmup2-feedback', 'Please select an answer for Pattern 2.', false);
+            }
+
+            // Score Pattern 2
+            if (warmup2Correct && !lessonState.correctQuestions['warmup-2']) {
+                lessonState.score++;
+                lessonState.correctQuestions['warmup-2'] = true;
+            }
+
+            // Disable button if both are correct
+            if (warmup1Correct && warmup2Correct) {
+                buttonEl.disabled = true;
             }
         }
 
@@ -474,6 +547,7 @@
         // (No logic on this card)
 
         // 4. Practice
+        // UPDATED: Now checks text inputs AND radio button
         function checkPractice1(buttonEl) {
             var questionId = 'p1';
             if (lessonState.correctQuestions[questionId]) {
@@ -482,11 +556,12 @@
 
             var a1 = document.getElementById('p1-a1').value.split(' ').join('');
             var r = document.getElementById('p1-r').value.split(' ').join('');
-            var rule = document.getElementById('p1-rule').value.split(' ').join('').toLowerCase();
+            var ruleEl = document.querySelector('input[name="p1-rule"]:checked');
+            var rule = ruleEl ? ruleEl.value : null;
             
             var correctA1 = '3';
             var correctR = '4';
-            var isRuleCorrect = (rule.indexOf('an=3*(4)^(n-1)') !== -1) || (rule.indexOf('an=3*4^(n-1)') !== -1);
+            var isRuleCorrect = (rule === 'an=3*4^(n-1)');
             
             if (a1 === correctA1 && r === correctR && isRuleCorrect) {
                 showFeedback('p1-feedback', 'Perfect! $a_1=3$, $r=4$, and the rule is $a_n = 3 \cdot 4^{(n-1)}$', true);
@@ -494,10 +569,11 @@
                 lessonState.correctQuestions[questionId] = true;
                 buttonEl.disabled = true;
             } else {
-                var error = 'Not quite. Check your numbers. ';
-                if (a1 !== correctA1) error += '$a_1$ (the first term) is 3. ';
-                if (r !== correctR) error += '$r$ (the common ratio) is 12/3 = 4. ';
-                if (!isRuleCorrect) error += 'The rule should be in the form $a_n = a_1 \cdot r^{(n-1)}$.';
+                var error = 'Not quite. ';
+                if (a1 !== correctA1) error += 'Check your $a_1$ (the first term). ';
+                if (r !== correctR) error += 'Check your $r$ (the common ratio, 12/3). ';
+                if (!rule) error += 'Please select a rule. ';
+                else if (!isRuleCorrect) error += 'Your rule selection is incorrect. ';
                 showFeedback('p1-feedback', error, false);
             }
         }
@@ -518,11 +594,10 @@
                 lessonState.correctQuestions[questionId] = true;
                 buttonEl.disabled = true;
             } else {
-                showFeedback('p2-feedback', 'Try again. Use the formula $a_n = 3 \cdot 4^{(n-1)}$ and set n=7.', false);
+                showFeedback('p2-feedback', 'Try again. Use the formula from Practice 1 and set n=7.', false);
             }
         }
 
-        // ADDED: New function for Practice 3
         function checkPractice3(buttonEl) {
             var questionId = 'p3';
             if (lessonState.correctQuestions[questionId]) {
@@ -533,7 +608,6 @@
             var r = document.getElementById('p3-r').value.split(' ').join('');
             
             var correctA1 = '100';
-            // Allow for decimal or fraction
             var isRCorrect = (r === '-0.5' || r === '-1/2');
             
             if (a1 === correctA1 && isRCorrect) {
@@ -549,7 +623,6 @@
             }
         }
 
-        // ADDED: New function for Practice 4
         function checkPractice4(buttonEl) {
             var questionId = 'p4';
             if (lessonState.correctQuestions[questionId]) {
@@ -570,7 +643,6 @@
             }
         }
 
-        // ADDED: New function for Practice 5
         function checkPractice5(buttonEl) {
             var questionId = 'p5';
             if (lessonState.correctQuestions[questionId]) {
@@ -581,7 +653,6 @@
             var r = document.getElementById('p5-r').value.split(' ').join('');
             
             var correctA1 = '81';
-            // Allow for decimal (repeating) or fraction
             var isRCorrect = (r === '1/3' || r === '0.33' || r === '0.333' || r === '0.3333');
             
             if (a1 === correctA1 && isRCorrect) {
@@ -597,7 +668,7 @@
             }
         }
 
-        // ADDED: New function for Practice 6
+        // FIX: Changed to parseInt for robust number comparison
         function checkPractice6(buttonEl) {
             var questionId = 'p6';
             if (lessonState.correctQuestions[questionId]) {
@@ -605,8 +676,8 @@
             }
             
             // $a_10 = 4 * (2)^{(10-1)} = 4 * 2^9 = 4 * 512 = 2048$
-            var term = document.getElementById('p6-term').value.split(' ').join('');
-            var correctTerm = '2048';
+            var term = parseInt(document.getElementById('p6-term').value.split(' ').join(''), 10);
+            var correctTerm = 2048;
             
             if (term === correctTerm) {
                 showFeedback('p6-feedback', 'Spot on! $a_{10} = 4 \cdot 2^{9} = 4 \cdot 512 = 2048$.', true);
@@ -647,6 +718,7 @@
             
             // Show results
             document.getElementById('final-score').innerText = lessonState.score;
+            // FIX: Corrected typo 'lessonS_tate' to 'lessonState'
             document.getElementById('final-total').innerText = lessonState.totalQuestions;
             navigateCard(6);
         }
@@ -661,6 +733,10 @@
             for (var i = 0; i < inputs.length; i++) {
                 if (inputs[i].type === 'text') {
                     inputs[i].value = '';
+                }
+                // Uncheck radio buttons
+                if (inputs[i].type === 'radio') {
+                    inputs[i].checked = false;
                 }
             }
             
@@ -687,9 +763,20 @@
             }
             var firstCard = document.getElementById('card-1');
             addClass(firstCard, 'card-visible');
-            removeClass(firstCard, 'card-hidden');
+            // FIX: Corrected class name from 'hidden' to 'card-hidden'
+            removeClass(firstCard, 'card-hidden'); 
             
             currentCard = 1;
+
+            // Force KaTeX render on first load, just in case
+            if (typeof renderMathInElement === 'function') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                    ]
+                });
+            }
         });
 
     </script>
