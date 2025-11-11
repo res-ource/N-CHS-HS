@@ -144,9 +144,9 @@
                 </div>
             </div>
             
-            <!-- Card 2: Definitions -->
+            <!-- Card 2: Definitions (SPLIT from examples) -->
             <div id="card-2" class="lesson-card card-hidden">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-4">What is a Geometric Sequence?</h2>
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Step 1: What is a Geometric Sequence?</h2>
                 <div class="space-y-4 text-gray-700">
                     <p>Pattern 1 (Arithmetic): $ {5, 10, 15, 20, ...} $</p>
                     <p class="pl-4">You add a <strong class="text-blue-600">common difference</strong> ($d=5$) to each term.</p>
@@ -158,17 +158,27 @@
                     
                     <p class="text-lg">You find the common ratio by dividing any term by the term before it: $ r = \frac{a_n}{a_{n-1}} $</p>
                 </div>
+
+                <div class="mt-8 flex justify-between">
+                    <button onclick="navigateCard(1)" class="px-6 py-2 bg-gray-500 text-white font-semibold rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">&larr; Previous</button>
+                    <!-- UPDATE: Points to new Card 3 -->
+                    <button onclick="navigateCard(3)" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">Next &rarr;</button>
+                </div>
+            </div>
+
+            <!-- NEW Card 3: Examples (Moved from Card 2) -->
+            <div id="card-3" class="lesson-card card-hidden">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Step 2: Practice Finding 'r'</h2>
                 
                 <!-- Examples -->
                 <div class="mt-6 space-y-4">
-                    <h3 class="text-xl font-semibold">Examples: Find 'r'</h3>
                     <!-- Example 1 -->
                     <div class="bg-gray-50 p-4 rounded-lg border">
                         <p class="text-lg font-medium text-gray-700 mb-2">1. Sequence: $ {6, 12, 24, 48, ...} $</p>
                         <div class="flex flex-col sm:flex-row sm:space-x-2">
                             <input type="text" id="ex1-r" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="What is r?">
                             <input type="text" id="ex1-n1" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-2 sm:mt-0" placeholder="What is the next term?">
-                            <button id="ex1-btn" onclick="checkExample('ex1', '2', '96', this)" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
+                            <button id="ex1-btn" onclick="checkExample('ex1', this)" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
                         </div>
                         <div id="ex1-feedback" class="feedback hidden"></div>
                     </div>
@@ -177,21 +187,41 @@
                         <p class="text-lg font-medium text-gray-700 mb-2">2. Sequence: $ {4, 8, 20, ...} $</p>
                         <div class="flex flex-col sm:flex-row sm:space-x-2">
                             <input type="text" id="ex2-r" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Is this geometric? (Yes/No)">
-                            <button id="ex2-btn" onclick="checkExample('ex2', 'no', '', this)" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
+                            <button id="ex2-btn" onclick="checkExample('ex2', this)" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
                         </div>
                         <div id="ex2-feedback" class="feedback hidden"></div>
+                    </div>
+                    <!-- NEW Example 3 -->
+                    <div class="bg-gray-50 p-4 rounded-lg border">
+                        <p class="text-lg font-medium text-gray-700 mb-2">3. Sequence: $ {100, -50, 25, ...} $</p>
+                        <div class="flex flex-col sm:flex-row sm:space-x-2">
+                            <input type="text" id="ex3-r" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="What is r? (use / or decimal)">
+                            <input type="text" id="ex3-n1" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-2 sm:mt-0" placeholder="What is the next term?">
+                            <button id="ex3-btn" onclick="checkExample('ex3', this)" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
+                        </div>
+                        <div id="ex3-feedback" class="feedback hidden"></div>
+                    </div>
+                    <!-- NEW Example 4 -->
+                    <div class="bg-gray-50 p-4 rounded-lg border">
+                        <p class="text-lg font-medium text-gray-700 mb-2">4. Sequence: $ {2, 4, 16, 32, ...} $</p>
+                        <div class="flex flex-col sm:flex-row sm:space-x-2">
+                            <input type="text" id="ex4-r" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Is this geometric? (Yes/No)">
+                            <button id="ex4-btn" onclick="checkExample('ex4', this)" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
+                        </div>
+                        <div id="ex4-feedback" class="feedback hidden"></div>
                     </div>
                 </div>
 
                 <div class="mt-8 flex justify-between">
-                    <button onclick="navigateCard(1)" class="px-6 py-2 bg-gray-500 text-white font-semibold rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">&larr; Previous</button>
-                    <button onclick="navigateCard(3)" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">Next &rarr;</button>
+                    <button onclick="navigateCard(2)" class="px-6 py-2 bg-gray-500 text-white font-semibold rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">&larr; Previous</button>
+                    <!-- UPDATE: Points to new Card 4 -->
+                    <button onclick="navigateCard(4)" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">Next &rarr;</button>
                 </div>
             </div>
 
-            <!-- Card 3: Formulas -->
-            <div id="card-3" class="lesson-card card-hidden">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-4">The Formula</h2>
+            <!-- Card 4: Formulas (was 3) -->
+            <div id="card-4" class="lesson-card card-hidden">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Step 3: The Formula</h2>
                 <p class="text-gray-700 mb-6">Writing out a long sequence is tedious. We can use a formula to find any term!</p>
                 
                 <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
@@ -224,14 +254,16 @@
                 </div>
 
                 <div class="mt-8 flex justify-between">
-                    <button onclick="navigateCard(2)" class="px-6 py-2 bg-gray-500 text-white font-semibold rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">&larr; Previous</button>
-                    <button onclick="navigateCard(4)" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">Next &rarr;</button>
+                    <!-- UPDATE: Points to new Card 3 -->
+                    <button onclick="navigateCard(3)" class="px-6 py-2 bg-gray-500 text-white font-semibold rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">&larr; Previous</button>
+                    <!-- UPDATE: Points to new Card 5 -->
+                    <button onclick="navigateCard(5)" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">Next &rarr;</button>
                 </div>
             </div>
 
-            <!-- Card 4: Practice -->
-            <div id="card-4" class="lesson-card card-hidden">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Practice Time</h2>
+            <!-- Card 5: Practice (was 4) -->
+            <div id="card-5" class="lesson-card card-hidden">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Step 4: Practice Time</h2>
                 
                 <!-- Practice 1 (HYBRID) -->
                 <div class="bg-gray-50 p-4 rounded-lg border mb-6">
@@ -318,13 +350,15 @@
 
 
                 <div class="mt-8 flex justify-between">
-                    <button onclick="navigateCard(3)" class="px-6 py-2 bg-gray-500 text-white font-semibold rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">&larr; Previous</button>
-                    <button onclick="navigateCard(5)" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">Next &rarr;</button>
+                    <!-- UPDATE: Points to new Card 4 -->
+                    <button onclick="navigateCard(4)" class="px-6 py-2 bg-gray-500 text-white font-semibold rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">&larr; Previous</button>
+                    <!-- UPDATE: Points to new Card 6 -->
+                    <button onclick="navigateCard(6)" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">Next &rarr;</button>
                 </div>
             </div>
 
-            <!-- Card 5: Exit Ticket -->
-            <div id="card-5" class="lesson-card card-hidden">
+            <!-- Card 6: Exit Ticket (was 5) -->
+            <div id="card-6" class="lesson-card card-hidden">
                 <h2 class="text-2xl font-semibold text-gray-800 mb-4">Exit Ticket: Show What You Know</h2>
                 <p class="text-gray-700 mb-6">Given the sequence $ {2, -6, 18, -54, ...} $</p>
 
@@ -358,13 +392,14 @@
                 </div>
                 
                 <div class="mt-8 flex justify-between">
-                    <button onclick="navigateCard(4)" class="px-6 py-2 bg-gray-500 text-white font-semibold rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">&larr; Previous</button>
+                    <!-- UPDATE: Points to new Card 5 -->
+                    <button onclick="navigateCard(5)" class="px-6 py-2 bg-gray-500 text-white font-semibold rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">&larr; Previous</button>
                     <button onclick="finishLesson()" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75">Finish Lesson &rarr;</button>
                 </div>
             </div>
             
-            <!-- Card 6: Results -->
-            <div id="card-6" class="lesson-card card-hidden">
+            <!-- Card 7: Results (was 6) -->
+            <div id="card-7" class="lesson-card card-hidden">
                 <h2 class="text-2xl font-semibold text-gray-800 mb-4">Lesson Results</h2>
                 <div class="text-center p-8 bg-gray-50 rounded-lg border">
                     <p class="text-lg text-gray-700">You answered:</p>
@@ -398,7 +433,8 @@
         var currentCard = 1;
         var lessonState = {
             score: 0,
-            totalQuestions: 13, // 2 warmup, 2 defs, 6 practice, 3 exit ticket
+            // UPDATE: 2 warmup, 4 defs, 6 practice, 3 exit ticket
+            totalQuestions: 15, 
             correctQuestions: {} // To prevent re-scoring
         };
 
@@ -434,7 +470,6 @@
             removeClass(currentEl, 'card-visible');
             addClass(currentEl, 'card-hidden');
 
-            // FIX: Corrected typo 'card-T' to 'card-'
             var targetEl = document.getElementById('card-' + targetCard);
             removeClass(targetEl, 'card-hidden');
             addClass(targetEl, 'card-visible');
@@ -520,48 +555,75 @@
         }
 
         // 2. Definitions
-        function checkExample(id, correctR, correctN, buttonEl) {
+        // (No logic on this card)
+
+        // 3. Examples (NEW CARD)
+        var exampleSolutions = {
+            'ex1': {
+                'r': ['2', '2.0'],
+                'n1': '96',
+                'correctMsg': 'Great! r = 2, and 48 * 2 = 96.',
+                'incorrectMsg': 'Try again. Check your ratio (12/6) and your next term (48 * r).'
+            },
+            'ex2': {
+                'r': ['no', 'not', 'n'],
+                'n1': null,
+                'correctMsg': 'Correct! It is not geometric. 8/4 = 2, but 20/8 = 2.5. The ratio is not common.',
+                'incorrectMsg': 'Careful! 8/4 = 2, but 20/8 = 2.5. Since the ratio isn\'t the same, it\'s not geometric.'
+            },
+            'ex3': {
+                'r': ['-0.5', '-1/2'],
+                'n1': '-12.5',
+                'correctMsg': 'Perfect! $r = -50/100 = -0.5$ and $25 \cdot -0.5 = -12.5$.',
+                'incorrectMsg': 'Try again. Remember the ratio can be negative or a fraction!'
+            },
+            'ex4': {
+                'r': ['no', 'not', 'n'],
+                'n1': null,
+                'correctMsg': 'Correct! It is not geometric. $4/2 = 2$, but $16/4 = 4$.',
+                'incorrectMsg': 'Look closer! $4/2 = 2$, but $16/4 = 4$. The ratio is not common.'
+            }
+        };
+
+        function checkExample(id, buttonEl) {
             var questionId = 'ex-' + id;
             if (lessonState.correctQuestions[questionId]) {
                 return;
             }
             
-            var feedbackEl = document.getElementById(id + '-feedback');
-            removeClass(feedbackEl, 'hidden');
-            feedbackEl.style.display = 'block';
-
-            var r = document.getElementById(id + '-r').value.split(' ').join('');
-            var isCorrect = false;
+            var solution = exampleSolutions[id];
+            var rInput = document.getElementById(id + '-r').value.split(' ').join('').toLowerCase();
             
-            if (id === 'ex1') {
-                var n1 = document.getElementById(id + '-n1').value.split(' ').join('');
-                if (r === correctR && n1 === correctN) {
-                    showFeedback(id + '-feedback', 'Great! r = 2, and 48 * 2 = 96.', true);
-                    isCorrect = true;
-                } else {
-                    showFeedback(id + '-feedback', 'Try again. Check your ratio (12/6) and your next term (48 * r).', false);
-                }
-            } else if (id === 'ex2') {
-                if (r.toLowerCase() === correctR || r.toLowerCase().indexOf('not') !== -1 || r.toLowerCase() === 'no') {
-                    showFeedback(id + '-feedback', 'Correct! It is not geometric. 8/4 = 2, but 20/8 = 2.5. The ratio is not common.', true);
-                    isCorrect = true;
-                } else {
-                    showFeedback(id + '-feedback', 'Careful! 8/4 = 2, but 20/8 = 2.5. Since the ratio isn\'t the same, it\'s not geometric.', false);
+            var isRCorrect = false;
+            for(var i=0; i < solution.r.length; i++) {
+                if(rInput.indexOf(solution.r[i]) !== -1) {
+                    isRCorrect = true;
+                    break;
                 }
             }
+
+            var isN1Correct = true; // Assume true if no n1 input
+            if (solution.n1 !== null) {
+                var n1Input = document.getElementById(id + '-n1').value.split(' ').join('');
+                isN1Correct = (n1Input === solution.n1);
+            }
+            
+            var isCorrect = isRCorrect && isN1Correct;
             
             if (isCorrect) {
+                showFeedback(id + '-feedback', solution.correctMsg, true);
                 lessonState.score++;
                 lessonState.correctQuestions[questionId] = true;
                 buttonEl.disabled = true;
+            } else {
+                showFeedback(id + '-feedback', solution.incorrectMsg, false);
             }
         }
         
-        // 3. Formulas
+        // 4. Formulas
         // (No logic on this card)
 
-        // 4. Practice
-        // UPDATED: Now checks text inputs AND radio button
+        // 5. Practice
         function checkPractice1(buttonEl) {
             var questionId = 'p1';
             if (lessonState.correctQuestions[questionId]) {
@@ -682,7 +744,6 @@
             }
         }
 
-        // FIX: Changed to parseInt for robust number comparison
         function checkPractice6(buttonEl) {
             var questionId = 'p6';
             if (lessonState.correctQuestions[questionId]) {
@@ -703,8 +764,7 @@
             }
         }
         
-        // 5. Exit Ticket
-        // UPDATED: Now checks radio button for rule
+        // 6. Exit Ticket
         function finishLesson() {
             var a1 = document.getElementById('et-a1').value.split(' ').join('');
             var r = document.getElementById('et-r').value.split(' ').join('');
@@ -734,16 +794,17 @@
             
             // Show results
             document.getElementById('final-score').innerText = lessonState.score;
-            // FIX: Corrected typo 'lessonS_tde' to 'lessonState'
             document.getElementById('final-total').innerText = lessonState.totalQuestions;
-            navigateCard(6);
+            // UPDATE: Navigate to new Card 7
+            navigateCard(7);
         }
         
-        // 6. Results
+        // 7. Results
         function restartLesson() {
             lessonState.score = 0;
             lessonState.correctQuestions = {};
-            currentCard = 6;
+            // UPDATE: Set current card to 7
+            currentCard = 7; 
             
             var inputs = document.getElementsByTagName('input');
             for (var i = 0; i < inputs.length; i++) {
@@ -779,7 +840,6 @@
             }
             var firstCard = document.getElementById('card-1');
             addClass(firstCard, 'card-visible');
-            // FIX: Corrected class name from 'hidden' to 'card-hidden'
             removeClass(firstCard, 'card-hidden'); 
             
             currentCard = 1;
