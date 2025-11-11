@@ -133,7 +133,7 @@
             graphEl.innerHTML = ''; // Clear container
             const width = 300;
             const height = 200;
-            const padding = 20;
+            const padding = 30; // Increased padding for labels
             let points = '';
             const numPoints = 70;
 
@@ -142,28 +142,48 @@
                     let x, y;
                     const noise = () => (Math.random() - 0.5) * 50;
                     
+                    // Adjust plot generation for new padding
+                    const plotWidth = width - 2 * padding;
+                    const plotHeight = height - 2 * padding;
+
                     switch (type) {
                         case 'positive':
-                            x = padding + Math.random() * (width - 2 * padding);
-                            y = height - x / 2 + noise() - 20; // y decreases as x increases (SVG coords)
+                            x = padding + Math.random() * plotWidth;
+                            y = height - padding - (x - padding) / (plotWidth) * plotHeight + noise() - 10;
                             break;
                         case 'negative':
-                            x = padding + Math.random() * (width - 2 * padding);
-                            y = x / 2 + noise() + 50; // y increases as x increases (SVG coords)
+                            x = padding + Math.random() * plotWidth;
+                            y = padding + (x - padding) / (plotWidth) * plotHeight + noise() + 10;
+                            break;
+                        case 'positive-strong':
+                             x = padding + Math.random() * plotWidth;
+                            y = height - padding - (x - padding) / (plotWidth) * plotHeight + (Math.random() - 0.5) * 20 - 10; // Less noise
+                            break;
+                        case 'positive-weak':
+                            x = padding + Math.random() * plotWidth;
+                            y = height - padding - (x - padding) / (plotWidth) * plotHeight + (Math.random() - 0.5) * 90 - 10; // More noise
+                            break;
+                        case 'negative-strong':
+                            x = padding + Math.random() * plotWidth;
+                            y = padding + (x - padding) / (plotWidth) * plotHeight + (Math.random() - 0.5) * 20 + 10; // Less noise
+                            break;
+                        case 'negative-weak':
+                            x = padding + Math.random() * plotWidth;
+                            y = padding + (x - padding) / (plotWidth) * plotHeight + (Math.random() - 0.5) * 90 + 10; // More noise
                             break;
                         case 'nonlinear-pos': // U-shape
-                            x = padding + Math.random() * (width - 2 * padding);
-                            let xNorm = (x - (width / 2)) / (width / 2); // -1 to 1
-                            y = 80 * (xNorm * xNorm) + noise() + 30;
+                            x = padding + Math.random() * plotWidth;
+                            let xNorm = (x - (width / 2)) / (plotWidth / 2); // -1 to 1
+                            y = 80 * (xNorm * xNorm) + noise() + padding;
                             break;
                         case 'nonlinear-neg': // n-shape
-                            x = padding + Math.random() * (width - 2 * padding);
-                            let xNormN = (x - (width / 2)) / (width / 2); // -1 to 1
-                            y = -80 * (xNormN * xNormN) + noise() + 150;
+                            x = padding + Math.random() * plotWidth;
+                            let xNormN = (x - (width / 2)) / (plotWidth / 2); // -1 to 1
+                            y = -80 * (xNormN * xNormN) + noise() + height - padding - 20;
                             break;
                         case 'outlier':
-                            x = padding + Math.random() * (width - 2 * padding);
-                            y = x / 2 + noise() + 50;
+                            x = padding + Math.random() * plotWidth;
+                            y = padding + (x - padding) / (plotWidth) * plotHeight + noise() + 10;
                             // Add one outlier
                             if (i === numPoints - 1) {
                                 x = width - padding - 10;
@@ -172,8 +192,8 @@
                             break;
                         case 'none':
                         default:
-                            x = padding + Math.random() * (width - 2 * padding);
-                            y = padding + Math.random() * (height - 2 * padding);
+                            x = padding + Math.random() * plotWidth;
+                            y = padding + Math.random() * plotHeight;
                             break;
                     }
                     
@@ -195,6 +215,31 @@
                 <!-- Axes -->
                 <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" class="stroke-current text-gray-400 dark:text-gray-500" stroke-width="2" />
                 <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" class="stroke-current text-gray-400 dark:text-gray-500" stroke-width="2" />
+                
+                <!-- FIXED: Axis Labels and Ticks -->
+                <g class="fill-current text-gray-500 dark:text-gray-400 text-xs font-sans" style="user-select: none;">
+                    <!-- Y-Axis Ticks and Labels -->
+                    <text x="${padding - 8}" y="${padding + 4}" text-anchor="end">100</text>
+                    <line x1="${padding - 4}" y1="${padding}" x2="${padding}" y2="${padding}" class="stroke-current text-gray-400 dark:text-gray-500" stroke-width="1" />
+                    
+                    <text x="${padding - 8}" y="${padding + (height - 2 * padding) / 2 + 4}" text-anchor="end">50</text>
+                    <line x1="${padding - 4}" y1="${padding + (height - 2 * padding) / 2}" x2="${padding}" y2="${padding + (height - 2 * padding) / 2}" class="stroke-current text-gray-400 dark:text-gray-500" stroke-width="1" />
+                    
+                    <text x="${padding - 8}" y="${height - padding + 4}" text-anchor="end">0</text>
+                    <!-- No tick for 0, as it's the axis line -->
+
+                    <!-- X-Axis Ticks and Labels -->
+                    <text x="${padding}" y="${height - padding + 16}" text-anchor="middle">0</text>
+                    <!-- No tick for 0 -->
+                    
+                    <text x="${padding + (width - 2 * padding) / 2}" y="${height - padding + 16}" text-anchor="middle">50</text>
+                    <line x1="${padding + (width - 2 * padding) / 2}" y1="${height - padding}" x2="${padding + (width - 2 * padding) / 2}" y2="${height - padding + 4}" class="stroke-current text-gray-400 dark:text-gray-500" stroke-width="1" />
+                    
+                    <text x="${width - padding}" y="${height - padding + 16}" text-anchor="middle">100</text>
+                    <line x1="${width - padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding + 4}" class="stroke-current text-gray-400 dark:text-gray-500" stroke-width="1" />
+                </g>
+                <!-- END FIX -->
+
                 <!-- Data Points -->
                 <g id="data-points">
                     ${points}
@@ -232,6 +277,48 @@
         }
 
         /**
+         * Converts data coordinates (e.g., 0-100) to SVG coordinates
+         * @param {object} point - {x, y} data point
+         * @returns {object} {x, y} SVG coordinate
+         */
+        function dataToSvg(point) {
+            const dataRange = { x: 100, y: 100 }; // Assuming data is in 0-100 range
+            const padding = 30; // Must match renderScatterplot
+            const width = 300;
+            const height = 200;
+            
+            const svgWidth = width - 2 * padding;
+            const svgHeight = height - 2 * padding;
+
+            const x_svg = padding + (point.x / dataRange.x) * svgWidth;
+            // Invert Y-axis: (height - padding) is the bottom line
+            const y_svg = (height - padding) - (point.y / dataRange.y) * svgHeight;
+            
+            return { x: x_svg, y: y_svg };
+        }
+
+        /**
+         * Renders correct data points on the SVG
+         * @param {SVGElement} svg - The SVG element to draw on
+         * @param {Array} points - Array of {x, y} data objects
+         * @param {string} className - CSS class for the points
+         */
+        function renderDataPoints(svg, points, className) {
+            const dataPointsGroup = svg.getElementById('data-points'); // Draw in the main group
+            if (!dataPointsGroup) return;
+
+            const svgNS = "http://www.w3.org/2000/svg";
+            points.map(dataToSvg).forEach(p => { // Convert all data points to SVG coords
+                const circle = document.createElementNS(svgNS, "circle");
+                circle.setAttribute("cx", p.x);
+                circle.setAttribute("cy", p.y);
+                circle.setAttribute("r", "3");
+                circle.setAttribute("class", `fill-current ${className}`);
+                dataPointsGroup.appendChild(circle);
+            });
+        }
+
+        /**
          * Handles click events on the plot area for the 'create' step
          * @param {MouseEvent} event
          */
@@ -246,7 +333,7 @@
             // Transform screen coords to SVG coords
             const svgCoords = pt.matrixTransform(svg.getScreenCTM().inverse());
             
-            const padding = 20;
+            const padding = 30; // Must match renderScatterplot
             const width = 300;
             const height = 200;
 
@@ -275,6 +362,30 @@
             
             // Move to the next step (which should be the question)
             nextStep();
+        }
+
+        /**
+         * Called by the 'Check My Plot' button
+         */
+        function checkPlot() {
+            const step = allSteps[currentStep];
+            if (!currentSVG || !step.dataset) return;
+
+            // Render the correct points in green
+            renderDataPoints(currentSVG, step.dataset, 'text-green-500 dark:text-green-400 opacity-75');
+
+            // Remove click listener
+            if (currentSVG) {
+                currentSVG.removeEventListener('click', handlePlotClick);
+                currentSVG.style.cursor = 'default';
+            }
+            
+            // Disable the 'Check' button and show 'Next'
+            navEl.innerHTML = ''; // Clear 'Check' button
+            const nextButton = createButton('Next', nextStep);
+            navEl.appendChild(nextButton);
+            
+            feedbackEl.innerHTML = `<p class="text-green-600 dark:text-green-400">Great! The correct plot is shown in green. Your points are in red. Click 'Next' to analyze this graph.</p>`;
         }
 
 
@@ -367,6 +478,51 @@
                 help: "These points are all over the place! There's no clear pattern."
             },
             
+            // --- NEW SECTION: STRENGTH OF CORRELATION ---
+            {
+                type: 'intro',
+                title: 'Strength of Correlation',
+                content: `<p>We can also describe a correlation's <strong>strength</strong>.</p>
+                          <ul class="list-disc list-inside ml-2 space-y-1">
+                              <li><strong>Strong:</strong> The data points are packed tightly together in a line or curve. The trend is very clear.</li>
+                              <li><strong>Weak:</strong> The data points are spread farther apart, but still show a general trend.</li>
+                          </ul>
+                          <p>A correlation can be <strong>Strong and Positive</strong>, or <strong>Weak and Negative</strong>, etc.</p>`,
+            },
+            {
+                type: 'question',
+                question: "Is this a strong or weak correlation?",
+                graph: 'positive-strong',
+                options: ['Strong', 'Weak'],
+                answer: 0,
+                help: "The points are very close together, forming a clear, tight line."
+            },
+            {
+                type: 'question',
+                question: "Is this a strong or weak correlation?",
+                graph: 'positive-weak',
+                options: ['Strong', 'Weak'],
+                answer: 1,
+                help: "The points are very spread out, but you can still see a general 'uphill' trend."
+            },
+            {
+                type: 'question',
+                question: "Is this a strong or weak correlation?",
+                graph: 'negative-strong',
+                options: ['Strong', 'Weak'],
+                answer: 0,
+                help: "The points are tightly clustered in a 'downhill' pattern."
+            },
+            {
+                type: 'question',
+                question: "Is this a strong or weak correlation?",
+                graph: 'negative-weak',
+                options: ['Strong', 'Weak'],
+                answer: 1,
+                help: "The points are loosely scattered, but there is still a general 'downhill' trend."
+            },
+            // --- END NEW SECTION ---
+            
             // --- Linear vs. Non-Linear ---
             {
                 type: 'intro',
@@ -426,32 +582,63 @@
                 help: "Look for a single point that is far away from the main 'downhill' cluster of points."
             },
 
-            // --- NEW 'CREATE' SECTION ---
+            // --- 'CREATE' SECTION ---
             {
                 type: 'create',
                 title: 'Create Your Own Plot!',
-                content: "<p>Click on the graph area to add at least 5 data points. Try to create a <strong>Positive, Linear</strong> relationship (going 'uphill' in a straight line).</p><p>Click 'Analyze Plot' when you're done.</p>",
+                content: "<p>Click on the graph area to add data points. Try to create a <strong>Positive, Linear</strong> relationship (going 'uphill' in a straight line).</p><p>This is just for practice. Click 'Done' when you're finished.</p>",
                 target: 'Positive, Linear',
-            },
-            {
-                type: 'question',
-                question: "You plotted the points. What is the best description for the relationship you tried to create?",
-                options: ['Positive, Linear', 'Negative, Linear', 'Positive, Non-Linear', 'No Correlation'],
-                answer: 0,
-                help: "The goal was to create a 'Positive, Linear' plot. This means the points should generally go 'uphill' in a straight line."
             },
             {
                 type: 'create',
                 title: 'Create Another Plot!',
-                content: "<p>Let's try another one. Add at least 5 data points. This time, try to create a <strong>Negative, Linear</strong> relationship (going 'downhill' in a straight line).</p><p>Click 'Analyze Plot' when you're done.</p>",
+                content: "<p>Let's try another one. This time, try to create a <strong>Negative, Linear</strong> relationship (going 'downhill' in a straight line).</p><p>Click 'Done' when you're finished.</p>",
                 target: 'Negative, Linear',
+            },
+
+            // --- 'PLOT-BY-COORDINATES' SECTION ---
+            {
+                type: 'intro',
+                title: 'New Challenge: Plotting Data',
+                content: `<p>Now, you'll be given a specific set of data to plot.</p><p>Click on the graph to plot the (x, y) coordinates as accurately as you can. Your points will be in red. The data is all based on a 0-100 scale for both X and Y.</p><p>When you're done, click 'Check My Plot' to see the correct points in green.</p>`,
+            },
+            {
+                type: 'plot-by-coordinates',
+                title: 'Plot This Data (Set 1)',
+                content: `<p class="text-sm font-medium">Click to plot these (x, y) points:</p><ul class="list-disc list-inside text-sm grid grid-cols-2 sm:grid-cols-3 gap-x-2">
+                    <li>(10, 15)</li><li>(20, 25)</li><li>(30, 20)</li><li>(40, 35)</li>
+                    <li>(50, 45)</li><li>(60, 40)</li><li>(70, 60)</li><li>(80, 75)</li>
+                </ul>`,
+                dataset: [
+                    {x: 10, y: 15}, {x: 20, y: 25}, {x: 30, y: 20}, {x: 40, y: 35},
+                    {x: 50, y: 45}, {x: 60, y: 40}, {x: 70, y: 60}, {x: 80, y: 75}
+                ]
             },
             {
                 type: 'question',
-                question: "What is the best description for the relationship you tried to create?",
+                question: "What is the best description for the relationship you just plotted?",
+                options: ['Positive, Linear', 'Negative, Linear', 'Positive, Non-Linear', 'No Correlation'],
+                answer: 0,
+                help: "Look at the green points. Are they generally going 'uphill' or 'downhill'? Do they form a line or a curve?"
+            },
+            {
+                type: 'plot-by-coordinates',
+                title: 'Plot This Data (Set 2)',
+                content: `<p class="text-sm font-medium">Click to plot these (x, y) points:</p><ul class="list-disc list-inside text-sm grid grid-cols-2 sm:grid-cols-3 gap-x-2">
+                    <li>(10, 90)</li><li>(20, 75)</li><li>(30, 80)</li><li>(40, 60)</li>
+                    <li>(50, 55)</li><li>(60, 40)</li><li>(70, 30)</li><li>(80, 25)</li>
+                </ul>`,
+                dataset: [
+                    {x: 10, y: 90}, {x: 20, y: 75}, {x: 30, y: 80}, {x: 40, y: 60},
+                    {x: 50, y: 55}, {x: 60, y: 40}, {x: 70, y: 30}, {x: 80, y: 25}
+                ]
+            },
+            {
+                type: 'question',
+                question: "What is the best description for this relationship?",
                 options: ['Positive, Linear', 'Negative, Linear', 'Non-Linear', 'No Correlation'],
                 answer: 1,
-                help: "The goal was to create a 'Negative, Linear' plot. This means the points should generally go 'downhill' in a straight line."
+                help: "Look at the green points. The trend is clearly 'downhill' and follows a relatively straight line."
             },
             
             // --- Final Review Questions ---
@@ -496,7 +683,9 @@
             
             // Only clear graph if it's not a 'create' follow-up question
             const prevStep = allSteps[stepIndex - 1];
-            if (step.type !== 'question' || !prevStep || prevStep.type !== 'create') {
+            if ( (step.type !== 'question') || 
+                 (!prevStep) || 
+                 (prevStep.type !== 'create' && prevStep.type !== 'plot-by-coordinates') ) {
                  graphEl.innerHTML = '';
                  currentSVG = null;
             }
@@ -523,7 +712,7 @@
                     navEl.appendChild(nextButton);
                     break;
                 
-                // --- NEW 'CREATE' CASE ---
+                // --- 'CREATE' CASE ---
                 case 'create':
                     contentEl.innerHTML = step.content;
                     graphEl.style.display = 'block';
@@ -532,8 +721,22 @@
                     svg.addEventListener('click', handlePlotClick);
                     svg.style.cursor = 'crosshair';
                     
-                    const analyzeButton = createButton('Analyze Plot', analyzePlot);
-                    navEl.appendChild(analyzeButton);
+                    // Replaced 'Analyze Plot' with a simple 'Done' button
+                    const doneButton = createButton('Done', nextStep);
+                    navEl.appendChild(doneButton);
+                    break;
+
+                // --- 'PLOT-BY-COORDINATES' CASE ---
+                case 'plot-by-coordinates':
+                    contentEl.innerHTML = step.content;
+                    graphEl.style.display = 'block';
+                    userPoints = []; // Clear user points
+                    const plotSvg = renderScatterplot('empty');
+                    plotSvg.addEventListener('click', handlePlotClick);
+                    plotSvg.style.cursor = 'crosshair';
+                    
+                    const checkButton = createButton('Check My Plot', checkPlot);
+                    navEl.appendChild(checkButton);
                     break;
 
                 case 'question':
@@ -543,8 +746,8 @@
                         // This is a standard question with a pre-defined graph
                         graphEl.style.display = 'block';
                         renderScatterplot(step.graph);
-                    } else if (prevStep && prevStep.type === 'create') {
-                        // This is a follow-up to a 'create' step, so leave the user's graph
+                    } else if (prevStep && (prevStep.type === 'create' || prevStep.type === 'plot-by-coordinates')) {
+                        // This is a follow-up, so leave the user's/checked graph
                         graphEl.style.display = 'block';
                         if (currentSVG) {
                             currentSVG.style.cursor = 'default'; // Change cursor back
