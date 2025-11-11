@@ -233,14 +233,14 @@
             <div id="card-4" class="lesson-card card-hidden">
                 <h2 class="text-2xl font-semibold text-gray-800 mb-4">Practice Time</h2>
                 
-                <!-- Practice 1 (NOW HYBRID) -->
+                <!-- Practice 1 (HYBRID) -->
                 <div class="bg-gray-50 p-4 rounded-lg border mb-6">
                     <p class="text-lg font-medium text-gray-700 mb-2">Practice 1: Write the explicit rule for $ {3, 12, 48, ...} $</p>
                     <div class="flex flex-col sm:flex-row sm:space-x-2">
                         <input type="text" id="p1-a1" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="a1 = ?">
                         <input type="text" id="p1-r" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-2 sm:mt-0" placeholder="r = ?">
                     </div>
-                    <!-- NEW: Multiple Choice for Rule -->
+                    <!-- Multiple Choice for Rule -->
                     <div id="p1-rule-options" class="space-y-2 mt-4">
                         <p class="font-medium text-gray-700">Select the correct rule:</p>
                         <div>
@@ -337,9 +337,23 @@
                         <label for="et-r" class="block text-lg font-medium text-gray-700">2. What is the common ratio ($r$)?</label>
                         <input type="text" id="et-r" class="mt-1 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
-                    <div>
-                        <label for="et-rule" class="block text-lg font-medium text-gray-700">3. What is the explicit formula? (e.g., an=5*(2)^(n-1))</label>
-                        <input type="text" id="et-rule" class="mt-1 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="an = a1 * (r)^(n-1)">
+                    <!-- NEW: Multiple Choice Exit Ticket -->
+                    <div id="et-rule-options">
+                        <p class="block text-lg font-medium text-gray-700">3. What is the explicit formula?</p>
+                        <div class="space-y-2 mt-2">
+                            <div>
+                                <input type="radio" id="et-op1" name="et-rule" value="an=2*(-3)^(n-1)" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300">
+                                <label for="et-op1" class="ml-3 text-gray-700">$a_n = 2 \cdot (-3)^{(n-1)}$</label>
+                            </div>
+                            <div>
+                                <input type="radio" id="et-op2" name="et-rule" value="an=-3*(2)^(n-1)" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300">
+                                <label for="et-op2" class="ml-3 text-gray-700">$a_n = -3 \cdot (2)^{(n-1)}$</label>
+                            </div>
+                            <div>
+                                <input type="radio" id="et-op3" name="et-rule" value="an=2*(3)^(n-1)" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300">
+                                <label for="et-op3" class="ml-3 text-gray-700">$a_n = 2 \cdot (3)^{(n-1)}$</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -420,7 +434,7 @@
             removeClass(currentEl, 'card-visible');
             addClass(currentEl, 'card-hidden');
 
-            // FIX: Corrected typo 'card-'T' to 'card-'
+            // FIX: Corrected typo 'card-T' to 'card-'
             var targetEl = document.getElementById('card-' + targetCard);
             removeClass(targetEl, 'card-hidden');
             addClass(targetEl, 'card-visible');
@@ -690,10 +704,12 @@
         }
         
         // 5. Exit Ticket
+        // UPDATED: Now checks radio button for rule
         function finishLesson() {
             var a1 = document.getElementById('et-a1').value.split(' ').join('');
             var r = document.getElementById('et-r').value.split(' ').join('');
-            var rule = document.getElementById('et-rule').value.split(' ').join('').toLowerCase();
+            var ruleEl = document.querySelector('input[name="et-rule"]:checked');
+            var rule = ruleEl ? ruleEl.value : null;
             
             // Grade Exit Ticket
             if (a1 === '2') {
@@ -708,7 +724,7 @@
                     lessonState.correctQuestions['et-r'] = true;
                 }
             }
-            var isRuleCorrect = (rule.indexOf('an=2*(-3)^(n-1)') !== -1);
+            var isRuleCorrect = (rule === 'an=2*(-3)^(n-1)');
             if (isRuleCorrect) {
                  if (!lessonState.correctQuestions['et-rule']) {
                     lessonState.score++;
@@ -718,7 +734,7 @@
             
             // Show results
             document.getElementById('final-score').innerText = lessonState.score;
-            // FIX: Corrected typo 'lessonS_tate' to 'lessonState'
+            // FIX: Corrected typo 'lessonS_tde' to 'lessonState'
             document.getElementById('final-total').innerText = lessonState.totalQuestions;
             navigateCard(6);
         }
