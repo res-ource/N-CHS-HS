@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometric Sequences Lesson</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" xintegrity="sha384-wcIxkf4k558fYv3eMS2NlWWocYhFbTT5rQ8E+sLXYLdBxRRMFAUTpxiP2ooOQK/M" crossorigin="anonymous">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        /* Custom styles for KaTeX */
+        .katex-display {
+            display: block;
+            margin: 1em 0;
+            text-align: center;
+            font-size: 1.2em;
+        }
+        .katex {
+            font-size: 1.1em;
+        }
+        
+        /* Visually hide an element but keep it accessible */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+        
+        /* Simple transition for card visibility */
+        .lesson-card {
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        
+        .card-hidden {
+            opacity: 0;
+            visibility: hidden;
+            position: absolute;
+            pointer-events: none;
+        }
+        
+        .card-visible {
+            opacity: 1;
+            visibility: visible;
+            position: relative;
+        }
+
+        /* Feedback styles */
+        .feedback {
+            padding: 0.75rem;
+            margin-top: 0.75rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+        }
+        .feedback-correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+        .feedback-incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        .hidden {
+            display: none;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="max-w-2xl w-full bg-white rounded-xl shadow-2xl overflow-hidden">
+        <header class="p-6 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+            <h1 class="text-3xl font-bold">Interactive Lesson: Geometric Sequences</h1>
+        </header>
+        
+        <main class="p-6 md:p-8">
+
+            <!-- Card 1: Warm-Up -->
+            <div id="card-1" class="lesson-card card-visible">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Warm-Up: Pattern Detective</h2>
+                <p class="text-gray-700 mb-6">Look at the two patterns below. How do you get the next term in each pattern?</p>
+                
+                <div class="space-y-6">
+                    <!-- Pattern 1 -->
+                    <div class="bg-gray-50 p-4 rounded-lg border">
+                        <label for="warmup1" class="block text-lg font-medium text-gray-700 mb-2">Pattern 1: <span class="font-mono">{5, 10, 15, 20, ...}</span></label>
+                        <div class="flex flex-col sm:flex-row sm:space-x-2">
+                            <input type="text" id="warmup1" name="warmup1" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Enter the rule">
+                            <button onclick="checkWarmup('warmup1', 'add 5')" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
+                        </div>
+                        <div id="warmup1-feedback" class="feedback hidden"></div>
+                    </div>
+                    
+                    <!-- Pattern 2 -->
+                    <div class="bg-gray-50 p-4 rounded-lg border">
+                        <label for="warmup2" class="block text-lg font-medium text-gray-700 mb-2">Pattern 2: <span class="font-mono">{5, 10, 20, 40, ...}</span></label>
+                        <div class="flex flex-col sm:flex-row sm:space-x-2">
+                            <input type="text" id="warmup2" name="warmup2" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Enter the rule">
+                            <button onclick="checkWarmup('warmup2', 'multiply by 2')" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
+                        </div>
+                        <div id="warmup2-feedback" class="feedback hidden"></div>
+                    </div>
+                </div>
+
+                <div class="mt-8 text-right">
+                    <button onclick="navigateCard(2)" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">Next &rarr;</button>
+                </div>
+            </div>
+            
+            <!-- Card 2: Definitions -->
+            <div id="card-2" class="lesson-card card-hidden">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">What is a Geometric Sequence?</h2>
+                <div class="space-y-4 text-gray-700">
+                    <p>Pattern 1 (Arithmetic): $ {5, 10, 15, 20, ...} $</p>
+                    <p class="pl-4">You add a <strong class="text-blue-600">common difference</strong> ($d=5$) to each term.</p>
+                    
+                    <p>Pattern 2 (Geometric): $ {5, 10, 20, 40, ...} $</p>
+                    <p class="pl-4">You multiply by a <strong class="text-indigo-600">common ratio</strong> ($r=2$) to each term.</p>
+                    
+                    <p class="pt-4 text-lg">A <strong class="text-indigo-600">geometric sequence</strong> is a sequence of numbers where each term after the first is found by multiplying the previous one by a fixed, non-zero number called the <strong class="text-indigo-600">common ratio ($r$)</strong>.</p>
+                    
+                    <p class="text-lg">You find the common ratio by dividing any term by the term before it: $ r = \frac{a_n}{a_{n-1}} $</p>
+                </div>
+                
+                <!-- Examples -->
+                <div class="mt-6 space-y-4">
+                    <h3 class="text-xl font-semibold">Examples: Find 'r'</h3>
+                    <!-- Example 1 -->
+                    <div class="bg-gray-50 p-4 rounded-lg border">
+                        <p class="text-lg font-medium text-gray-700 mb-2">1. Sequence: $ {6, 12, 24, 48, ...} $</p>
+                        <div class="flex flex-col sm:flex-row sm:space-x-2">
+                            <input type="text" id="ex1-r" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="What is r?">
+                            <input type="text" id="ex1-n1" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-2 sm:mt-0" placeholder="What is the next term?">
+                            <button id="ex1-btn" onclick="checkExample('ex1', '2', '96', this)" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
+                        </div>
+                        <div id="ex1-feedback" class="feedback hidden"></div>
+                    </div>
+                    <!-- Example 2 -->
+                    <div class="bg-gray-50 p-4 rounded-lg border">
+                        <p class="text-lg font-medium text-gray-700 mb-2">2. Sequence: $ {4, 8, 20, ...} $</p>
+                        <div class="flex flex-col sm:flex-row sm:space-x-2">
+                            <input type="text" id="ex2-r" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Is this geometric? (Yes/No)">
+                            <button id="ex2-btn" onclick="checkExample('ex2', 'no', '', this)" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
+                        </div>
+                        <div id="ex2-feedback" class="feedback hidden"></div>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-between">
+                    <button onclick="navigateCard(1)" class="px-6 py-2 bg-gray-500 text-white font-semibold rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">&larr; Previous</button>
+                    <button onclick="navigateCard(3)" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">Next &rarr;</button>
+                </div>
+            </div>
+
+            <!-- Card 3: Formulas -->
+            <div id="card-3" class="lesson-card card-hidden">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">The Formula</h2>
+                <p class="text-gray-700 mb-6">Writing out a long sequence is tedious. We can use a formula to find any term!</p>
+                
+                <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                    <h3 class="text-xl font-semibold text-blue-800">Explicit Formula</h3>
+                    <p class="text-gray-700 mt-2">This formula lets you find *any* term ($a_n$) if you know the first term ($a_1$) and the common ratio ($r$).</p>
+                    <div class="my-4 p-4 bg-white rounded shadow text-center">
+                        $ a_n = a_1 \cdot r^{(n-1)} $
+                    </div>
+                    <ul class="list-disc list-outside pl-5 text-gray-700">
+                        <li>$a_n$ is the term you want to find.</li>
+                        <li>$a_1$ is the first term of the sequence.</li>
+                        <li>$r$ is the common ratio.</li>
+                        <li>$n$ is the term number (e.g., 5th term, 20th term).</li>
+                    </ul>
+                </div>
+
+                <div class="mt-6 bg-gray-50 p-4 rounded-lg border">
+                    <h3 class="text-lg font-medium text-gray-700 mb-2">Example: Find the 8th term of $ {2, 6, 18, ...} $</h3>
+                    <ul class="list-none space-y-1 text-gray-700 mb-4">
+                        <li>1. First Term ($a_1$): <strong>2</strong></li>
+                        <li>2. Common Ratio ($r$): $ 6/2 = $ <strong>3</strong></li>
+                        <li>3. Term Number ($n$): <strong>8</strong></li>
+                    </ul>
+                    <p class="text-gray-700 font-mono text-center bg-white p-3 rounded">
+                        $ a_8 = 2 \cdot 3^{(8-1)} $ <br>
+                        $ a_8 = 2 \cdot 3^{7} $ <br>
+                        $ a_8 = 2 \cdot 2187 $ <br>
+                        $ a_8 = 4374 $
+                    </p>
+                </div>
+
+                <div class="mt-8 flex justify-between">
+                    <button onclick="navigateCard(2)" class="px-6 py-2 bg-gray-500 text-white font-semibold rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">&larr; Previous</button>
+                    <button onclick="navigateCard(4)" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">Next &rarr;</button>
+                </div>
+            </div>
+
+            <!-- Card 4: Practice -->
+            <div id="card-4" class="lesson-card card-hidden">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Practice Time</h2>
+                
+                <!-- Practice 1 -->
+                <div class="bg-gray-50 p-4 rounded-lg border mb-6">
+                    <p class="text-lg font-medium text-gray-700 mb-2">Practice 1: Write the explicit rule for $ {3, 12, 48, ...} $</p>
+                    <div class="flex flex-col sm:flex-row sm:space-x-2">
+                        <input type="text" id="p1-a1" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="a1 = ?">
+                        <input type="text" id="p1-r" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-2 sm:mt-0" placeholder="r = ?">
+                        <input type="text" id="p1-rule" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-2 sm:mt-0" placeholder="Rule: an = ...">
+                        <button id="p1-btn" onclick="checkPractice1(this)" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
+                    </div>
+                    <div id="p1-feedback" class="feedback hidden"></div>
+                </div>
+
+                <!-- Practice 2 -->
+                <div class="bg-gray-50 p-4 rounded-lg border mb-6">
+                    <p class="text-lg font-medium text-gray-700 mb-2">Practice 2: Use your rule from Practice 1 to find the 7th term ($a_7$).</p>
+                    <div class="flex flex-col sm:flex-row sm:space-x-2">
+                        <input type="text" id="p2-term" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="a7 = ?">
+                        <button id="p2-btn" onclick="checkPractice2(this)" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
+                    </div>
+                    <div id="p2-feedback" class="feedback hidden"></div>
+                </div>
+
+                <!-- Practice 3 (NEW) -->
+                <div class="bg-gray-50 p-4 rounded-lg border mb-6">
+                    <p class="text-lg font-medium text-gray-700 mb-2">Practice 3: Find $a_1$ and $r$ for $ {100, -50, 25, ...} $</p>
+                    <div class="flex flex-col sm:flex-row sm:space-x-2">
+                        <input type="text" id="p3-a1" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="a1 = ?">
+                        <input type="text" id="p3-r" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-2 sm:mt-0" placeholder="r = ?">
+                        <button id="p3-btn" onclick="checkPractice3(this)" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
+                    </div>
+                    <div id="p3-feedback" class="feedback hidden"></div>
+                </div>
+
+                <!-- Practice 4 (NEW) -->
+                <div class="bg-gray-50 p-4 rounded-lg border mb-6">
+                    <p class="text-lg font-medium text-gray-700 mb-2">Practice 4: Use your info from Practice 3 to find the 5th term ($a_5$).</p>
+                    <div class="flex flex-col sm:flex-row sm:space-x-2">
+                        <input type="text" id="p4-term" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="a5 = ?">
+                        <button id="p4-btn" onclick="checkPractice4(this)" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
+                    </div>
+                    <div id="p4-feedback" class="feedback hidden"></div>
+                </div>
+
+                <!-- Practice 5 (NEW) -->
+                <div class="bg-gray-50 p-4 rounded-lg border mb-6">
+                    <p class="text-lg font-medium text-gray-700 mb-2">Practice 5: Find $a_1$ and $r$ for $ {81, 27, 9, ...} $</p>
+                    <div class="flex flex-col sm:flex-row sm:space-x-2">
+                        <input type="text" id="p5-a1" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="a1 = ?">
+                        <input type="text" id="p5-r" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-2 sm:mt-0" placeholder="r = ? (use / for fraction)">
+                        <button id="p5-btn" onclick="checkPractice5(this)" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
+                    </div>
+                    <div id="p5-feedback" class="feedback hidden"></div>
+                </div>
+
+                <!-- Practice 6 (NEW) -->
+                <div class="bg-gray-50 p-4 rounded-lg border">
+                    <p class="text-lg font-medium text-gray-700 mb-2">Practice 6: Find the 10th term ($a_{10}$) for the sequence $a_n = 4 \cdot (2)^{(n-1)}$</p>
+                    <div class="flex flex-col sm:flex-row sm:space-x-2">
+                        <input type="text" id="p6-term" class="flex-grow p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="a10 = ?">
+                        <button id="p6-btn" onclick="checkPractice6(this)" class="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Check</button>
+                    </div>
+                    <div id="p6-feedback" class="feedback hidden"></div>
+                </div>
+
+
+                <div class="mt-8 flex justify-between">
+                    <button onclick="navigateCard(3)" class="px-6 py-2 bg-gray-500 text-white font-semibold rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">&larr; Previous</button>
+                    <button onclick="navigateCard(5)" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">Next &rarr;</button>
+                </div>
+            </div>
+
+            <!-- Card 5: Exit Ticket -->
+            <div id="card-5" class="lesson-card card-hidden">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Exit Ticket: Show What You Know</h2>
+                <p class="text-gray-700 mb-6">Given the sequence $ {2, -6, 18, -54, ...} $</p>
+
+                <div class="space-y-4">
+                    <div>
+                        <label for="et-a1" class="block text-lg font-medium text-gray-700">1. What is the first term ($a_1$)?</label>
+                        <input type="text" id="et-a1" class="mt-1 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="et-r" class="block text-lg font-medium text-gray-700">2. What is the common ratio ($r$)?</label>
+                        <input type="text" id="et-r" class="mt-1 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="et-rule" class="block text-lg font-medium text-gray-700">3. What is the explicit formula? (e.g., an=5*(2)^(n-1))</label>
+                        <input type="text" id="et-rule" class="mt-1 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="an = a1 * (r)^(n-1)">
+                    </div>
+                </div>
+                
+                <div class="mt-8 flex justify-between">
+                    <button onclick="navigateCard(4)" class="px-6 py-2 bg-gray-500 text-white font-semibold rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">&larr; Previous</button>
+                    <button onclick="finishLesson()" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75">Finish Lesson &rarr;</button>
+                </div>
+            </div>
+            
+            <!-- Card 6: Results -->
+            <div id="card-6" class="lesson-card card-hidden">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Lesson Results</h2>
+                <div class="text-center p-8 bg-gray-50 rounded-lg border">
+                    <p class="text-lg text-gray-700">You answered:</p>
+                    <p class="text-6xl font-bold text-indigo-600 my-4">
+                        <span id="final-score">0</span> / <span id="final-total">0</span>
+                    </p>
+                    <p class="text-lg text-gray-700">questions correctly.</p>
+                </div>
+                
+                <div class="mt-8 text-center">
+                    <button onclick="restartLesson()" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">Restart Lesson</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" xintegrity="sha384-hIoBPJpTadx52G6POglHmLzHtwpGsbx/sZNMCV2GAA+uRTC2C/K/sOnS8jF2C1S0" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js" xintegrity="sha384-43gviWU0YVjaDtb/Gf1ES3qjQ8HwscLCNTYIRES8RjEDJM8UI26JcMIIEoWscwh" crossorigin="anonymous"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+            ]
+        });">
+    </script>
+
+    <script>
+        // --- State Management ---
+        var currentCard = 1;
+        // ADDED: Global state for scoring
+        var lessonState = {
+            score: 0,
+            // UPDATED: New total questions count
+            totalQuestions: 13, // 2 warmup, 2 defs, 6 practice, 3 exit ticket
+            correctQuestions: {} // To prevent re-scoring
+        };
+
+        // --- Class Helper Functions (for IE compatibility) ---
+        function hasClass(el, className) {
+            if (el.classList) {
+                return el.classList.contains(className);
+            }
+            return new RegExp('(^| )' + className + '( |$)', 'gi').test(el.className);
+        }
+
+        function addClass(el, className) {
+            if (el.classList) {
+                el.classList.add(className);
+            } else if (!hasClass(el, className)) {
+                el.className += ' ' + className;
+            }
+        }
+
+        function removeClass(el, className) {
+            if (el.classList) {
+                el.classList.remove(className);
+            } else if (hasClass(el, className)) {
+                var reg = new RegExp('(\\s|^)' + className + '(\\s|$)');
+                el.className = el.className.replace(reg, ' ');
+            }
+        }
+
+
+        // --- Navigation ---
+        function navigateCard(targetCard) {
+            var currentEl = document.getElementById('card-' + currentCard);
+            removeClass(currentEl, 'card-visible');
+            addClass(currentEl, 'card-hidden');
+
+            var targetEl = document.getElementById('card-' + targetCard);
+            removeClass(targetEl, 'card-hidden');
+            addClass(targetEl, 'card-visible');
+
+            currentCard = targetCard;
+            
+            if (typeof renderMathInElement === 'function') {
+                renderMathInElement(targetEl, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                    ]
+                });
+            }
+        }
+        
+        // --- Universal Feedback Function ---
+        function showFeedback(elementId, message, isCorrect) {
+            var feedbackEl = document.getElementById(elementId);
+            feedbackEl.innerHTML = message;
+
+            if (isCorrect) {
+                removeClass(feedbackEl, 'feedback-incorrect');
+                addClass(feedbackEl, 'feedback-correct');
+            } else {
+                removeClass(feedbackEl, 'feedback-correct');
+                addClass(feedbackEl, 'feedback-incorrect');
+            }
+            removeClass(feedbackEl, 'hidden');
+            feedbackEl.style.display = 'block';
+        }
+
+        // --- Lesson Logic ---
+
+        // 1. Warmup
+        function checkWarmup(id, correctAnswer) {
+            var questionId = 'warmup-' + id;
+            var buttonEl = document.querySelector('button[onclick="checkWarmup(\'' + id + '\', \'' + correctAnswer + '\')"]');
+            if (lessonState.correctQuestions[questionId]) {
+                return;
+            }
+
+            var answer = document.getElementById(id).value.split(' ').join('').toLowerCase();
+            var correct = correctAnswer.split(' ').join('').toLowerCase();
+            var feedbackId = id + '-feedback';
+            
+            if (answer.indexOf(correct) !== -1) {
+                showFeedback(feedbackId, 'Correct! This one is <strong>' + correctAnswer + '</strong>.', true);
+                lessonState.score++;
+                lessonState.correctQuestions[questionId] = true;
+                buttonEl.disabled = true;
+            } else {
+                showFeedback(feedbackId, 'Not quite. Look at the difference between consecutive terms. Try again!', false);
+            }
+        }
+
+        // 2. Definitions
+        function checkExample(id, correctR, correctN, buttonEl) {
+            var questionId = 'ex-' + id;
+            if (lessonState.correctQuestions[questionId]) {
+                return;
+            }
+            
+            var feedbackEl = document.getElementById(id + '-feedback');
+            removeClass(feedbackEl, 'hidden');
+            feedbackEl.style.display = 'block';
+
+            var r = document.getElementById(id + '-r').value.split(' ').join('');
+            var isCorrect = false;
+            
+            if (id === 'ex1') {
+                var n1 = document.getElementById(id + '-n1').value.split(' ').join('');
+                if (r === correctR && n1 === correctN) {
+                    showFeedback(id + '-feedback', 'Great! r = 2, and 48 * 2 = 96.', true);
+                    isCorrect = true;
+                } else {
+                    showFeedback(id + '-feedback', 'Try again. Check your ratio (12/6) and your next term (48 * r).', false);
+                }
+            } else if (id === 'ex2') {
+                if (r.toLowerCase() === correctR || r.toLowerCase().indexOf('not') !== -1 || r.toLowerCase() === 'no') {
+                    showFeedback(id + '-feedback', 'Correct! It is not geometric. 8/4 = 2, but 20/8 = 2.5. The ratio is not common.', true);
+                    isCorrect = true;
+                } else {
+                    showFeedback(id + '-feedback', 'Careful! 8/4 = 2, but 20/8 = 2.5. Since the ratio isn\'t the same, it\'s not geometric.', false);
+                }
+            }
+            
+            if (isCorrect) {
+                lessonState.score++;
+                lessonState.correctQuestions[questionId] = true;
+                buttonEl.disabled = true;
+            }
+        }
+        
+        // 3. Formulas
+        // (No logic on this card)
+
+        // 4. Practice
+        function checkPractice1(buttonEl) {
+            var questionId = 'p1';
+            if (lessonState.correctQuestions[questionId]) {
+                return;
+            }
+
+            var a1 = document.getElementById('p1-a1').value.split(' ').join('');
+            var r = document.getElementById('p1-r').value.split(' ').join('');
+            var rule = document.getElementById('p1-rule').value.split(' ').join('').toLowerCase();
+            
+            var correctA1 = '3';
+            var correctR = '4';
+            var isRuleCorrect = (rule.indexOf('an=3*(4)^(n-1)') !== -1) || (rule.indexOf('an=3*4^(n-1)') !== -1);
+            
+            if (a1 === correctA1 && r === correctR && isRuleCorrect) {
+                showFeedback('p1-feedback', 'Perfect! $a_1=3$, $r=4$, and the rule is $a_n = 3 \cdot 4^{(n-1)}$', true);
+                lessonState.score++;
+                lessonState.correctQuestions[questionId] = true;
+                buttonEl.disabled = true;
+            } else {
+                var error = 'Not quite. Check your numbers. ';
+                if (a1 !== correctA1) error += '$a_1$ (the first term) is 3. ';
+                if (r !== correctR) error += '$r$ (the common ratio) is 12/3 = 4. ';
+                if (!isRuleCorrect) error += 'The rule should be in the form $a_n = a_1 \cdot r^{(n-1)}$.';
+                showFeedback('p1-feedback', error, false);
+            }
+        }
+
+        function checkPractice2(buttonEl) {
+            var questionId = 'p2';
+            if (lessonState.correctQuestions[questionId]) {
+                return;
+            }
+            
+            // $a_7 = 3 * 4^{(7-1)} = 3 * 4^6 = 3 * 4096 = 12288$
+            var term = document.getElementById('p2-term').value.split(' ').join('');
+            var correctTerm = '12288';
+            
+            if (term === correctTerm) {
+                showFeedback('p2-feedback', 'Excellent! $a_7 = 3 \cdot 4^{(7-1)} = 3 \cdot 4^6 = 12288$.', true);
+                lessonState.score++;
+                lessonState.correctQuestions[questionId] = true;
+                buttonEl.disabled = true;
+            } else {
+                showFeedback('p2-feedback', 'Try again. Use the formula $a_n = 3 \cdot 4^{(n-1)}$ and set n=7.', false);
+            }
+        }
+
+        // ADDED: New function for Practice 3
+        function checkPractice3(buttonEl) {
+            var questionId = 'p3';
+            if (lessonState.correctQuestions[questionId]) {
+                return;
+            }
+
+            var a1 = document.getElementById('p3-a1').value.split(' ').join('');
+            var r = document.getElementById('p3-r').value.split(' ').join('');
+            
+            var correctA1 = '100';
+            // Allow for decimal or fraction
+            var isRCorrect = (r === '-0.5' || r === '-1/2');
+            
+            if (a1 === correctA1 && isRCorrect) {
+                showFeedback('p3-feedback', 'Correct! $a_1=100$ and the ratio is $r=-0.5$ (or $-1/2$).', true);
+                lessonState.score++;
+                lessonState.correctQuestions[questionId] = true;
+                buttonEl.disabled = true;
+            } else {
+                var error = 'Not quite. ';
+                if (a1 !== correctA1) error += 'Check $a_1$. ';
+                if (!isRCorrect) error += 'Check $r$. Remember it can be negative! (-50 / 100).';
+                showFeedback('p3-feedback', error, false);
+            }
+        }
+
+        // ADDED: New function for Practice 4
+        function checkPractice4(buttonEl) {
+            var questionId = 'p4';
+            if (lessonState.correctQuestions[questionId]) {
+                return;
+            }
+            
+            // $a_5 = 100 * (-0.5)^{(5-1)} = 100 * (-0.5)^4 = 100 * 0.0625 = 6.25$
+            var term = document.getElementById('p4-term').value.split(' ').join('');
+            var correctTerm = '6.25';
+            
+            if (term === correctTerm) {
+                showFeedback('p4-feedback', 'Correct! $a_5 = 100 \cdot (-0.5)^4 = 100 \cdot 0.0625 = 6.25$.', true);
+                lessonState.score++;
+                lessonState.correctQuestions[questionId] = true;
+                buttonEl.disabled = true;
+            } else {
+                showFeedback('p4-feedback', 'Try again. Use $a_n = 100 \cdot (-0.5)^{(n-1)}$ and set n=5. Remember a negative to an even power is positive.', false);
+            }
+        }
+
+        // ADDED: New function for Practice 5
+        function checkPractice5(buttonEl) {
+            var questionId = 'p5';
+            if (lessonState.correctQuestions[questionId]) {
+                return;
+            }
+
+            var a1 = document.getElementById('p5-a1').value.split(' ').join('');
+            var r = document.getElementById('p5-r').value.split(' ').join('');
+            
+            var correctA1 = '81';
+            // Allow for decimal (repeating) or fraction
+            var isRCorrect = (r === '1/3' || r === '0.33' || r === '0.333' || r === '0.3333');
+            
+            if (a1 === correctA1 && isRCorrect) {
+                showFeedback('p5-feedback', 'Great! $a_1=81$ and the ratio $r = 27/81 = 1/3$.', true);
+                lessonState.score++;
+                lessonState.correctQuestions[questionId] = true;
+                buttonEl.disabled = true;
+            } else {
+                var error = 'Not quite. ';
+                if (a1 !== correctA1) error += 'Check $a_1$. ';
+                if (!isRCorrect) error += 'Check $r$. It can be a fraction! (27 / 81).';
+                showFeedback('p5-feedback', error, false);
+            }
+        }
+
+        // ADDED: New function for Practice 6
+        function checkPractice6(buttonEl) {
+            var questionId = 'p6';
+            if (lessonState.correctQuestions[questionId]) {
+                return;
+            }
+            
+            // $a_10 = 4 * (2)^{(10-1)} = 4 * 2^9 = 4 * 512 = 2048$
+            var term = document.getElementById('p6-term').value.split(' ').join('');
+            var correctTerm = '2048';
+            
+            if (term === correctTerm) {
+                showFeedback('p6-feedback', 'Spot on! $a_{10} = 4 \cdot 2^{9} = 4 \cdot 512 = 2048$.', true);
+                lessonState.score++;
+                lessonState.correctQuestions[questionId] = true;
+                buttonEl.disabled = true;
+            } else {
+                showFeedback('p6-feedback', 'Try again. Use the formula $a_n = 4 \cdot (2)^{(n-1)}$ and set n=10.', false);
+            }
+        }
+        
+        // 5. Exit Ticket
+        function finishLesson() {
+            var a1 = document.getElementById('et-a1').value.split(' ').join('');
+            var r = document.getElementById('et-r').value.split(' ').join('');
+            var rule = document.getElementById('et-rule').value.split(' ').join('').toLowerCase();
+            
+            // Grade Exit Ticket
+            if (a1 === '2') {
+                if (!lessonState.correctQuestions['et-a1']) {
+                    lessonState.score++;
+                    lessonState.correctQuestions['et-a1'] = true;
+                }
+            }
+            if (r === '-3') {
+                 if (!lessonState.correctQuestions['et-r']) {
+                    lessonState.score++;
+                    lessonState.correctQuestions['et-r'] = true;
+                }
+            }
+            var isRuleCorrect = (rule.indexOf('an=2*(-3)^(n-1)') !== -1);
+            if (isRuleCorrect) {
+                 if (!lessonState.correctQuestions['et-rule']) {
+                    lessonState.score++;
+                    lessonState.correctQuestions['et-rule'] = true;
+                }
+            }
+            
+            // Show results
+            document.getElementById('final-score').innerText = lessonState.score;
+            document.getElementById('final-total').innerText = lessonState.totalQuestions;
+            navigateCard(6);
+        }
+        
+        // 6. Results
+        function restartLesson() {
+            lessonState.score = 0;
+            lessonState.correctQuestions = {};
+            currentCard = 6;
+            
+            var inputs = document.getElementsByTagName('input');
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].type === 'text') {
+                    inputs[i].value = '';
+                }
+            }
+            
+            var buttons = document.getElementsByTagName('button');
+            for (var j = 0; j < buttons.length; j++) {
+                buttons[j].disabled = false;
+            }
+            
+            var feedbacks = document.querySelectorAll('.feedback');
+            for (var k = 0; k < feedbacks.length; k++) {
+                addClass(feedbacks[k], 'hidden');
+                feedbacks[k].style.display = 'none';
+            }
+            
+            navigateCard(1);
+        }
+        
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', function() {
+            var cards = document.querySelectorAll('.lesson-card');
+            for (var i = 0; i < cards.length; i++) {
+                addClass(cards[i], 'card-hidden');
+                removeClass(cards[i], 'card-visible');
+            }
+            var firstCard = document.getElementById('card-1');
+            addClass(firstCard, 'card-visible');
+            removeClass(firstCard, 'card-hidden');
+            
+            currentCard = 1;
+        });
+
+    </script>
+
+</body>
+</html>
