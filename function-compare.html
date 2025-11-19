@@ -192,21 +192,21 @@
     const linearComparison = {
         type: 'content',
         title: 'Linear Review: Graph Comparison (Slope)',
-        explanation: 'The core feature of linear functions is the **constant rate of change (slope)**. Observe the difference: the **teal line** has a positive slope ($m>0$), while the **blue line** has a negative slope ($m<0$). Both, however, are straight lines.',
+        explanation: 'The core feature of linear functions is the **constant rate of change (slope)**. Observe the difference: the **teal line** has a positive slope (m>0), while the **blue line** has a negative slope (m<0). Both, however, are straight lines.',
         visualType: 'linear-two',
         buttonText: 'Next',
     };
     const quadraticComparison = {
         type: 'content',
         title: 'Quadratic Review: Graph Comparison (Direction)',
-        explanation: 'The direction of the **parabola** depends on the $x^2$ coefficient. The **yellow line** opens upward (positive coefficient), while the **purple line** opens downward (negative coefficient), meaning it has a maximum value.',
+        explanation: 'The direction of the **parabola** depends on the x-squared coefficient. The **yellow line** opens upward (positive coefficient), while the **purple line** opens downward (negative coefficient), meaning it has a maximum value.',
         visualType: 'quadratic-two',
         buttonText: 'Next',
     };
     const exponentialComparison = {
         type: 'content',
         title: 'Exponential Review: Graph Comparison (Growth vs. Decay)',
-        explanation: 'Exponential functions show rapid change. The **red line** shows rapid exponential growth ($b>1$), while the **orange line** shows exponential decay ($0<b<1$), rapidly approaching the asymptote as $x$ increases.',
+        explanation: 'Exponential functions show rapid change. The **red line** shows rapid exponential growth (b>1), while the **orange line** shows exponential decay (0<b<1), rapidly approaching the asymptote as x increases.',
         visualType: 'exponential-two',
         buttonText: 'Next',
     };
@@ -290,7 +290,7 @@
         { // Step 6
             type: 'content',
             title: 'Linear Graph Characteristics (Single)',
-            explanation: 'This graph shows a linear function with a **positive slope** ($m>0$), meaning the line rises from left to right.',
+            explanation: 'This graph shows a linear function with a **positive slope** (m>0), meaning the line rises from left to right.',
             visualType: 'linear-example-1',
             buttonText: 'Next',
         },
@@ -309,7 +309,7 @@
         { // Step 8
             type: 'content',
             title: '2. Quadratic Functions: Table Example',
-            explanation: 'Quadratic functions ($f(x) = ax² + bx + c$) are recognized by their **constant Second Difference**. The graph is always a U-shaped curve called a <b>parabola</b>, this example opens up ($a>0$).',
+            explanation: 'Quadratic functions (f(x) = ax² + bx + c) are recognized by their **constant Second Difference**. The graph is always a U-shaped curve called a <b>parabola</b>, this example opens up (a>0).',
             tableHtml: `
                 <table class="function-table w-64 mt-4">
                     <thead><tr><th>x</th><th>f(x)</th><th>1st Diff</th><th>2nd Diff</th></tr></thead>
@@ -374,7 +374,7 @@
         { // Step 12
             type: 'content',
             title: 'Quadratic Graph Characteristics (Single)',
-            explanation: 'The parabola shown here opens **upward** ($a>0$), meaning it has a minimum value at its vertex.',
+            explanation: 'The parabola shown here opens **upward** (a>0), meaning it has a minimum value at its vertex.',
             visualType: 'quadratic-example-1',
             buttonText: 'Next',
         },
@@ -393,7 +393,7 @@
         { // Step 14
             type: 'content',
             title: '3. Exponential Functions: Table Example',
-            explanation: 'Exponential functions ($f(x) = a \cdot bˣ$) have a **Constant Ratio**. This example shows growth, meaning the output is multiplied by a number greater than 1 each time.',
+            explanation: 'Exponential functions ($f(x) = a \cdot b^x$) have a **Constant Ratio**. This example shows growth, meaning the output is multiplied by a number greater than 1 each time.',
             tableHtml: `
                 <table class="function-table w-48 mt-4">
                     <thead><tr><th>x</th><th>f(x)</th><th>Ratio</th></tr></thead>
@@ -436,7 +436,7 @@
         { // Step 16
             type: 'content',
             title: 'Exponential Graph Characteristics (Single)',
-            explanation: 'This graph shows **exponential growth** ($b>1$), rapidly increasing as $x$ gets larger, and flattening toward a horizontal **asymptote** as $x$ gets smaller.',
+            explanation: 'This graph shows **exponential growth** (b>1), rapidly increasing as x gets larger, and flattening toward a horizontal **asymptote** as x gets smaller.',
             visualType: 'exponential-example-1',
             buttonText: 'Next',
         },
@@ -493,42 +493,42 @@
         { // Step 24: Fixed Builder 1: Linear 1
             type: 'builder-fixed',
             title: 'Challenge 1/6: Linear Practice',
-            explanation: 'Calculate the output values for the linear function: **$y = 3x - 2$**',
+            explanation: 'Calculate the output values for the linear function: **y = 3x - 2**',
             functionKey: 'linear1',
             buttonText: 'Check My Work',
         },
         { // Step 25: Fixed Builder 2: Linear 2
             type: 'builder-fixed',
             title: 'Challenge 2/6: Linear Practice',
-            explanation: 'Calculate the output values for the linear function: **$y = -2x + 5$**',
+            explanation: 'Calculate the output values for the linear function: **y = -2x + 5**',
             functionKey: 'linear2',
             buttonText: 'Check My Work',
         },
         { // Step 26: Fixed Builder 3: Quadratic 1
             type: 'builder-fixed',
             title: 'Challenge 3/6: Quadratic Practice',
-            explanation: 'Calculate the output values for the quadratic function: **$y = x² + 2x$**',
+            explanation: 'Calculate the output values for the quadratic function: **y = x² + 2x**',
             functionKey: 'quadratic1',
             buttonText: 'Check My Work',
         },
         { // Step 27: Fixed Builder 4: Quadratic 2
             type: 'builder-fixed',
             title: 'Challenge 4/6: Quadratic Practice',
-            explanation: 'Calculate the output values for the quadratic function: **$y = -x² + 4$**',
+            explanation: 'Calculate the output values for the quadratic function: **y = -x² + 4**',
             functionKey: 'quadratic2',
             buttonText: 'Check My Work',
         },
         { // Step 28: Fixed Builder 5: Exponential 1
             type: 'builder-fixed',
             title: 'Challenge 5/6: Exponential Practice',
-            explanation: 'Calculate the output values for the exponential function: **$y = 2ˣ$**',
+            explanation: 'Calculate the output values for the exponential function: **y = 2ˣ**',
             functionKey: 'exponential1',
             buttonText: 'Check My Work',
         },
         { // Step 29: Fixed Builder 6: Exponential 2
             type: 'builder-fixed',
             title: 'Challenge 6/6: Exponential Practice',
-            explanation: 'Calculate the output values for the exponential function: **$y = 100(0.5)ˣ$**',
+            explanation: 'Calculate the output values for the exponential function: **y = 100(0.5)ˣ**',
             functionKey: 'exponential2',
             buttonText: 'Check My Work',
         },
