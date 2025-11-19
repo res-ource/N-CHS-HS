@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line of Best Fit Tutor</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for aesthetic */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .card {
+            background-color: #ffffff;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .correct-bg {
+            background-color: #d1fae5; /* Green 100 */
+        }
+        .incorrect-bg {
+            background-color: #fee2e2; /* Red 100 */
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="app" class="w-full max-w-2xl">
+        
+        <!-- Header and Score Tally -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-extrabold text-gray-800">Regression Basics</h1>
+            <div class="text-xl font-semibold text-gray-700 p-2 bg-white rounded-lg shadow-md">
+                Score: <span id="score-tally">0 / 0</span>
+            </div>
+        </div>
+
+        <!-- Tutorial Card -->
+        <div id="tutorial-card" class="card rounded-xl p-8 transition-all duration-300 min-h-[400px] flex flex-col justify-between">
+            
+            <div id="card-content">
+                <!-- Content will be injected here -->
+            </div>
+
+            <div id="feedback-message" class="mt-4 p-3 rounded-lg text-center font-medium transition-all duration-300 opacity-0">
+                <!-- Feedback messages here -->
+            </div>
+
+            <!-- Navigation and Interaction -->
+            <div class="flex justify-between items-center pt-6 border-t mt-6 border-gray-100">
+                <button id="back-btn" class="px-6 py-2 text-white bg-gray-500 rounded-full hover:bg-gray-600 transition-colors disabled:opacity-50" disabled>
+                    ← Back
+                </button>
+                <span id="step-indicator" class="text-sm text-gray-500">Step 1 of 18</span>
+                <button id="next-btn" class="px-6 py-2 text-white bg-indigo-600 rounded-full hover:bg-indigo-700 transition-colors">
+                    Next Step →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global State
+        let currentStep = 0;
+        let score = 0;
+        let totalAttempts = 0;
+        let answeredCorrectlyOnStep = false; // Flag to prevent multiple scores on one step
+        let isComplete = false; // NEW: Flag to track completion.
+
+        // DOM Elements
+        const cardContent = document.getElementById('card-content');
+        const feedbackMessage = document.getElementById('feedback-message');
+        const nextBtn = document.getElementById('next-btn');
+        const backBtn = document.getElementById('back-btn');
+        const scoreTally = document.getElementById('score-tally');
+        const stepIndicator = document.getElementById('step-indicator');
+        const tutorialCard = document.getElementById('tutorial-card');
+
+        // Core Tutorial Steps (Expanded to 18 steps)
+        const tutorialSteps = [
+            // 1. Introduction
+            {
+                title: "Welcome! What is Regression?",
+                type: 'info',
+                content: `
+                    <p class="text-gray-700 text-lg mb-4">You're about to learn how to analyze two-variable data and make predictions using the <b>Line of Best Fit</b> (Linear Regression).</p>
+                    <p class="text-gray-600">The first step is always to look at the data on a <b>Scatter Plot</b> to see if a relationship exists. We look for direction (positive/negative) and strength (strong/weak).</p>
+                `
+            },
+            // 2. Practice: Direction
+            {
+                title: "Correlation: Direction",
+                type: 'quiz',
+                question: 'Imagine a scatter plot of <b>Minutes of Exercise (x)</b> vs. <b>Resting Heart Rate (y)</b>. What direction is the correlation likely to be?',
+                options: [
+                    { text: "Positive (As x increases, y increases)", correct: false },
+                    { text: "Negative (As x increases, y decreases)", correct: true },
+                    { text: "No Correlation (Random dots)", correct: false }
+                ],
+                hint: "Think about the general trend: does exercising more usually lead to a higher or lower resting heart rate?",
+                feedback: {
+                    correct: "That's right! More exercise usually strengthens the heart, leading to a lower resting rate. This is a <b>Negative Correlation</b>.",
+                    incorrect: "Not quite. Think about how the two variables move together. If one goes up, what usually happens to the other?"
+                }
+            },
+            // 3. Info: Correlation Strength
+            {
+                title: "Correlation: Strength and the r Value",
+                type: 'info',
+                content: `
+                    <p class="text-gray-700 text-lg mb-4">The <b>Correlation Coefficient (r)</b> tells us the <b>strength</b> of the linear relationship.</p>
+                    <ul class="list-disc list-inside space-y-2 text-gray-600">
+                        <li>r is always between -1 and 1.</li>
+                        <li><b>Strong Relationship:</b> The absolute value of r is close to 1 (e.g., 0.95 or -0.88). The line fits the data well.</li>
+                        <li><b>Weak Relationship:</b> The absolute value of r is close to 0 (e.g., 0.2 or -0.15). The line is a poor fit for the data.</li>
+                    </ul>
+                `
+            },
+            // 4. Practice: Interpreting r (Weak Negative)
+            {
+                title: "Practice: Interpreting r",
+                type: 'quiz',
+                question: 'If the correlation coefficient is <b>r = -0.15</b>, what does this indicate about the relationship?',
+                options: [
+                    { text: "A strong, positive relationship.", correct: false },
+                    { text: "A weak, negative relationship.", correct: true },
+                    { text: "A strong, negative relationship.", correct: false }
+                ],
+                hint: "The negative sign tells you the direction, and the value close to 0 tells you the strength.",
+                feedback: {
+                    correct: "Fantastic! r = -0.15 is close to 0, indicating a <b>weak</b> fit, and the negative sign means a <b>negative</b> direction.",
+                    incorrect: "Check the sign for direction and the numerical value (how close it is to 1 or 0) for strength."
+                }
+            },
+            // 5. Practice: Interpreting r (Strong Positive)
+            {
+                title: "Practice: Interpreting r (Part 2)",
+                type: 'quiz',
+                question: 'A study found a correlation of <b>r = 0.92</b> between the number of math classes a student takes (x) and their math exam score (y). What does this mean?',
+                options: [
+                    { text: "There is a strong, positive relationship.", correct: true },
+                    { text: "There is a weak, positive relationship.", correct: false },
+                    { text: "The relationship is strong and negative.", correct: false }
+                ],
+                hint: "How close is 0.92 to 1, and what does the positive sign indicate?",
+                feedback: {
+                    correct: "Correct! r = 0.92 is strongly positive, suggesting that taking more classes strongly correlates with higher scores.",
+                    incorrect: "0.92 is very close to 1, indicating a strong relationship. The positive sign determines the direction."
+                }
+            },
+            // 6. Info: Introducing LOBF Equation
+            {
+                title: "Introducing the Line of Best Fit (LOBF)",
+                type: 'info',
+                content: `
+                    <p class="text-gray-700 text-lg mb-4">The <b>Line of Best Fit</b> is a single straight line that best represents all the data points. It is the core of our prediction model.</p>
+                    <p class="text-gray-600 mb-4">The equation is typically given as:</p>
+                    <div class="text-center p-3 bg-blue-50 border-l-4 border-blue-400 text-blue-800 rounded-md italic font-mono">
+                        y = ax + b
+                    </div>
+                    <p class="text-gray-600 mt-4">Here, 'a' is the <b>slope</b> and 'b' is the <b>y-intercept</b>.</p>
+                `
+            },
+            // 7. Practice: Interpreting the y-intercept (b)
+            {
+                title: "Interpreting the y-intercept (b)",
+                type: 'quiz',
+                question: 'If the line of best fit for <b>Minimum Wage (y)</b> vs. <b>Years Since 1955 (x)</b> has a y-intercept of <b>b = 0.75</b>, what does that mean?',
+                options: [
+                    { text: "The minimum wage increases by $0.75 each year.", correct: false },
+                    { text: "The predicted minimum wage in 1955 (when x=0) was $0.75.", correct: true },
+                    { text: "The maximum predicted minimum wage.", correct: false }
+                ],
+                hint: "The y-intercept represents the value of y when x equals zero. What year does x=0 represent?",
+                feedback: {
+                    correct: "Exactly! The y-intercept (b) is the predicted outcome ($\hat{y}$) when the independent variable (x) is zero.",
+                    incorrect: "The y-intercept occurs where the line crosses the y-axis, meaning the x-value (Years Since 1955) must be zero."
+                }
+            },
+            // 8. Info: Interpreting the Slope
+            {
+                title: "Interpreting the Slope (a)",
+                type: 'info',
+                content: `
+                    <p class="text-gray-700 text-lg mb-4">The slope, <b>a</b>, describes the <b>rate of change</b> of the dependent variable (y) for every one-unit increase in the independent variable (x).</p>
+                    <p class="text-gray-600 mb-4">If <b>a = 5</b>, it means that the predicted y-value increases by 5 for every 1-unit increase in x.</p>
+                    <div class="text-center p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 rounded-md italic">
+                        The slope is the real-world meaning of the trend.
+                    </div>
+                `
+            },
+            // 9. Practice: Interpreting the Slope (Rate of Change)
+            {
+                title: "Practice: Interpreting the Slope",
+                type: 'quiz',
+                question: 'A line of best fit for <b>Distance from Times Square (x, city blocks)</b> vs. <b>Hotel Cost (y, dollars)</b> has a slope of <b>a = -7.76</b>. What does this mean?',
+                options: [
+                    { text: "The hotel cost decreases by $7.76 for every block farther from Times Square.", correct: true },
+                    { text: "The cheapest predicted hotel room costs $7.76.", correct: false },
+                    { text: "The cost decreases by $1 per 7.76 blocks.", correct: false }
+                ],
+                hint: "The slope is the change in y *per one-unit change in x*. A negative slope means the cost decreases.",
+                feedback: {
+                    correct: "You got it! A negative slope of -7.76 means the cost (y) decreases by $7.76 for every one-block increase in distance (x).",
+                    incorrect: "The slope (a) is always tied to the 'rate of change' or 'increase/decrease per unit of x'."
+                }
+            },
+            // 10. Info: Prediction Goal
+            {
+                title: "The Final Goal: Prediction",
+                type: 'info',
+                content: `
+                    <p class="text-gray-700 text-lg mb-4">The ultimate purpose of the Line of Best Fit is to make <b>predictions</b> about y based on an unobserved value of x.</p>
+                    <p class="text-gray-600">To do this, you simply substitute the given x-value into the equation and solve for y. This predicted value is called $\\hat{y}$ (y-hat).</p>
+                `
+            },
+            // 11. Practice: Numerical Prediction
+            {
+                title: "Numerical Prediction Practice",
+                type: 'input_quiz',
+                question: 'A line of best fit for study hours (x) vs. test score (y) is: <b>y = 7.79x + 34.27</b>. What is the predicted test score (to the nearest whole number) if a student studies for <b>4 hours</b>?',
+                answer: 65, // 7.79 * 4 + 34.27 = 31.16 + 34.27 = 65.43
+                hint: "Substitute x=4 into the equation and round the final result to the nearest whole number.",
+                feedback: {
+                    correct: "Perfect! 7.79(4) + 34.27 = 65.43, which rounds to 65. You correctly used the linear model.",
+                    incorrect: (val) => `Your answer of <b>${val}</b> is incorrect. Remember to substitute the x value (4) into the equation and round your answer.`
+                }
+            },
+            // --- NEW STEPS START HERE (12 - 18) ---
+            
+            // 12. New Concept: Correlation vs. Causation
+            {
+                title: "Correlation vs. Causation",
+                type: 'quiz',
+                question: 'Data shows a strong negative correlation (r ≈ -0.9) between a person\'s age (x) and the percentage of accidents caused by speeding (y). Can we conclude that increasing age *causes* a driver to speed less?',
+                options: [
+                    { text: "Yes, a strong correlation proves causation.", correct: false },
+                    { text: "No, correlation shows a relationship, but not necessarily a cause-and-effect link.", correct: true },
+                    { text: "Yes, but only because the relationship is negative.", correct: false }
+                ],
+                hint: "Think about the phrase: 'Correlation does not equal...'",
+                feedback: {
+                    correct: "Exactly! Correlation only describes how variables move together. Other factors (experience, maturity, lower risk-taking) likely <b>cause</b> the decrease in speeding.",
+                    incorrect: "Be careful! Even a very strong 'r' value only indicates a relationship. We need evidence from controlled experiments to establish true cause-and-effect."
+                }
+            },
+
+            // 13. New Concept: Interpolation & Extrapolation
+            {
+                title: "Interpolation and Extrapolation",
+                type: 'info',
+                content: `
+                    <p class="text-gray-700 text-lg mb-4">The reliability of a prediction depends on its location relative to your original data range.</p>
+                    <ul class="list-disc list-inside space-y-2 text-gray-600">
+                        <li><b>Interpolation:</b> Making a prediction <b>within</b> the range of your observed x-values (e.g., predicting minimum wage for a year between 1955 and 2005). This is generally reliable.</li>
+                        <li><b>Extrapolation:</b> Making a prediction <b>outside</b> the range of your observed x-values (e.g., predicting minimum wage for the year 2050). This is less reliable and can be dangerous!</li>
+                    </ul>
+                `
+            },
+
+            // 14. Practice: Extrapolation Warning
+            {
+                title: "Practice: The Danger of Extrapolation",
+                type: 'quiz',
+                question: 'The Minimum Wage data covers Years Since 1955 (x) from 0 to 50. Which prediction is an example of dangerous <b>Extrapolation</b>?',
+                options: [
+                    { text: "Predicting the minimum wage 25 years after 1955.", correct: false },
+                    { text: "Predicting the minimum wage 100 years after 1955.", correct: true },
+                    { text: "Predicting the correlation coefficient (r).", correct: false }
+                ],
+                hint: "Which of these x-values is far outside the established range of 0 to 50?",
+                feedback: {
+                    correct: "Correct. Predicting far outside the established data (x=100) is unreliable because we don't know if the linear trend will continue.",
+                    incorrect: "Remember, extrapolation means predicting for an x-value that is far outside the range of the original data used to create the line."
+                }
+            },
+
+            // 15. New Concept: The Residual
+            {
+                title: "The Residual: Measuring Error",
+                type: 'info',
+                content: `
+                    <p class="text-gray-700 text-lg mb-4">A <b>Residual</b> is the vertical distance between an actual data point and the Line of Best Fit. It measures how wrong the model is for that specific point.</p>
+                    <div class="text-center p-3 bg-purple-50 border-l-4 border-purple-400 text-purple-800 rounded-md italic font-mono">
+                        Residual = Actual y - Predicted y
+                    </div>
+                    <p class="text-gray-600 mt-4">A positive residual means the actual score was <b>above</b> the predicted line. A negative residual means the actual score was <b>below</b> the line.</p>
+                `
+            },
+
+            // 16. Practice: Calculating a Residual
+            {
+                title: "Practice: Calculating a Residual",
+                type: 'input_quiz',
+                question: 'LOBF: <b>y = 5x + 50</b>. If a student studies for <b>5 hours (x)</b> and scores an <b>80 (actual y)</b>, what is the residual?',
+                answer: 5, // Predicted y = 5(5) + 50 = 75. Residual = 80 - 75 = 5.
+                hint: "First, calculate the predicted score. Then, subtract the predicted score from the actual score (80).",
+                feedback: {
+                    correct: "Great job! The predicted score was 75, so the residual is 80 - 75 = 5.",
+                    incorrect: (val) => `Your residual of <b>${val}</b> is incorrect. The predicted score for 5 hours is 75. Use the formula: Actual Y (80) - Predicted Y (75).`
+                }
+            },
+
+            // 17. New Concept: Outliers
+            {
+                title: "Outliers and Model Reliability",
+                type: 'quiz',
+                question: 'If one data point (an <b>outlier</b>) is far away from the rest of the cluster, what is the most likely effect on the Line of Best Fit (LOBF) and the correlation (r)?',
+                options: [
+                    { text: "The LOBF will shift toward the outlier, and the absolute value of r will decrease (weaken).", correct: true },
+                    { text: "The LOBF will stay the same, but the absolute value of r will increase (strengthen).", correct: false },
+                    { text: "Both the LOBF and r will remain unchanged.", correct: false }
+                ],
+                hint: "Outliers pull the line towards themselves and make the entire model look less accurate.",
+                feedback: {
+                    correct: "That's right. The outlier pulls the line of best fit towards it, and because the other points are now farther from the line, the correlation (r) becomes weaker.",
+                    incorrect: "Remember, the line is trying to minimize the distance to *all* points. A single far-away point has a strong influence, weakening the overall fit."
+                }
+            },
+
+            // 18. Final Challenge
+            {
+                title: "Final Challenge: Prediction with Context",
+                type: 'input_quiz',
+                question: 'The LOBF for <b>Ice Cream Sales (y)</b> vs. <b>Temperature (x)</b> is: <b>y = 15.13x - 959.63</b>. Predict the sales (to the nearest whole cone) when the average daily temperature is <b>78° (x)</b>.',
+                answer: 221, // 15.13 * 78 - 959.63 = 220.51 -> 221. (Updated answer to calculated value for accuracy)
+                hint: "Substitute x=78 into the equation: 15.13(78) - 959.63. Round the final result to the nearest whole number.",
+                feedback: {
+                    correct: "Fantastic! 15.13(78) - 959.63 ≈ 220.51. This rounds to 221 predicted cones. You've mastered all the steps!",
+                    incorrect: (val) => `Your prediction of <b>${val}</b> is incorrect. Recheck your substitution and calculation: 15.13 times 78, minus 959.63. The answer should round to 221.`
+                }
+            }
+        ];
+
+        // --- NEW FUNCTION: Show Final Completion Screen ---
+        function showFinalCompletionScreen() {
+            cardContent.innerHTML = `
+                <h2 class="text-3xl font-bold text-green-600 mb-6">Lesson Complete! 🎉</h2>
+                <p class="text-xl text-gray-700 mb-8">You have successfully finished the Line of Best Fit tutorial. Well done!</p>
+                <div class="text-center p-6 bg-green-50 rounded-xl border border-green-200">
+                    <p class="text-2xl font-semibold text-gray-800">Your Final Score:</p>
+                    <p class="text-5xl font-extrabold text-green-700 mt-2">${score} / ${totalAttempts}</p>
+                </div>
+                <p class="text-md text-gray-600 mt-8">You can now use the back button to review any of the 18 steps, or simply close the lesson.</p>
+            `;
+            stepIndicator.textContent = 'Complete';
+            backBtn.disabled = false;
+            nextBtn.disabled = true;
+            nextBtn.textContent = 'Finished';
+            hideFeedback();
+            feedbackMessage.innerHTML = ''; // Clear the feedback div
+        }
+
+
+        // --- Core Functions ---
+
+        /** Updates the score display in the header. */
+        function updateScoreTally() {
+            scoreTally.textContent = `${score} / ${totalAttempts}`;
+        }
+
+        /** Handles navigation to the next step. */
+        function nextStep() {
+            if (isComplete) return; // Prevent any action if already finished
+
+            if (currentStep < tutorialSteps.length - 1) {
+                currentStep++;
+                renderCard();
+                // Clear the feedback message and reset flag on moving forward
+                hideFeedback();
+                answeredCorrectlyOnStep = false;
+            } else {
+                // Logic for the LAST step (currentStep = 17)
+                if (answeredCorrectlyOnStep) {
+                    isComplete = true; // Set completion flag
+                    showFinalCompletionScreen(); // Show a clear completion screen
+                } else {
+                    // Safety render (should be disabled but prevents crash)
+                    renderCard();
+                }
+            }
+        }
+
+        /** Handles navigation to the previous step. */
+        function prevStep() {
+            if (currentStep > 0 || isComplete) {
+                if (isComplete) {
+                    isComplete = false;
+                    currentStep = tutorialSteps.length - 1; // Go back to the final quiz step
+                } else {
+                    currentStep--;
+                }
+                renderCard();
+                hideFeedback();
+            }
+        }
+
+        /** Displays feedback to the user. */
+        function showFeedback(message, isCorrect) {
+            feedbackMessage.innerHTML = message;
+            feedbackMessage.classList.remove('opacity-0', 'correct-bg', 'incorrect-bg', 'text-green-800', 'text-red-800');
+            
+            if (isCorrect) {
+                feedbackMessage.classList.add('correct-bg', 'text-green-800');
+            } else {
+                feedbackMessage.classList.add('incorrect-bg', 'text-red-800');
+            }
+
+            // Disable Next button until question is answered correctly (if it's a quiz type)
+            const step = tutorialSteps[currentStep];
+            if (step.type.includes('quiz') && !isCorrect) {
+                nextBtn.disabled = true;
+            } else {
+                nextBtn.disabled = false;
+            }
+        }
+
+        /** Clears the feedback message. */
+        function hideFeedback() {
+            feedbackMessage.textContent = '';
+            feedbackMessage.classList.add('opacity-0');
+            feedbackMessage.classList.remove('correct-bg', 'incorrect-bg', 'text-green-800', 'text-red-800');
+            nextBtn.disabled = false;
+        }
+
+        /** Handles the logic for a quiz/practice step. */
+        function checkAnswer(step, selectedValue) {
+            
+            if (isComplete) return; // Do not check answers if completed
+
+            // Only count as an attempt if they haven't answered correctly yet on this step
+            if (!answeredCorrectlyOnStep) {
+                totalAttempts++;
+            }
+
+            let isCorrect = false;
+            let message = '';
+            
+            // Logic for regular multiple-choice quiz
+            if (step.type === 'quiz') {
+                const selectedOption = step.options.find(opt => opt.text === selectedValue);
+                isCorrect = selectedOption && selectedOption.correct;
+            }
+            // Logic for input-based numerical quiz
+            else if (step.type === 'input_quiz') {
+                const inputVal = parseFloat(selectedValue.trim());
+                isCorrect = inputVal === step.answer;
+            }
+
+            if (isCorrect) {
+                message = step.feedback.correct;
+                if (!answeredCorrectlyOnStep) {
+                    score++;
+                    answeredCorrectlyOnStep = true;
+                }
+                nextBtn.disabled = false;
+            } else {
+                let hintMessage = step.feedback.incorrect;
+                if (typeof hintMessage === 'function') {
+                    hintMessage = hintMessage(selectedValue);
+                }
+                
+                if (totalAttempts > score || (step.type.includes('quiz') && !answeredCorrectlyOnStep)) { 
+                    message = hintMessage + "<br><b>Hint:</b> " + step.hint;
+                } else {
+                    message = hintMessage;
+                }
+                
+                nextBtn.disabled = true;
+            }
+
+            showFeedback(message, isCorrect);
+            updateScoreTally();
+            
+            // Re-render button text if it's the final step and they just answered correctly
+            if (currentStep === tutorialSteps.length - 1 && isCorrect) {
+                 nextBtn.textContent = 'Finish & Review';
+            }
+        }
+
+        /** Renders the current card content and UI state. */
+        function renderCard() {
+            if (isComplete) {
+                showFinalCompletionScreen();
+                return;
+            }
+
+            const step = tutorialSteps[currentStep];
+            stepIndicator.textContent = `Step ${currentStep + 1} of ${tutorialSteps.length}`;
+            
+            backBtn.disabled = currentStep === 0;
+
+            const isLastStep = currentStep === tutorialSteps.length - 1;
+            const isQuiz = step.type.includes('quiz');
+            
+            // Determine button text and disable state
+            if (isLastStep && answeredCorrectlyOnStep) {
+                nextBtn.textContent = 'Finish & Review';
+                nextBtn.disabled = false;
+            } else if (isLastStep) {
+                nextBtn.textContent = 'Finish & Review';
+                nextBtn.disabled = isQuiz && !answeredCorrectlyOnStep;
+            } else {
+                nextBtn.textContent = 'Next Step →';
+                nextBtn.disabled = isQuiz && !answeredCorrectlyOnStep;
+            }
+
+            if (!step.type.includes('quiz')) {
+                answeredCorrectlyOnStep = true;
+                nextBtn.disabled = false;
+            } else {
+                 if (currentStep > 0 && tutorialSteps[currentStep - 1].type.includes('quiz') && answeredCorrectlyOnStep) {
+                     answeredCorrectlyOnStep = false;
+                 }
+            }
+            
+            hideFeedback(); // Clear feedback when rendering a new card
+
+            // --- Construct Card Content ---
+            let html = `<h2 class="text-2xl font-bold text-indigo-700 mb-4">${step.title}</h2>`;
+            
+            if (step.type === 'info') {
+                html += step.content;
+            } 
+            else if (step.type === 'quiz') {
+                html += `<p class="text-xl font-medium mb-6 text-gray-800">${step.question}</p>`;
+                html += '<div id="options-container" class="space-y-3">';
+                step.options.forEach(option => {
+                    html += `
+                        <button 
+                            class="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-indigo-50 transition-colors bg-white text-gray-700 answer-option" 
+                            data-value="${option.text}">
+                            ${option.text}
+                        </button>`;
+                });
+                html += '</div>';
+
+                setTimeout(() => {
+                    document.querySelectorAll('.answer-option').forEach(button => {
+                        button.onclick = () => checkAnswer(step, button.getAttribute('data-value'));
+                    });
+                }, 0);
+            } 
+            else if (step.type === 'input_quiz') {
+                html += `
+                    <p class="text-xl font-medium mb-6 text-gray-800">${step.question}</p>
+                    <div class="flex flex-col items-start space-y-4">
+                        <input type="number" id="quiz-input" class="p-3 border-2 border-indigo-300 rounded-lg focus:outline-none focus:border-indigo-500 w-full md:w-1/2" placeholder="Enter number here">
+                        <button id="submit-input-btn" class="px-6 py-3 text-white bg-green-600 rounded-full hover:bg-green-700 transition-colors">
+                            Check Answer
+                        </button>
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    const submitBtn = document.getElementById('submit-input-btn');
+                    const inputField = document.getElementById('quiz-input');
+                    submitBtn.onclick = () => checkAnswer(step, inputField.value);
+                    inputField.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            checkAnswer(step, inputField.value);
+                        }
+                    });
+                    inputField.focus();
+                }, 0);
+            }
+
+            cardContent.innerHTML = html;
+        }
+
+        // --- Event Listeners and Initialization ---
+        nextBtn.addEventListener('click', nextStep);
+        backBtn.addEventListener('click', prevStep);
+
+        // Initial render
+        renderCard();
+        updateScoreTally();
+
+    </script>
+
+</body>
+</html>
