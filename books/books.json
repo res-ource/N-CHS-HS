@@ -1,0 +1,414 @@
+{
+  "title": "Oakland El Book Library",
+  "edition": "First six books",
+  "books": [
+    {
+      "slug": "find-jupiter",
+      "title": "Find Jupiter",
+      "pages": [
+        {
+          "src": "pages/find-jupiter/01.webp",
+          "alt": "SHARED READER B Find Jupiter An original space reader",
+          "bytes": 103554,
+          "sha256": "821838ef68e766211844dc1f6ea37c89c2648432db99fcf7773048f1c82faf28"
+        },
+        {
+          "src": "pages/find-jupiter/02.webp",
+          "alt": "Find Jupiter 2 Find Jupiter Shared reader B Words to notice Earth Mars Jupiter",
+          "bytes": 80326,
+          "sha256": "fe4e7907cb6ea579710266451ce84e2e9e81db5dcb8992f0b288e1c6a8251c2d"
+        },
+        {
+          "src": "pages/find-jupiter/03.webp",
+          "alt": "Find Jupiter 3 I look for Jupiter.",
+          "bytes": 102544,
+          "sha256": "20fd8969d591c07d7523ac6dc761fe216d1f6b27ff64b45c8f15802284cfb83d"
+        },
+        {
+          "src": "pages/find-jupiter/04.webp",
+          "alt": "Find Jupiter 4 This is Earth.",
+          "bytes": 93160,
+          "sha256": "b758e9025cdf68529948d7feb9a9b2e677846ad630aad2614bd3e527ff3ee79d"
+        },
+        {
+          "src": "pages/find-jupiter/05.webp",
+          "alt": "Find Jupiter 5 This is Mars.",
+          "bytes": 74820,
+          "sha256": "1cd64b3f297ef44874e8767c3ca4c17184d21eb6c52087ffdd6817262aefd364"
+        },
+        {
+          "src": "pages/find-jupiter/06.webp",
+          "alt": "Find Jupiter 6 I see stripes.",
+          "bytes": 90816,
+          "sha256": "228cdcc6c470b84d3b5a1a7dc9da79708bc6de322e7b3c0a21c21472f4989a94"
+        },
+        {
+          "src": "pages/find-jupiter/07.webp",
+          "alt": "Find Jupiter 7 I found Jupiter!",
+          "bytes": 95010,
+          "sha256": "85c080740adf6d24be066aed235cd58ff7e740338d12e0d10ea6b38c672a2881"
+        },
+        {
+          "src": "pages/find-jupiter/08.webp",
+          "alt": "Find Jupiter 8 Jupiter goes here.",
+          "bytes": 98612,
+          "sha256": "48482f3cd99fca989407720cd8ad30f31d2150006fc510835d8490a720faf647"
+        },
+        {
+          "src": "pages/find-jupiter/09.webp",
+          "alt": "Find Jupiter 9 Talk and Try Choose one. 1 Which planet did Aldar find? 2 Show the stripes. 3 Match Jupiter to a picture. Point, talk, act, or use AAC.",
+          "bytes": 35294,
+          "sha256": "1b6d46ae32c7361f57185d1a3283c812560d72ce33d370d9ca3db688bae508b1"
+        },
+        {
+          "src": "pages/find-jupiter/10.webp",
+          "alt": "Find Jupiter 10 Read again? Read again All done Your choice.",
+          "bytes": 67580,
+          "sha256": "8ff4fa8a4c2bc5d6b7fe7903d79a3eebc5b2044287124239bd0adf014f9afb9d"
+        }
+      ],
+      "cover": "pages/find-jupiter/01.webp",
+      "original_pdf_bytes": 28062135
+    },
+    {
+      "slug": "my-big-planet",
+      "title": "My Big Planet",
+      "pages": [
+        {
+          "src": "pages/my-big-planet/01.webp",
+          "alt": "SHARED READER C My Big Planet An original space reader",
+          "bytes": 168190,
+          "sha256": "427e86d9eb4a0d30e3bf81800e5e47ff13b19e9ed792d179214ceb3e3efb3ff0"
+        },
+        {
+          "src": "pages/my-big-planet/02.webp",
+          "alt": "My Big Planet 2 My Big Planet Shared reader C Words to notice Jupiter bands storm",
+          "bytes": 127598,
+          "sha256": "cdcc961e55b27816abede91ca03ee517b5deb3dbbedd6fdfb93ef20d7f67cb5b"
+        },
+        {
+          "src": "pages/my-big-planet/03.webp",
+          "alt": "My Big Planet 3 I like Jupiter.",
+          "bytes": 154626,
+          "sha256": "b0547aae6e94ec2ae404fd131b2bd0fdb44dd221ee27cab46d3832d25b5306b9"
+        },
+        {
+          "src": "pages/my-big-planet/04.webp",
+          "alt": "My Big Planet 4 Jupiter is big.",
+          "bytes": 209208,
+          "sha256": "d3bda773dd958b247a9d1cc53d0b64e206df4d249436146787372537380df850"
+        },
+        {
+          "src": "pages/my-big-planet/05.webp",
+          "alt": "My Big Planet 5 I see bands.",
+          "bytes": 209220,
+          "sha256": "6324733a21c5c32ca9fe368b4016db6658307880a88af17f8fd7197137a7776e"
+        },
+        {
+          "src": "pages/my-big-planet/06.webp",
+          "alt": "My Big Planet 6 I see a red spot.",
+          "bytes": 183956,
+          "sha256": "336c39c23a5cf540055fed6abbe3dcd1a01744bdda4e5fdc2b62af11017621c7"
+        },
+        {
+          "src": "pages/my-big-planet/07.webp",
+          "alt": "My Big Planet 7 The spot is a storm.",
+          "bytes": 183860,
+          "sha256": "ac4af0a9c48fde412a5d86f53cebbb8d85ba3d21bd934eb665e045eb0f8cfb10"
+        },
+        {
+          "src": "pages/my-big-planet/08.webp",
+          "alt": "My Big Planet 8 My big planet is Jupiter.",
+          "bytes": 185032,
+          "sha256": "259447717e7adb84f7b89fcc1b4e25906501828e0584c980dda52955337483bf"
+        },
+        {
+          "src": "pages/my-big-planet/09.webp",
+          "alt": "My Big Planet 9 Talk and Try Choose one. 1 Which planet is big? 2 What is the red spot? 3 Show the cloud bands. Point, talk, act, or use AAC.",
+          "bytes": 35386,
+          "sha256": "2c966198f1ed1623433b8f8bd97b3035cf2a50a69618f8860b7881415352577a"
+        },
+        {
+          "src": "pages/my-big-planet/10.webp",
+          "alt": "My Big Planet 10 Read again? Read again All done Your choice.",
+          "bytes": 165456,
+          "sha256": "bf0610dc3aaca44d77a65aecfec1ecd255db0aa0ab84ab0d8dc70882c1739276"
+        }
+      ],
+      "cover": "pages/my-big-planet/01.webp",
+      "original_pdf_bytes": 22736042
+    },
+    {
+      "slug": "rocket-launch",
+      "title": "Our Rocket Launch",
+      "pages": [
+        {
+          "src": "pages/rocket-launch/01.webp",
+          "alt": "SHARED READER A Our Rocket Launch An original space reader A pretend adventure",
+          "bytes": 115666,
+          "sha256": "a5c94bf00c582c7d200baf15914e89dd37d25b2ffa8faf362a32ccf06a501bcc"
+        },
+        {
+          "src": "pages/rocket-launch/02.webp",
+          "alt": "Our Rocket Launch 2 Our Rocket Launch Shared reader A Words to notice rocket Earth home",
+          "bytes": 88488,
+          "sha256": "720dd0ed8262a90939b62711c4530570002d83fbe9666538e687c13041f4757b"
+        },
+        {
+          "src": "pages/rocket-launch/03.webp",
+          "alt": "Our Rocket Launch 3 Let us pretend.",
+          "bytes": 108292,
+          "sha256": "37e9944a9e13e40a3bc1754b45849181167b0f87a80a4095c8690998ecc67d38"
+        },
+        {
+          "src": "pages/rocket-launch/04.webp",
+          "alt": "Our Rocket Launch 4 5, 4, 3, 2, 1!",
+          "bytes": 130862,
+          "sha256": "75d0c86e1162d91b3d1bd2fc7ca83cda4074aadc7d74231fe64f25c768cc8d9f"
+        },
+        {
+          "src": "pages/rocket-launch/05.webp",
+          "alt": "Our Rocket Launch 5 Blast off!",
+          "bytes": 98708,
+          "sha256": "7141039746dd18d40f4dee56e65f55bb7c7343195084a4328d506707987c98c9"
+        },
+        {
+          "src": "pages/rocket-launch/06.webp",
+          "alt": "Our Rocket Launch 6 I see Earth.",
+          "bytes": 147364,
+          "sha256": "b060ec9fe59625b5d46eeb36c9f05c40ac28699cb24d9ffb4896561636f061ba"
+        },
+        {
+          "src": "pages/rocket-launch/07.webp",
+          "alt": "Our Rocket Launch 7 Earth is my home.",
+          "bytes": 151638,
+          "sha256": "9f0d703a9910cd663c0a059f5dc1b81417318eb09f149987c9a062bd56c9f4f6"
+        },
+        {
+          "src": "pages/rocket-launch/08.webp",
+          "alt": "Our Rocket Launch 8 Home again!",
+          "bytes": 109516,
+          "sha256": "ea6924b6c4144677c2a5510ba3e4049b4e2839aadf42d5b4d15e16241bf01eac"
+        },
+        {
+          "src": "pages/rocket-launch/09.webp",
+          "alt": "Our Rocket Launch 9 Talk and Try Choose one. 1 What happens after the countdown? 2 Which planet is home? 3 Was the trip pretend? Point, talk, act, or use AAC.",
+          "bytes": 36420,
+          "sha256": "da011a51d43807a2308df0e4371af9ca0cdbc164c4d245eec3f611115b64ea2e"
+        },
+        {
+          "src": "pages/rocket-launch/10.webp",
+          "alt": "Our Rocket Launch 10 Read again? Read again All done Your choice.",
+          "bytes": 122332,
+          "sha256": "60b26cdfae69d098ce33c2d23a7ef8e74b95bf5d028b9bc59e581638f2994d1d"
+        }
+      ],
+      "cover": "pages/rocket-launch/01.webp",
+      "original_pdf_bytes": 30227858
+    },
+    {
+      "slug": "sort-space-shapes",
+      "title": "Sort the Space Shapes",
+      "pages": [
+        {
+          "src": "pages/sort-space-shapes/01.webp",
+          "alt": "SHARED READER B Sort the Space Shapes An original space reader",
+          "bytes": 107342,
+          "sha256": "119186aa58bdb897d99d8e76eeffd8a4431019e28227237a0be2dd159e30ce93"
+        },
+        {
+          "src": "pages/sort-space-shapes/02.webp",
+          "alt": "Sort the Space Shapes 2 Sort the Space Shapes Shared reader B Words to notice color shape size",
+          "bytes": 78914,
+          "sha256": "686ff186a39f6382b4723c2d0a2ffcf8f35f88778a220120e5c956ce05d95815"
+        },
+        {
+          "src": "pages/sort-space-shapes/03.webp",
+          "alt": "Sort the Space Shapes 3 Look at these parts.",
+          "bytes": 19632,
+          "sha256": "85e6599bdda95b501c51478928043fed14393fc4e4f137a2d1b8ad1a370acfd9"
+        },
+        {
+          "src": "pages/sort-space-shapes/04.webp",
+          "alt": "Sort the Space Shapes 4 Red Blue We sort by color.",
+          "bytes": 21636,
+          "sha256": "ce43229398385c04597e167bb7c19f8c755c002b35c6868b3a84cf4f3fc3f5df"
+        },
+        {
+          "src": "pages/sort-space-shapes/05.webp",
+          "alt": "Sort the Space Shapes 5 Circle Square Triangle We sort by shape.",
+          "bytes": 23878,
+          "sha256": "dda60102786da646cf4955557de2fddd128981b35cacbcab894360054c80a9a9"
+        },
+        {
+          "src": "pages/sort-space-shapes/06.webp",
+          "alt": "Sort the Space Shapes 6 Large Small We sort by size.",
+          "bytes": 21870,
+          "sha256": "73634008188c782543b51a9d8557100a1da6444c5afe0cba9634d9a87dc8ddb6"
+        },
+        {
+          "src": "pages/sort-space-shapes/07.webp",
+          "alt": "Sort the Space Shapes 7 The parts go here.",
+          "bytes": 19274,
+          "sha256": "c805a2c7ce4624ce95f0d0d74f56b3a207a3af5ba1d11d63e6e9dd45556abc66"
+        },
+        {
+          "src": "pages/sort-space-shapes/08.webp",
+          "alt": "Sort the Space Shapes 8 Ready to launch!",
+          "bytes": 95980,
+          "sha256": "98141e86b76bd0892e2603edd803e8ce498c7757a77f3d96b682b606237c5266"
+        },
+        {
+          "src": "pages/sort-space-shapes/09.webp",
+          "alt": "Sort the Space Shapes 9 Talk and Try Choose one. 1 Show the red parts. 2 What shapes do you see? 3 Sort some parts by size. Point, talk, act, or use AAC.",
+          "bytes": 35094,
+          "sha256": "b192d5b6ec4687a2a876d0b5d65e15969cba9eda33245b9fe17ac3b3eaf89669"
+        },
+        {
+          "src": "pages/sort-space-shapes/10.webp",
+          "alt": "Sort the Space Shapes 10 Read again? Read again All done Your choice.",
+          "bytes": 72598,
+          "sha256": "69e66ccedfee7d10c10ff6b272b14d5b5882a572daffbf77d70a008f0a54fd39"
+        }
+      ],
+      "cover": "pages/sort-space-shapes/01.webp",
+      "original_pdf_bytes": 4641921
+    },
+    {
+      "slug": "rocket-needs-help",
+      "title": "The Rocket Needs Help",
+      "pages": [
+        {
+          "src": "pages/rocket-needs-help/01.webp",
+          "alt": "SHARED READER aa The Rocket Needs Help An original space reader",
+          "bytes": 93858,
+          "sha256": "c8e08ec6599fb1bdc06aba8f0765c9ad00290e7609d933d8783b72fea415e6fb"
+        },
+        {
+          "src": "pages/rocket-needs-help/02.webp",
+          "alt": "The Rocket Needs Help 2 The Rocket Needs Help Shared reader aa Words to notice help more done",
+          "bytes": 76138,
+          "sha256": "d356ba9ea28a7c3ce3614b543046ba1ae82d15a8793e4b25171d3a3459626ece"
+        },
+        {
+          "src": "pages/rocket-needs-help/03.webp",
+          "alt": "The Rocket Needs Help 3 Help me.",
+          "bytes": 75450,
+          "sha256": "b62ce564a7f4c58b1cd08bf8a06ab8b63089fd3e14152dd578d57948f0a40110"
+        },
+        {
+          "src": "pages/rocket-needs-help/04.webp",
+          "alt": "The Rocket Needs Help 4 More parts.",
+          "bytes": 77288,
+          "sha256": "a4c09dbd47ed1fcc84df3650dee8786f0e860eec531c417b959b18033b87046a"
+        },
+        {
+          "src": "pages/rocket-needs-help/05.webp",
+          "alt": "The Rocket Needs Help 5 My turn.",
+          "bytes": 75362,
+          "sha256": "e6dde0744e3c73767f6232e2e12f8f1c4f793c11e32934439484152d2a41b267"
+        },
+        {
+          "src": "pages/rocket-needs-help/06.webp",
+          "alt": "The Rocket Needs Help 6 Help me.",
+          "bytes": 77812,
+          "sha256": "ea4f4fecc987a2cd9558a8d70220bdce2e1e5ddcaae58b1adba116df5e979260"
+        },
+        {
+          "src": "pages/rocket-needs-help/07.webp",
+          "alt": "The Rocket Needs Help 7 Go rocket!",
+          "bytes": 77762,
+          "sha256": "050a3186fa465665f3521ee01079aa04f4946664a6bc6cf7e463746e71b59afd"
+        },
+        {
+          "src": "pages/rocket-needs-help/08.webp",
+          "alt": "The Rocket Needs Help 8 All done.",
+          "bytes": 78628,
+          "sha256": "986ea9fbd825d4d56b19110eef2d99b3d77eaaad8d5ceb65f116aae15711cc5a"
+        },
+        {
+          "src": "pages/rocket-needs-help/09.webp",
+          "alt": "The Rocket Needs Help 9 Talk and Try Choose one. 1 Show the helper. 2 What could you say for help? 3 When can you say all done? Point, talk, act, or use AAC.",
+          "bytes": 37582,
+          "sha256": "45208f98413b79789d279e75cdf0c983e786f76bdfcd6029912428f288f555aa"
+        },
+        {
+          "src": "pages/rocket-needs-help/10.webp",
+          "alt": "The Rocket Needs Help 10 Read again? Read again All done Your choice.",
+          "bytes": 73654,
+          "sha256": "33852bf60bf8279d3bd5ee2e3c970aa88d07bb7f616d1eb6f442f811a3f64d57"
+        }
+      ],
+      "cover": "pages/rocket-needs-help/01.webp",
+      "original_pdf_bytes": 21989436
+    },
+    {
+      "slug": "letters-to-launch",
+      "title": "Letters to Launch",
+      "pages": [
+        {
+          "src": "pages/letters-to-launch/01.webp",
+          "alt": "SHARED READER A Letters to Launch An original space reader",
+          "bytes": 129292,
+          "sha256": "5c86e15f2e2e0b76ec42ed88e59688d21280069e1fe077e56310f40f4f8eedcd"
+        },
+        {
+          "src": "pages/letters-to-launch/02.webp",
+          "alt": "Letters to Launch 2 Letters to Launch Shared reader A Words to notice A l d a r",
+          "bytes": 94068,
+          "sha256": "3212edf2493f69c0fe6c26dd21534bb639bada65656589e108aaa2cc712a117c"
+        },
+        {
+          "src": "pages/letters-to-launch/03.webp",
+          "alt": "Letters to Launch 3 Model: Aldar A A goes first.",
+          "bytes": 107236,
+          "sha256": "56612dcedb5c57daba7151c8153e3d2f96dabc859f1e8fad1c67d3616b7fb646"
+        },
+        {
+          "src": "pages/letters-to-launch/04.webp",
+          "alt": "Letters to Launch 4 Model: Aldar A l l comes next.",
+          "bytes": 110934,
+          "sha256": "0347817338cd1f70bc08571c443a7d178c354a2a428cdddfa2ab916f8da3b750"
+        },
+        {
+          "src": "pages/letters-to-launch/05.webp",
+          "alt": "Letters to Launch 5 Model: Aldar A l d Here comes d.",
+          "bytes": 111462,
+          "sha256": "7c8429fd58c95f5bb65c9166391448f5b38ef4b6a1fdf8029ba2b47afbbe7b85"
+        },
+        {
+          "src": "pages/letters-to-launch/06.webp",
+          "alt": "Letters to Launch 6 Model: Aldar A l d a Here comes a.",
+          "bytes": 112228,
+          "sha256": "d5273d4b6ad8b89d395990b75f02feb348bbbb933b959a014d999c52d1ddccbd"
+        },
+        {
+          "src": "pages/letters-to-launch/07.webp",
+          "alt": "Letters to Launch 7 Model: Aldar A l d a r Here comes r.",
+          "bytes": 112082,
+          "sha256": "739eb84ae87e531c9b198085a735d6edb025450882d499cad4134235e790ec1a"
+        },
+        {
+          "src": "pages/letters-to-launch/08.webp",
+          "alt": "Letters to Launch 8 Model: Aldar A l d a r Aldar! Ready to launch.",
+          "bytes": 128454,
+          "sha256": "54f8b28750999a6e30562803573011aae27dfe16f936d2e450c9bea70cdc5b6a"
+        },
+        {
+          "src": "pages/letters-to-launch/09.webp",
+          "alt": "Letters to Launch 9 Talk and Try Choose one. 1 Which letter comes first? 2 What letter comes next? 3 Build your name. Point, talk, act, or use AAC.",
+          "bytes": 32136,
+          "sha256": "066d4ba0b99f39aff808d5806da36816f491601a9ea04901507e1fcfeab8eab1"
+        },
+        {
+          "src": "pages/letters-to-launch/10.webp",
+          "alt": "Letters to Launch 10 Read again? Read again All done Your choice.",
+          "bytes": 93536,
+          "sha256": "01ecc252483562bf2debe2bf24939dd73371ab12de2e379e2c5e289e4104e6cc"
+        }
+      ],
+      "cover": "pages/letters-to-launch/01.webp",
+      "original_pdf_bytes": 13500837
+    }
+  ]
+}
