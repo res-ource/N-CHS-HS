@@ -1,6 +1,6 @@
 {
   "title": "Oakland El Book Library",
-  "edition": "First six books",
+  "edition": "Six space readers and one social story",
   "books": [
     {
       "slug": "find-jupiter",
@@ -409,6 +409,63 @@
       ],
       "cover": "pages/letters-to-launch/01.webp",
       "original_pdf_bytes": 13500837
+    },
+    {
+      "slug": "solar-system-all-done",
+      "title": "Solar System: All Done for Now",
+      "pages": [
+        {
+          "src": "pages/solar-system-all-done/01.webp",
+          "alt": "Aldar's Solar System All Done for Now Finished for now, not forever",
+          "bytes": 281302,
+          "sha256": "17887d5d05a0ea7b06be5dd4e0676d608f4fe417c4d6ac51e6240b64ab484b7b"
+        },
+        {
+          "src": "pages/solar-system-all-done/02.webp",
+          "alt": "I love the solar system. I like to look, move, and play. Aldar's Solar System: All Done for Now 2",
+          "bytes": 215044,
+          "sha256": "ac8b6fae60bde64fe38326625a050d5953f441bf71b5c2677cc5a809b73047d0"
+        },
+        {
+          "src": "pages/solar-system-all-done/03.webp",
+          "alt": "Sometimes the solar system is ALL DONE. ALL DONE means finished for now, not forever. Aldar's Solar System: All Done for Now 3",
+          "bytes": 260376,
+          "sha256": "497133a55b9aa3793c0dd8c239eeaf4084e88e080a7a3969b738fd5803a0e610"
+        },
+        {
+          "src": "pages/solar-system-all-done/04.webp",
+          "alt": "My teacher may say, Two more planets. Then, Last planet. Solar system, ALL DONE. Aldar's Solar System: All Done for Now 4",
+          "bytes": 227018,
+          "sha256": "83c35eca09f4c71486297c6caf3aca9d9ed52f22265f43d3a7bc9e64e2e98711"
+        },
+        {
+          "src": "pages/solar-system-all-done/05.webp",
+          "alt": "I can put away one planet. My teacher can help with the rest. Aldar's Solar System: All Done for Now 5",
+          "bytes": 234472,
+          "sha256": "e0326f6c4f46486d9ef9da56cad9ebcfbfb441532f2174fc5d86c116cf89b2ff"
+        },
+        {
+          "src": "pages/solar-system-all-done/06.webp",
+          "alt": "I might feel sad or mad. That is okay. I can say, Solar system. My teacher listens. You want the solar system. I understand. Aldar's Solar System: All Done for Now 6",
+          "bytes": 235988,
+          "sha256": "0bba0b77c0d88c564ec9ad9ec5d4e255347b2af65a22ab4910e5185397d2ac5a"
+        },
+        {
+          "src": "pages/solar-system-all-done/07.webp",
+          "alt": "Sometimes the answer is yes, later, or tomorrow. I can ask for HELP or BREAK. Aldar's Solar System: All Done for Now 7",
+          "bytes": 214442,
+          "sha256": "d83faa0de07f28745232115257a6b5b7c007a62e0b63563078713cf1fd82387c"
+        },
+        {
+          "src": "pages/solar-system-all-done/08.webp",
+          "alt": "Then I can do the next thing. I can come back to the solar system another time. Aldar's Solar System: All Done for Now 8",
+          "bytes": 214678,
+          "sha256": "53c9151361917a36427dee9f43b6aa0070308e5e3607645dcf9bca4fb739ee89"
+        }
+      ],
+      "cover": "pages/solar-system-all-done/01.webp",
+      "original_pdf_bytes": 29629462,
+      "kind": "social story"
     }
   ]
 }
